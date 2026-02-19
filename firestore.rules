@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow admins to read/write everything
+    match /{document=**} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Employees can read their own profile
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Allow profile update (e.g. FCM token)
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Employees can read/create their own attendance records
+    match /attendance/{attendanceId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Employees can read/create their own leave requests
+    match /leaves/{leaveId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Allow read of shifts for everyone (authenticated)
+    match /shifts/{shiftId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow read of system settings for everyone (authenticated)
+    match /settings/{docId} {
+      allow read: if request.auth != null;
+    }
+  }
+}

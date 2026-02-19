@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
+/* ============================================================
+   JNE MTP Admin Dashboard — Global Styles
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --jne-red: #e31e24;
+  --jne-red-dark: #b91c1c;
+  --jne-red-light: #fee2e2;
+  --sidebar-width: 80px; /* Slim sidebar like in the image */
+  --header-height: 70px;
+  --bg-main: #0a0a0b;
+  --bg-card: #161618;
+  --bg-sidebar: #111112;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --accent-cyan: #00f2fe;
+  --accent-purple: #ff00cc;
+  --accent-yellow: #f9d423;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* ============================================================
+   Animations & Glassmorphism
+   ============================================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-card {
+  background: var(--bg-card);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.stat-card-gradient-1 {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+}
+
+.stat-card-gradient-2 {
+  background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+}
+
+.stat-card-gradient-3 {
+  background: linear-gradient(135deg, #ff00cc 0%, #3333ff 100%);
+}
+
+/* ============================================================
+   Sidebar Premium
+   ============================================================ */
+.sidebar-link-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.sidebar-link-premium:hover, .sidebar-link-premium.active {
+  color: var(--jne-red);
+  background: rgba(227, 30, 36, 0.1);
+}
+
+/* ============================================================
+   Buttons Premium
+   ============================================================ */
+.btn-premium {
+  padding: 10px 20px;
+  border-radius: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-premium-yellow {
+  background: var(--accent-yellow);
+  color: #000;
+}
+
+.btn-premium-yellow:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   Table Premium
+   ============================================================ */
+.table-premium {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.table-premium th {
+  padding: 12px 20px;
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.table-premium td {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.table-premium tr td:first-child {
+  border-radius: 16px 0 0 16px;
+}
+
+.table-premium tr td:last-child {
+  border-radius: 0 16px 16px 0;
+}
+
+.table-premium tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
 }
