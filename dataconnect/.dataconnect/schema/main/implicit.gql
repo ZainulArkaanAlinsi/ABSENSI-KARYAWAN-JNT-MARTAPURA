@@ -1,0 +1,40 @@
+extend type AttendanceRecord {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "AttendanceRecord", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `AttendanceRecord`.`employee`. It must match the value of `Employee`.`id`. See `@ref` for how to customize it.
+  """
+  employeeId: UUID! @fdc_generated(from: "AttendanceRecord.employee", purpose: IMPLICIT_REF_FIELD)
+}
+extend type Department {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Department", purpose: IMPLICIT_KEY_FIELD)
+}
+extend type Employee {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Employee", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Employee`.`department`. It must match the value of `Department`.`id`. See `@ref` for how to customize it.
+  """
+  departmentId: UUID! @fdc_generated(from: "Employee.department", purpose: IMPLICIT_REF_FIELD)
+}
+extend type LeaveRequest {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "LeaveRequest", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `LeaveRequest`.`approver`. It must match the value of `Employee`.`id`. See `@ref` for how to customize it.
+  """
+  approverId: UUID @fdc_generated(from: "LeaveRequest.approver", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `LeaveRequest`.`employee`. It must match the value of `Employee`.`id`. See `@ref` for how to customize it.
+  """
+  employeeId: UUID! @fdc_generated(from: "LeaveRequest.employee", purpose: IMPLICIT_REF_FIELD)
+}

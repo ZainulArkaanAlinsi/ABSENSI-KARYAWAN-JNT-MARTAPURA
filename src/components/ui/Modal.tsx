@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   isOpen: boolean;
@@ -21,22 +22,30 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-content" style={{ maxWidth }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-base font-bold text-slate-800">{title}</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+    <AnimatePresence>
+      {isOpen && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="modal-content relative" 
+            style={{ maxWidth }}
           >
-            <X size={16} color="#94A3B8" />
-          </button>
+            <div className="modal-header">
+              <h2 className="text-lg font-black text-white tracking-tight">{title}</h2>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl hover:bg-white/5 text-slate-500 hover:text-white transition-all shadow-inner"
+              >
+                <X size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+            <div className="modal-body">{children}</div>
+          </motion.div>
         </div>
-        <div className="px-6 py-5">{children}</div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

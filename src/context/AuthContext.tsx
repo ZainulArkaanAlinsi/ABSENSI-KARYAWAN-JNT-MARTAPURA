@@ -50,16 +50,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: data.role,
               });
             } else {
-              // Not an admin — sign out
+              console.warn('User is not an admin:', data.role);
               await firebaseSignOut(auth);
               setUser(null);
               setError('Akses ditolak. Akun ini bukan admin.');
             }
           } else {
+            console.error('User document not found for UID:', fbUser.uid);
+            await firebaseSignOut(auth); // Sign out if no doc
             setUser(null);
+            setError('Akun tidak ditemukan di database. Hubungi IT.');
           }
-        } catch {
+        } catch (err) {
+          console.error('Error fetching user doc:', err);
           setUser(null);
+          setError('Terjadi kesalahan saat memuat data pengguna.');
         }
       } else {
         setUser(null);

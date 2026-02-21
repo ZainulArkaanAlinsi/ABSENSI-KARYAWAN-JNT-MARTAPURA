@@ -153,11 +153,11 @@ function mapNotification(id: string, data: DocumentData): AdminNotification {
 export async function getEmployees(): Promise<Employee[]> {
   const q = query(
     collection(db, COLLECTIONS.USERS),
-    where('role', '==', 'employee'),
-    orderBy('name')
+    where('role', '==', 'employee')
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapEmployee(d.id, d.data()));
+  const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
+  return data.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getEmployee(id: string): Promise<Employee | null> {
@@ -191,11 +191,11 @@ export async function deleteEmployee(id: string): Promise<void> {
 export function subscribeToEmployees(callback: (employees: Employee[]) => void) {
   const q = query(
     collection(db, COLLECTIONS.USERS),
-    where('role', '==', 'employee'),
-    orderBy('name')
+    where('role', '==', 'employee')
   );
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => mapEmployee(d.id, d.data())));
+    const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
+    callback(data.sort((a, b) => a.name.localeCompare(b.name)));
   });
 }
 
@@ -263,11 +263,17 @@ export function subscribeToLeaves(
   status: LeaveStatus | 'all',
   callback: (leaves: LeaveRequest[]) => void
 ) {
-  const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc'), limit(50)];
-  if (status !== 'all') constraints.unshift(where('status', '==', status));
+  const constraints: QueryConstraint[] = [];
+  if (status !== 'all') constraints.push(where('status', '==', status));
+  
   const q = query(collection(db, COLLECTIONS.LEAVES), ...constraints);
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => mapLeave(d.id, d.data())));
+    const data = snap.docs.map((d) => mapLeave(d.id, d.data()));
+    // Client-side sort to avoid index requirement for simple admin view
+    const sorted = data.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    callback(sorted.slice(0, 50));
   });
 }
 
@@ -277,11 +283,11 @@ export function subscribeToLeaves(
 export async function getAttendanceByDate(date: string): Promise<AttendanceRecord[]> {
   const q = query(
     collection(db, COLLECTIONS.ATTENDANCE),
-    where('date', '==', date),
-    orderBy('createdAt', 'desc')
+    where('date', '==', date)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapAttendance(d.id, d.data()));
+  const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
+  return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getAttendanceByRange(
@@ -291,13 +297,16 @@ export async function getAttendanceByRange(
 ): Promise<AttendanceRecord[]> {
   const constraints: QueryConstraint[] = [
     where('date', '>=', startDate),
-    where('date', '<=', endDate),
-    orderBy('date', 'desc'),
+    where('date', '<=', endDate)
   ];
   if (userId) constraints.push(where('userId', '==', userId));
+  
   const q = query(collection(db, COLLECTIONS.ATTENDANCE), ...constraints);
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapAttendance(d.id, d.data()));
+  const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
+  
+  // Sort by date descending then by name/id
+  return data.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export function subscribeToTodayAttendance(
@@ -306,12 +315,12 @@ export function subscribeToTodayAttendance(
 ) {
   const q = query(
     collection(db, COLLECTIONS.ATTENDANCE),
-    where('date', '==', date),
-    orderBy('createdAt', 'desc'),
-    limit(20)
+    where('date', '==', date)
   );
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => mapAttendance(d.id, d.data())));
+    const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
+    const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(sorted.slice(0, 20));
   });
 }
 

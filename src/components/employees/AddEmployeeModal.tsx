@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Loader2, Mail, User, Building, Briefcase, Clock } from 'lucide-react';
+import { Loader2, Mail, User, Building, Briefcase, Clock, Plus } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
-import { addEmployee } from '@/lib/firestore';
 import type { Shift } from '@/types';
+import { useAddEmployeeLogic } from '@/hooks/useAddEmployeeLogic';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -15,163 +15,166 @@ interface AddEmployeeModalProps {
 const DEPARTMENTS = ['Operasional', 'Kurir', 'Admin', 'Gudang', 'IT', 'HR', 'Keuangan', 'Marketing'];
 
 export default function AddEmployeeModal({ isOpen, onClose, shifts }: AddEmployeeModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    employeeId: '',
-    department: '',
-    position: '',
-    shiftId: '',
-    contractType: 'permanent' as 'permanent' | 'contract' | 'intern',
-    joinDate: new Date().toISOString().split('T')[0],
-  });
-
-  const handleChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await addEmployee({
-        ...form,
-        uid: '',
-        role: 'employee',
-        faceRegistered: false,
-        isActive: true,
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setForm({ name: '', email: '', phone: '', employeeId: '', department: '', position: '', shiftId: '', contractType: 'permanent', joinDate: new Date().toISOString().split('T')[0] });
-        onClose();
-      }, 2000);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, success, form, handleChange, handleSubmit } = useAddEmployeeLogic(onClose);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Tambah Karyawan Baru" maxWidth={600}>
-      {success ? (
-        <div className="flex flex-col items-center justify-center py-8">
-          <div
-            className="flex items-center justify-center rounded-full mb-4"
-            style={{ width: 64, height: 64, background: '#DCFCE7' }}
+    <Modal isOpen={isOpen} onClose={onClose} title="Registry New Employee" maxWidth={680}>
+      <AnimatePresence mode="wait">
+        {success ? (
+            <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
+              <motion.div
+                initial={{ scale: 0, rotate: -45 }}
+                animate={{ scale: 1, rotate: 0 }}
+                className="w-24 h-24 rounded-3xl bg-linear-to-br from-jne-success/20 to-transparent flex items-center justify-center text-jne-success mb-8 border border-jne-success/30 shadow-2xl relative"
+              >
+                <div className="absolute inset-0 bg-jne-success/10 blur-xl rounded-full" />
+                <div className="w-12 h-12 rounded-full bg-jne-success flex items-center justify-center text-white shadow-xl shadow-jne-success/40 relative z-10">
+                  <span className="text-3xl font-black">✓</span>
+                </div>
+              </motion.div>
+              <h3 className="text-3xl font-black text-white tracking-tight uppercase mb-3">Access Granted</h3>
+              <p className="text-[12px] font-black text-(--text-dim) uppercase tracking-[0.4em] leading-relaxed max-w-sm">
+                Identity matrix synchronized. Access package transmitted to <span className="text-jne-info">{form.email}</span>.
+              </p>
+            </div>
+        ) : (
+          <motion.form 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onSubmit={handleSubmit} 
+            className="space-y-6"
           >
-            <span style={{ fontSize: 28 }}>✓</span>
-          </div>
-          <h3 className="font-bold text-slate-800 text-lg">Karyawan Berhasil Ditambahkan!</h3>
-          <p className="text-slate-500 text-sm mt-1 text-center">
-            Email sambutan dengan kredensial login akan dikirim otomatis ke <strong>{form.email}</strong>
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div
-            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm mb-2"
-            style={{ background: '#DBEAFE', color: '#1D4ED8' }}
-          >
-            <Mail size={14} />
-            <span>Sistem akan otomatis mengirim email kredensial login ke karyawan baru.</span>
-          </div>
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#22d3ee]/5 border border-[#22d3ee]/10 text-[11px] text-[#22d3ee] font-black uppercase tracking-[0.2em] leading-relaxed shadow-inner backdrop-blur-xl">
+              <Mail size={18} className="shrink-0 mt-0.5" />
+              <p>System automation active. Initializing encrypted welcome package for new agent protocol.</p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">
-                <User size={12} className="inline mr-1" />Nama Lengkap *
-              </label>
-              <input className="form-input" placeholder="Budi Santoso" value={form.name}
-                onChange={e => handleChange('name', e.target.value)} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Full Identity
+                </label>
+                <div className="relative group">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-jne-red transition-all" size={14} />
+                  <input className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner" placeholder="Agent Name..." value={form.name}
+                    onChange={e => handleChange('name', e.target.value)} required />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Agent ID Code
+                </label>
+                <div className="relative group">
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-jne-red transition-all" size={14} />
+                  <input className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner" placeholder="JNE-XXX-000" value={form.employeeId}
+                    onChange={e => handleChange('employeeId', e.target.value)} required />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="form-label">ID Karyawan *</label>
-              <input className="form-input" placeholder="JNE-001" value={form.employeeId}
-                onChange={e => handleChange('employeeId', e.target.value)} required />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">
-                <Mail size={12} className="inline mr-1" />Email *
-              </label>
-              <input type="email" className="form-input" placeholder="budi@jnemtp.com" value={form.email}
-                onChange={e => handleChange('email', e.target.value)} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Secure Email Link
+                </label>
+                <input type="email" className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner" placeholder="identity@jnemtp.com" value={form.email}
+                  onChange={e => handleChange('email', e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Terminal Phone
+                </label>
+                <input className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner" placeholder="+62 ..." value={form.phone}
+                  onChange={e => handleChange('phone', e.target.value)} />
+              </div>
             </div>
-            <div>
-              <label className="form-label">No. Telepon</label>
-              <input className="form-input" placeholder="08xxxxxxxxxx" value={form.phone}
-                onChange={e => handleChange('phone', e.target.value)} />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">
-                <Building size={12} className="inline mr-1" />Departemen *
-              </label>
-              <select className="form-input" value={form.department}
-                onChange={e => handleChange('department', e.target.value)} required>
-                <option value="">Pilih Departemen</option>
-                {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Operational Sector
+                </label>
+                <div className="relative">
+                  <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" size={14} />
+                  <select className="appearance-none w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner cursor-pointer" value={form.department}
+                    onChange={e => handleChange('department', e.target.value)} required>
+                    <option value="" disabled className="bg-[#0f172a]">Select Sector</option>
+                    {DEPARTMENTS.map(d => <option key={d} value={d} className="bg-[#0f172a]">{d}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Designated Function
+                </label>
+                <input className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner" placeholder="Position Profile..." value={form.position}
+                  onChange={e => handleChange('position', e.target.value)} required />
+              </div>
             </div>
-            <div>
-              <label className="form-label">
-                <Briefcase size={12} className="inline mr-1" />Jabatan *
-              </label>
-              <input className="form-input" placeholder="Staff Operasional" value={form.position}
-                onChange={e => handleChange('position', e.target.value)} required />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">
-                <Clock size={12} className="inline mr-1" />Shift Kerja *
-              </label>
-              <select className="form-input" value={form.shiftId}
-                onChange={e => handleChange('shiftId', e.target.value)} required>
-                <option value="">Pilih Shift</option>
-                {shifts.map(s => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.checkInTime} - {s.checkOutTime})</option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Schedule Protocol
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" size={14} />
+                  <select className="appearance-none w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner cursor-pointer" value={form.shiftId}
+                    onChange={e => handleChange('shiftId', e.target.value)} required>
+                    <option value="" disabled className="bg-[#0f172a]">Select Protocol</option>
+                    {shifts.map(s => (
+                      <option key={s.id} value={s.id} className="bg-[#0f172a]">{s.name} [{s.checkInTime}-{s.checkOutTime}]</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">
+                  Engagement Mode
+                </label>
+                <select className="appearance-none w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-xs text-white focus:outline-none focus:border-jne-red/50 transition-all shadow-inner cursor-pointer" value={form.contractType}
+                  onChange={e => handleChange('contractType', e.target.value)}>
+                  <option value="permanent" className="bg-[#0f172a]">Permanent Agent</option>
+                  <option value="contract" className="bg-[#0f172a]">External Link</option>
+                  <option value="intern" className="bg-[#0f172a]">Temporary Asset</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="form-label">Tipe Kontrak</label>
-              <select className="form-input" value={form.contractType}
-                onChange={e => handleChange('contractType', e.target.value)}>
-                <option value="permanent">Karyawan Tetap</option>
-                <option value="contract">Kontrak</option>
-                <option value="intern">Magang</option>
-              </select>
+
+            <div className="flex gap-4 pt-4">
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={onClose}
+                className="btn-secondary flex-1"
+              >
+                Discard
+              </motion.button>
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={!loading ? { scale: 1.02, y: -1 } : {}}
+                whileTap={!loading ? { scale: 0.97 } : {}}
+                className="btn-primary flex-1"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Syncing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirm Deployment</span>
+                    <Plus size={16} />
+                  </>
+                )}
+              </motion.button>
             </div>
-          </div>
-
-          <div>
-            <label className="form-label">Tanggal Bergabung</label>
-            <input type="date" className="form-input" value={form.joinDate}
-              onChange={e => handleChange('joinDate', e.target.value)} />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn btn-secondary flex-1">
-              Batal
-            </button>
-            <button type="submit" disabled={loading} className="btn btn-primary flex-1 justify-center">
-              {loading ? <><Loader2 size={16} className="animate-spin" /> Menyimpan...</> : 'Tambah Karyawan'}
-            </button>
-          </div>
-        </form>
-      )}
+          </motion.form>
+        )}
+      </AnimatePresence>
     </Modal>
   );
 }
+

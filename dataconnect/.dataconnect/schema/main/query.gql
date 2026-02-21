@@ -1,0 +1,214 @@
+extend type Query {
+  """
+  ✨ Look up a single `AttendanceRecord` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  attendanceRecord(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceRecord_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceRecord_FirstRow
+  ): AttendanceRecord @fdc_generated(from: "AttendanceRecord", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Department` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  department(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Department_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Department_FirstRow
+  ): Department @fdc_generated(from: "Department", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Employee` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  employee(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Employee_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Employee_FirstRow
+  ): Employee @fdc_generated(from: "Employee", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `LeaveRequest` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  leaveRequest(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: LeaveRequest_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LeaveRequest_FirstRow
+  ): LeaveRequest @fdc_generated(from: "LeaveRequest", purpose: QUERY_SINGLE)
+  """
+  ✨ List `AttendanceRecord` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  attendanceRecords(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: AttendanceRecord_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [AttendanceRecord_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: AttendanceRecord_Having
+  ): [AttendanceRecord!]! @fdc_generated(from: "AttendanceRecord", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Department` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  departments(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Department_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Department_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Department_Having
+  ): [Department!]! @fdc_generated(from: "Department", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Employee` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  employees(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Employee_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Employee_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Employee_Having
+  ): [Employee!]! @fdc_generated(from: "Employee", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `LeaveRequest` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  leaveRequests(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: LeaveRequest_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [LeaveRequest_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: LeaveRequest_Having
+  ): [LeaveRequest!]! @fdc_generated(from: "LeaveRequest", purpose: QUERY_MULTIPLE)
+}

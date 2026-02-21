@@ -1,0 +1,1404 @@
+"""
+✨ `AttendanceRecord_KeyOutput` returns the primary key fields of table type `AttendanceRecord`.
+
+It has the same format as `AttendanceRecord_Key`, but is only used as mutation return value.
+"""
+scalar AttendanceRecord_KeyOutput
+"""
+✨ `Department_KeyOutput` returns the primary key fields of table type `Department`.
+
+It has the same format as `Department_Key`, but is only used as mutation return value.
+"""
+scalar Department_KeyOutput
+"""
+✨ `Employee_KeyOutput` returns the primary key fields of table type `Employee`.
+
+It has the same format as `Employee_Key`, but is only used as mutation return value.
+"""
+scalar Employee_KeyOutput
+"""
+✨ `LeaveRequest_KeyOutput` returns the primary key fields of table type `LeaveRequest`.
+
+It has the same format as `LeaveRequest_Key`, but is only used as mutation return value.
+"""
+scalar LeaveRequest_KeyOutput
+"""
+✨ Generated data input type for table 'AttendanceRecord'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input AttendanceRecord_Data {
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employeeId` of type `UUID!`
+  """
+  employeeId: UUID
+  """
+  ✨ `_expr` server value variant of `employeeId` (✨ Generated from Field `AttendanceRecord`.`employeeId` of type `UUID!`)
+  """
+  employeeId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employee` of type `Employee!`
+  """
+  employee: Employee_Key
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`
+  """
+  attendanceDate: Date
+  """
+  ✨ `_date` server value variant of `attendanceDate` (✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`)
+  """
+  attendanceDate_date: Date_Relative
+  """
+  ✨ `_expr` server value variant of `attendanceDate` (✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`)
+  """
+  attendanceDate_expr: Date_Expr
+  """
+  ✨ `_update` server value variant of `attendanceDate` (✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`)
+  """
+  attendanceDate_update: [Date_Update!]
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`
+  """
+  checkInTime: Timestamp
+  """
+  ✨ `_expr` server value variant of `checkInTime` (✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`)
+  """
+  checkInTime_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `checkInTime` (✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`)
+  """
+  checkInTime_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `checkInTime` (✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`)
+  """
+  checkInTime_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`
+  """
+  checkOutTime: Timestamp
+  """
+  ✨ `_expr` server value variant of `checkOutTime` (✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`)
+  """
+  checkOutTime_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `checkOutTime` (✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`)
+  """
+  checkOutTime_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `checkOutTime` (✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`)
+  """
+  checkOutTime_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `AttendanceRecord`.`notes` of type `String`
+  """
+  notes: String
+  """
+  ✨ `_expr` server value variant of `notes` (✨ Generated from Field `AttendanceRecord`.`notes` of type `String`)
+  """
+  notes_expr: String_Expr
+  """
+  ✨ Generated from Field `AttendanceRecord`.`status` of type `String`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `AttendanceRecord`.`status` of type `String`)
+  """
+  status_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'AttendanceRecord'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input AttendanceRecord_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [AttendanceRecord_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: AttendanceRecord_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [AttendanceRecord_Filter!]
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employeeId` of type `UUID!`
+  """
+  employeeId: UUID_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employee` of type `Employee!`
+  """
+  employee: Employee_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`
+  """
+  attendanceDate: Date_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`
+  """
+  checkInTime: Timestamp_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`
+  """
+  checkOutTime: Timestamp_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`notes` of type `String`
+  """
+  notes: String_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`status` of type `String`
+  """
+  status: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'AttendanceRecord'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input AttendanceRecord_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [AttendanceRecord_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: AttendanceRecord_Filter
+}
+"""
+✨ Generated having input type for table 'AttendanceRecord'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input AttendanceRecord_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [AttendanceRecord_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: AttendanceRecord_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [AttendanceRecord_Having!]
+  """
+  ✨ Generated from Field `AttendanceRecord`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_count` of type `Int!`
+  """
+  attendanceDate_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_count` of type `Int!`
+  """
+  checkInTime_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_count` of type `Int!`
+  """
+  checkOutTime_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`notes_count` of type `Int!`
+  """
+  notes_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_min` of type `Date`
+  """
+  attendanceDate_min: Date_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_min` of type `Timestamp`
+  """
+  checkInTime_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_min` of type `Timestamp`
+  """
+  checkOutTime_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_max` of type `Date`
+  """
+  attendanceDate_max: Date_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_max` of type `Timestamp`
+  """
+  checkInTime_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_max` of type `Timestamp`
+  """
+  checkOutTime_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'AttendanceRecord'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input AttendanceRecord_Key {
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'AttendanceRecord'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input AttendanceRecord_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: AttendanceRecord_Filter
+}
+"""
+✨ Generated order input type for table 'AttendanceRecord'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input AttendanceRecord_Order {
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employeeId` of type `UUID!`
+  """
+  employeeId: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employee` of type `Employee!`
+  """
+  employee: Employee_Order
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate` of type `Date!`
+  """
+  attendanceDate: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime` of type `Timestamp!`
+  """
+  checkInTime: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime` of type `Timestamp`
+  """
+  checkOutTime: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`notes` of type `String`
+  """
+  notes: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`status` of type `String`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_count` of type `Int!`
+  """
+  attendanceDate_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_count` of type `Int!`
+  """
+  checkInTime_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_count` of type `Int!`
+  """
+  checkOutTime_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`notes_count` of type `Int!`
+  """
+  notes_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_min` of type `Date`
+  """
+  attendanceDate_min: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_min` of type `Timestamp`
+  """
+  checkInTime_min: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_min` of type `Timestamp`
+  """
+  checkOutTime_min: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`attendanceDate_max` of type `Date`
+  """
+  attendanceDate_max: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkInTime_max` of type `Timestamp`
+  """
+  checkInTime_max: OrderDirection
+  """
+  ✨ Generated from Field `AttendanceRecord`.`checkOutTime_max` of type `Timestamp`
+  """
+  checkOutTime_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Department'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Department_Data {
+  """
+  ✨ Generated from Field `Department`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Department`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Department`.`description` of type `String`
+  """
+  description: String
+  """
+  ✨ `_expr` server value variant of `description` (✨ Generated from Field `Department`.`description` of type `String`)
+  """
+  description_expr: String_Expr
+  """
+  ✨ Generated from Field `Department`.`name` of type `String!`
+  """
+  name: String
+  """
+  ✨ `_expr` server value variant of `name` (✨ Generated from Field `Department`.`name` of type `String!`)
+  """
+  name_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Department'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Department_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Department_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Department_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Department_Filter!]
+  """
+  ✨ Generated from Field `Department`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Department`.`description` of type `String`
+  """
+  description: String_Filter
+  """
+  ✨ Generated from Field `Department`.`name` of type `String!`
+  """
+  name: String_Filter
+  """
+  ✨ Generated from Field `Department`.`employees_on_department` of type `[Employee!]!`
+  """
+  employees_on_department: Employee_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'Department'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Department_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Department_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Department_Filter
+}
+"""
+✨ Generated having input type for table 'Department'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Department_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Department_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Department_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Department_Having!]
+  """
+  ✨ Generated from Field `Department`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Department`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Department`.`description_count` of type `Int!`
+  """
+  description_count: Int_Filter
+  """
+  ✨ Generated from Field `Department`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Department`.`name_count` of type `Int!`
+  """
+  name_count: Int_Filter
+  """
+  ✨ Generated from Field `Department`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Department`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'Department'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Department_Key {
+  """
+  ✨ Generated from Field `Department`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Department`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'Department'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Department_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Department_Filter
+}
+"""
+✨ Generated order input type for table 'Department'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Department_Order {
+  """
+  ✨ Generated from Field `Department`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`description` of type `String`
+  """
+  description: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`name` of type `String!`
+  """
+  name: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`description_count` of type `Int!`
+  """
+  description_count: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`name_count` of type `Int!`
+  """
+  name_count: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Department`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Employee'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Employee_Data {
+  """
+  ✨ Generated from Field `Employee`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Employee`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Employee`.`departmentId` of type `UUID!`
+  """
+  departmentId: UUID
+  """
+  ✨ `_expr` server value variant of `departmentId` (✨ Generated from Field `Employee`.`departmentId` of type `UUID!`)
+  """
+  departmentId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Employee`.`department` of type `Department!`
+  """
+  department: Department_Key
+  """
+  ✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Employee`.`email` of type `String`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `Employee`.`email` of type `String`)
+  """
+  email_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`employeeId` of type `String!`
+  """
+  employeeId: String
+  """
+  ✨ `_expr` server value variant of `employeeId` (✨ Generated from Field `Employee`.`employeeId` of type `String!`)
+  """
+  employeeId_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`firstName` of type `String!`
+  """
+  firstName: String
+  """
+  ✨ `_expr` server value variant of `firstName` (✨ Generated from Field `Employee`.`firstName` of type `String!`)
+  """
+  firstName_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`lastName` of type `String!`
+  """
+  lastName: String
+  """
+  ✨ `_expr` server value variant of `lastName` (✨ Generated from Field `Employee`.`lastName` of type `String!`)
+  """
+  lastName_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`phoneNumber` of type `String`
+  """
+  phoneNumber: String
+  """
+  ✨ `_expr` server value variant of `phoneNumber` (✨ Generated from Field `Employee`.`phoneNumber` of type `String`)
+  """
+  phoneNumber_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`role` of type `String!`
+  """
+  role: String
+  """
+  ✨ `_expr` server value variant of `role` (✨ Generated from Field `Employee`.`role` of type `String!`)
+  """
+  role_expr: String_Expr
+  """
+  ✨ Generated from Field `Employee`.`startDate` of type `Date`
+  """
+  startDate: Date
+  """
+  ✨ `_date` server value variant of `startDate` (✨ Generated from Field `Employee`.`startDate` of type `Date`)
+  """
+  startDate_date: Date_Relative
+  """
+  ✨ `_expr` server value variant of `startDate` (✨ Generated from Field `Employee`.`startDate` of type `Date`)
+  """
+  startDate_expr: Date_Expr
+  """
+  ✨ `_update` server value variant of `startDate` (✨ Generated from Field `Employee`.`startDate` of type `Date`)
+  """
+  startDate_update: [Date_Update!]
+}
+"""
+✨ Generated filter input type for table 'Employee'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Employee_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Employee_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Employee_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Employee_Filter!]
+  """
+  ✨ Generated from Field `Employee`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Employee`.`departmentId` of type `UUID!`
+  """
+  departmentId: UUID_Filter
+  """
+  ✨ Generated from Field `Employee`.`department` of type `Department!`
+  """
+  department: Department_Filter
+  """
+  ✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Employee`.`email` of type `String`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`employeeId` of type `String!`
+  """
+  employeeId: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`firstName` of type `String!`
+  """
+  firstName: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`lastName` of type `String!`
+  """
+  lastName: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`phoneNumber` of type `String`
+  """
+  phoneNumber: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`role` of type `String!`
+  """
+  role: String_Filter
+  """
+  ✨ Generated from Field `Employee`.`startDate` of type `Date`
+  """
+  startDate: Date_Filter
+  """
+  ✨ Generated from Field `Employee`.`attendanceRecords_on_employee` of type `[AttendanceRecord!]!`
+  """
+  attendanceRecords_on_employee: AttendanceRecord_ListFilter
+  """
+  ✨ Generated from Field `Employee`.`leaveRequests_on_approver` of type `[LeaveRequest!]!`
+  """
+  leaveRequests_on_approver: LeaveRequest_ListFilter
+  """
+  ✨ Generated from Field `Employee`.`leaveRequests_on_employee` of type `[LeaveRequest!]!`
+  """
+  leaveRequests_on_employee: LeaveRequest_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'Employee'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Employee_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Employee_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Employee_Filter
+}
+"""
+✨ Generated having input type for table 'Employee'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Employee_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Employee_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Employee_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Employee_Having!]
+  """
+  ✨ Generated from Field `Employee`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`departmentId_count` of type `Int!`
+  """
+  departmentId_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`firstName_count` of type `Int!`
+  """
+  firstName_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`lastName_count` of type `Int!`
+  """
+  lastName_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`phoneNumber_count` of type `Int!`
+  """
+  phoneNumber_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`role_count` of type `Int!`
+  """
+  role_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`startDate_count` of type `Int!`
+  """
+  startDate_count: Int_Filter
+  """
+  ✨ Generated from Field `Employee`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Employee`.`startDate_min` of type `Date`
+  """
+  startDate_min: Date_Filter
+  """
+  ✨ Generated from Field `Employee`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Employee`.`startDate_max` of type `Date`
+  """
+  startDate_max: Date_Filter
+}
+"""
+✨ Generated key input type for table 'Employee'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Employee_Key {
+  """
+  ✨ Generated from Field `Employee`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Employee`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'Employee'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Employee_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Employee_Filter
+}
+"""
+✨ Generated order input type for table 'Employee'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Employee_Order {
+  """
+  ✨ Generated from Field `Employee`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`departmentId` of type `UUID!`
+  """
+  departmentId: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`department` of type `Department!`
+  """
+  department: Department_Order
+  """
+  ✨ Generated from Field `Employee`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`email` of type `String`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`employeeId` of type `String!`
+  """
+  employeeId: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`firstName` of type `String!`
+  """
+  firstName: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`lastName` of type `String!`
+  """
+  lastName: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`phoneNumber` of type `String`
+  """
+  phoneNumber: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`role` of type `String!`
+  """
+  role: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`startDate` of type `Date`
+  """
+  startDate: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`departmentId_count` of type `Int!`
+  """
+  departmentId_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`firstName_count` of type `Int!`
+  """
+  firstName_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`lastName_count` of type `Int!`
+  """
+  lastName_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`phoneNumber_count` of type `Int!`
+  """
+  phoneNumber_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`role_count` of type `Int!`
+  """
+  role_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`startDate_count` of type `Int!`
+  """
+  startDate_count: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`startDate_min` of type `Date`
+  """
+  startDate_min: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `Employee`.`startDate_max` of type `Date`
+  """
+  startDate_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'LeaveRequest'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input LeaveRequest_Data {
+  """
+  ✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `LeaveRequest`.`approverId` of type `UUID`
+  """
+  approverId: UUID
+  """
+  ✨ `_expr` server value variant of `approverId` (✨ Generated from Field `LeaveRequest`.`approverId` of type `UUID`)
+  """
+  approverId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `LeaveRequest`.`employeeId` of type `UUID!`
+  """
+  employeeId: UUID
+  """
+  ✨ `_expr` server value variant of `employeeId` (✨ Generated from Field `LeaveRequest`.`employeeId` of type `UUID!`)
+  """
+  employeeId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `LeaveRequest`.`approver` of type `Employee`
+  """
+  approver: Employee_Key
+  """
+  ✨ Generated from Field `LeaveRequest`.`employee` of type `Employee!`
+  """
+  employee: Employee_Key
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`
+  """
+  endDate: Date
+  """
+  ✨ `_date` server value variant of `endDate` (✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`)
+  """
+  endDate_date: Date_Relative
+  """
+  ✨ `_expr` server value variant of `endDate` (✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`)
+  """
+  endDate_expr: Date_Expr
+  """
+  ✨ `_update` server value variant of `endDate` (✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`)
+  """
+  endDate_update: [Date_Update!]
+  """
+  ✨ Generated from Field `LeaveRequest`.`leaveType` of type `String!`
+  """
+  leaveType: String
+  """
+  ✨ `_expr` server value variant of `leaveType` (✨ Generated from Field `LeaveRequest`.`leaveType` of type `String!`)
+  """
+  leaveType_expr: String_Expr
+  """
+  ✨ Generated from Field `LeaveRequest`.`reason` of type `String`
+  """
+  reason: String
+  """
+  ✨ `_expr` server value variant of `reason` (✨ Generated from Field `LeaveRequest`.`reason` of type `String`)
+  """
+  reason_expr: String_Expr
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`
+  """
+  startDate: Date
+  """
+  ✨ `_date` server value variant of `startDate` (✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`)
+  """
+  startDate_date: Date_Relative
+  """
+  ✨ `_expr` server value variant of `startDate` (✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`)
+  """
+  startDate_expr: Date_Expr
+  """
+  ✨ `_update` server value variant of `startDate` (✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`)
+  """
+  startDate_update: [Date_Update!]
+  """
+  ✨ Generated from Field `LeaveRequest`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `LeaveRequest`.`status` of type `String!`)
+  """
+  status_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'LeaveRequest'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input LeaveRequest_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [LeaveRequest_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: LeaveRequest_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [LeaveRequest_Filter!]
+  """
+  ✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`approverId` of type `UUID`
+  """
+  approverId: UUID_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`employeeId` of type `UUID!`
+  """
+  employeeId: UUID_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`approver` of type `Employee`
+  """
+  approver: Employee_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`employee` of type `Employee!`
+  """
+  employee: Employee_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`
+  """
+  endDate: Date_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`leaveType` of type `String!`
+  """
+  leaveType: String_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`reason` of type `String`
+  """
+  reason: String_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`
+  """
+  startDate: Date_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`status` of type `String!`
+  """
+  status: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'LeaveRequest'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input LeaveRequest_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [LeaveRequest_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: LeaveRequest_Filter
+}
+"""
+✨ Generated having input type for table 'LeaveRequest'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input LeaveRequest_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [LeaveRequest_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: LeaveRequest_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [LeaveRequest_Having!]
+  """
+  ✨ Generated from Field `LeaveRequest`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`approverId_count` of type `Int!`
+  """
+  approverId_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_count` of type `Int!`
+  """
+  endDate_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`leaveType_count` of type `Int!`
+  """
+  leaveType_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`reason_count` of type `Int!`
+  """
+  reason_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_count` of type `Int!`
+  """
+  startDate_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_min` of type `Date`
+  """
+  endDate_min: Date_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_min` of type `Date`
+  """
+  startDate_min: Date_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_max` of type `Date`
+  """
+  endDate_max: Date_Filter
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_max` of type `Date`
+  """
+  startDate_max: Date_Filter
+}
+"""
+✨ Generated key input type for table 'LeaveRequest'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input LeaveRequest_Key {
+  """
+  ✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'LeaveRequest'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input LeaveRequest_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: LeaveRequest_Filter
+}
+"""
+✨ Generated order input type for table 'LeaveRequest'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input LeaveRequest_Order {
+  """
+  ✨ Generated from Field `LeaveRequest`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`approverId` of type `UUID`
+  """
+  approverId: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`employeeId` of type `UUID!`
+  """
+  employeeId: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`approver` of type `Employee`
+  """
+  approver: Employee_Order
+  """
+  ✨ Generated from Field `LeaveRequest`.`employee` of type `Employee!`
+  """
+  employee: Employee_Order
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate` of type `Date!`
+  """
+  endDate: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`leaveType` of type `String!`
+  """
+  leaveType: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`reason` of type `String`
+  """
+  reason: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate` of type `Date!`
+  """
+  startDate: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`approverId_count` of type `Int!`
+  """
+  approverId_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`employeeId_count` of type `Int!`
+  """
+  employeeId_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_count` of type `Int!`
+  """
+  endDate_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`leaveType_count` of type `Int!`
+  """
+  leaveType_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`reason_count` of type `Int!`
+  """
+  reason_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_count` of type `Int!`
+  """
+  startDate_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_min` of type `Date`
+  """
+  endDate_min: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_min` of type `Date`
+  """
+  startDate_min: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`endDate_max` of type `Date`
+  """
+  endDate_max: OrderDirection
+  """
+  ✨ Generated from Field `LeaveRequest`.`startDate_max` of type `Date`
+  """
+  startDate_max: OrderDirection
+}

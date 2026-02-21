@@ -1,0 +1,450 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `AttendanceRecord` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceRecord_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AttendanceRecord_Data!
+  ): AttendanceRecord_KeyOutput! @fdc_generated(from: "AttendanceRecord", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Department` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  department_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Department_Data!
+  ): Department_KeyOutput! @fdc_generated(from: "Department", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Employee` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  employee_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Employee_Data!
+  ): Employee_KeyOutput! @fdc_generated(from: "Employee", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `LeaveRequest` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  leaveRequest_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: LeaveRequest_Data!
+  ): LeaveRequest_KeyOutput! @fdc_generated(from: "LeaveRequest", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `AttendanceRecord` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceRecord_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AttendanceRecord_Data!]!
+  ): [AttendanceRecord_KeyOutput!]! @fdc_generated(from: "AttendanceRecord", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Department` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  department_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Department_Data!]!
+  ): [Department_KeyOutput!]! @fdc_generated(from: "Department", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Employee` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  employee_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Employee_Data!]!
+  ): [Employee_KeyOutput!]! @fdc_generated(from: "Employee", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `LeaveRequest` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  leaveRequest_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [LeaveRequest_Data!]!
+  ): [LeaveRequest_KeyOutput!]! @fdc_generated(from: "LeaveRequest", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `AttendanceRecord` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceRecord`.
+  """
+  attendanceRecord_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AttendanceRecord_Data!
+  ): AttendanceRecord_KeyOutput! @fdc_generated(from: "AttendanceRecord", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Department` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Department`.
+  """
+  department_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Department_Data!
+  ): Department_KeyOutput! @fdc_generated(from: "Department", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Employee` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Employee`.
+  """
+  employee_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Employee_Data!
+  ): Employee_KeyOutput! @fdc_generated(from: "Employee", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `LeaveRequest` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `LeaveRequest`.
+  """
+  leaveRequest_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: LeaveRequest_Data!
+  ): LeaveRequest_KeyOutput! @fdc_generated(from: "LeaveRequest", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `AttendanceRecord` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceRecord`.
+  """
+  attendanceRecord_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AttendanceRecord_Data!]!
+  ): [AttendanceRecord_KeyOutput!]! @fdc_generated(from: "AttendanceRecord", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Department` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Department`.
+  """
+  department_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Department_Data!]!
+  ): [Department_KeyOutput!]! @fdc_generated(from: "Department", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Employee` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Employee`.
+  """
+  employee_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Employee_Data!]!
+  ): [Employee_KeyOutput!]! @fdc_generated(from: "Employee", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `LeaveRequest` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `LeaveRequest`.
+  """
+  leaveRequest_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [LeaveRequest_Data!]!
+  ): [LeaveRequest_KeyOutput!]! @fdc_generated(from: "LeaveRequest", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `AttendanceRecord` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AttendanceRecord` or `null` if not found.
+  """
+  attendanceRecord_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceRecord_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceRecord_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AttendanceRecord_Data!
+  ): AttendanceRecord_KeyOutput @fdc_generated(from: "AttendanceRecord", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Department` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Department` or `null` if not found.
+  """
+  department_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Department_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Department_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Department_Data!
+  ): Department_KeyOutput @fdc_generated(from: "Department", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Employee` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Employee` or `null` if not found.
+  """
+  employee_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Employee_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Employee_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Employee_Data!
+  ): Employee_KeyOutput @fdc_generated(from: "Employee", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `LeaveRequest` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `LeaveRequest` or `null` if not found.
+  """
+  leaveRequest_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: LeaveRequest_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LeaveRequest_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: LeaveRequest_Data!
+  ): LeaveRequest_KeyOutput @fdc_generated(from: "LeaveRequest", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `AttendanceRecord` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  attendanceRecord_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AttendanceRecord_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AttendanceRecord_Data!
+  ): Int! @fdc_generated(from: "AttendanceRecord", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Department` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  department_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Department_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Department_Data!
+  ): Int! @fdc_generated(from: "Department", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Employee` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  employee_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Employee_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Employee_Data!
+  ): Int! @fdc_generated(from: "Employee", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `LeaveRequest` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  leaveRequest_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: LeaveRequest_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: LeaveRequest_Data!
+  ): Int! @fdc_generated(from: "LeaveRequest", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `AttendanceRecord` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  attendanceRecord_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceRecord_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceRecord_FirstRow
+  ): AttendanceRecord_KeyOutput @fdc_generated(from: "AttendanceRecord", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Department` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  department_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Department_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Department_FirstRow
+  ): Department_KeyOutput @fdc_generated(from: "Department", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Employee` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  employee_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Employee_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Employee_FirstRow
+  ): Employee_KeyOutput @fdc_generated(from: "Employee", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `LeaveRequest` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  leaveRequest_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: LeaveRequest_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LeaveRequest_FirstRow
+  ): LeaveRequest_KeyOutput @fdc_generated(from: "LeaveRequest", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `AttendanceRecord` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  attendanceRecord_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AttendanceRecord_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AttendanceRecord", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Department` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  department_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Department_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Department", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Employee` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  employee_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Employee_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Employee", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `LeaveRequest` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  leaveRequest_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: LeaveRequest_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "LeaveRequest", purpose: DELETE_MULTIPLE)
+}
