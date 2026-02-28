@@ -14,9 +14,9 @@ import {
   serverTimestamp,
   Timestamp,
   QueryConstraint,
-  DocumentData,
+  DocumentData, 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '@/lib/firebase';
 import type {
   Employee,
   Shift,
@@ -25,6 +25,7 @@ import type {
   AdminNotification,
   SystemSettings,
   LeaveStatus,
+  CalendarEvent,
 } from '@/types';
 
 // ============================================================
@@ -37,6 +38,7 @@ export const COLLECTIONS = {
   LEAVES: 'leaves',
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
+  EVENTS: 'events',
 } as const;
 
 // ============================================================
@@ -144,6 +146,29 @@ function mapNotification(id: string, data: DocumentData): AdminNotification {
     relatedId: data.relatedId,
     isRead: data.isRead ?? false,
     createdAt: toDate(data.createdAt),
+  };
+}
+
+function mapEvent(id: string, data: DocumentData): CalendarEvent {
+  return {
+    id,
+    title: data.title || '',
+    description: data.description || '',
+    startDate: toDate(data.startDate),
+    endDate: toDate(data.endDate),
+    location: data.location,
+    category: data.category || 'other',
+    attendees: data.attendees || [],
+    departments: data.departments || [],
+    organizerId: data.organizerId || '',
+    color: data.color || '#8B5CF6',
+    imageUrl: data.imageUrl,
+    price: data.price,
+    ticketsLeft: data.ticketsLeft,
+    notificationSentDayBefore: data.notificationSentDayBefore ?? false,
+    notificationSent30Min: data.notificationSent30Min ?? false,
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
   };
 }
 
@@ -365,4 +390,88 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
     ...data,
     updatedAt: serverTimestamp(),
   });
+}
+
+// ============================================================
+// Events
+// ============================================================
+export async function getEvents(): Promise<CalendarEvent[]> {
+  const q = query(collection(db, COLLECTIONS.EVENTS), orderBy('startDate', 'asc'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => mapEvent(d.id, d.data()));
+}
+
+export async function addEvent(data: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  const ref = await addDoc(collection(db, COLLECTIONS.EVENTS), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateEvent(id: string, data: Partial<CalendarEvent>): Promise<void> {
+  await updateDoc(doc(db, COLLECTIONS.EVENTS, id), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function deleteEvent(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.EVENTS, id));
+}
+
+export function subscribeToEvents(callback: (events: CalendarEvent[]) => void) {
+  const q = query(collection(db, COLLECTIONS.EVENTS), orderBy('startDate', 'asc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => mapEvent(d.id, d.data())));
+  });
+}
+
+// ============================================================
+// Meeting Notification Scheduling
+// ============================================================
+const MEETING_NOTIFICATIONS = 'meetingNotifications';
+
+/**
+ * Creates two notification schedule docs in Firestore:
+ *  1. 1 day (86400 seconds) before the meeting
+ *  2. 30 minutes before the meeting
+ *
+ * Called whenever a meeting-category event is saved.
+ */
+export async function scheduleMeetingNotifications(
+  eventId: string,
+  eventTitle: string,
+  startDateISO: string,
+  departments: string[],
+  employees: string[] = [],
+): Promise<void> {
+  if (!departments.length && !employees.length) return;
+
+  const startMs = new Date(startDateISO).getTime();
+  const dayBeforeMs  = startMs - 24 * 60 * 60 * 1000; // -1 day
+  const thirtyMinMs  = startMs - 30 * 60 * 1000;       // -30 minutes
+
+  const base = {
+    eventId,
+    eventTitle,
+    targetDepartments: departments,
+    targetEmployees: employees,
+    sent: false,
+    createdAt: serverTimestamp(),
+  };
+
+  await Promise.all([
+    addDoc(collection(db, MEETING_NOTIFICATIONS), {
+      ...base,
+      type: 'day_before',
+      scheduledAt: new Date(dayBeforeMs).toISOString(),
+    }),
+    addDoc(collection(db, MEETING_NOTIFICATIONS), {
+      ...base,
+      type: '30_min_before',
+      scheduledAt: new Date(thirtyMinMs).toISOString(),
+    }),
+  ]);
 }

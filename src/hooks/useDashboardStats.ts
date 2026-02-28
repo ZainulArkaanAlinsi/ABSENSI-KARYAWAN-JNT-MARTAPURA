@@ -5,7 +5,8 @@ import {
   collection, 
   query, 
   where, 
-  getDocs, 
+  onSnapshot,
+  getDocs,
   getCountFromServer,
   Timestamp,
   orderBy,
@@ -13,8 +14,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firestore';
-import { format, subDays, startOfMonth, startOfToday } from 'date-fns';
-import type { DashboardStats, WeeklyAttendanceData } from '@/types';
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import type { DashboardStats, WeeklyAttendanceData, AttendanceRecord, Employee } from '@/types';
 
 export function useDashboardStats() {
   const [data, setData] = useState<DashboardStats | null>(null);
@@ -23,52 +24,78 @@ export function useDashboardStats() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchStats() {
-      setLoading(true);
-      setError(null);
+    let unsubs: (() => void)[] = [];
+    setLoading(true);
+
+    async function initListeners() {
       try {
         const todayStr = format(new Date(), 'yyyy-MM-dd');
-        
-        // 1. Total Employees
-        const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
-        const empSnap = await getCountFromServer(empQuery);
-        const totalEmployees = empSnap.data().count;
+        const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+        const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
-        // 2. Face Registered Count
+        // 1. Total Employees & Face Registered (Static/One-time for initial count, but could be real-time)
+        const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
         const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'), where('faceRegistered', '==', true));
-        const faceSnap = await getCountFromServer(faceQuery);
+        
+        const [empSnap, faceSnap] = await Promise.all([
+          getCountFromServer(empQuery),
+          getCountFromServer(faceQuery)
+        ]);
+
+        const totalEmployees = empSnap.data().count;
         const faceRegisteredCount = faceSnap.data().count;
 
-        // 3. Today's Attendance
-        const attQuery = query(collection(db, COLLECTIONS.ATTENDANCE), where('date', '==', todayStr));
-        const attSnap = await getDocs(attQuery);
-        const attRecords = attSnap.docs.map(d => d.data());
+        // 2. Real-time Attendance Listener (Today)
+        const todayQuery = query(collection(db, COLLECTIONS.ATTENDANCE), where('date', '==', todayStr));
+        const unsubToday = onSnapshot(todayQuery, (snap) => {
+          const attRecords = snap.docs.map(doc => doc.data() as AttendanceRecord);
+          
+          const presentToday = attRecords.filter((r: AttendanceRecord) => ['present', 'late', 'overtime'].includes(r.status)).length;
+          const lateToday = attRecords.filter((r: AttendanceRecord) => r.status === 'late').length;
+          const onLeaveToday = attRecords.filter((r: AttendanceRecord) => r.status === 'leave').length;
+          const absentToday = Math.max(0, totalEmployees - (presentToday + onLeaveToday));
 
-        const presentToday = attRecords.filter(r => r.status === 'present').length;
-        const lateToday = attRecords.filter(r => r.status === 'late').length;
-        const onLeaveToday = attRecords.filter(r => r.status === 'leave').length;
-        const absentToday = totalEmployees - (presentToday + lateToday + onLeaveToday);
-
-        // 4. Pending Leaves
-        const leaveQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
-        const leaveSnap = await getCountFromServer(leaveQuery);
-        const pendingLeaves = leaveSnap.data().count;
-
-        // 5. Monthly Overtime (Dummy aggregation for now)
-        const overtimeThisMonth = 42; 
-
-        setData({
-          totalEmployees,
-          presentToday,
-          lateToday,
-          absentToday: Math.max(0, absentToday),
-          onLeaveToday,
-          pendingLeaves,
-          overtimeThisMonth,
-          faceRegisteredCount
+          setData(prev => ({
+            ...prev!,
+            totalEmployees,
+            faceRegisteredCount,
+            presentToday,
+            lateToday,
+            onLeaveToday,
+            absentToday,
+          }));
         });
+        unsubs.push(unsubToday);
 
-        // 6. Weekly Distribution Data (Last 7 days)
+        // 3. Real-time Pending Leaves Listener
+        const leaveQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
+        const unsubLeaves = onSnapshot(leaveQuery, (snap) => {
+          setData(prev => ({
+            ...prev!,
+            pendingLeaves: snap.size
+          }));
+        });
+        unsubs.push(unsubLeaves);
+
+        // 4. Overtime Calculation (Monthly)
+        const otQuery = query(
+          collection(db, COLLECTIONS.ATTENDANCE), 
+          where('date', '>=', monthStart),
+          where('date', '<=', monthEnd)
+        );
+        const unsubOT = onSnapshot(otQuery, (snap) => {
+          const records = snap.docs.map(doc => doc.data() as AttendanceRecord);
+          const totalMinutes = records.reduce((sum: number, r: AttendanceRecord) => sum + (r.overtimeMinutes || 0), 0);
+          const overtimeThisMonth = Math.round(totalMinutes / 60);
+
+          setData(prev => ({
+            ...prev!,
+            overtimeThisMonth
+          }));
+        });
+        unsubs.push(unsubOT);
+
+        // 5. Weekly Distribution Data (Last 7 days - Static initial fetch)
         const weekly: WeeklyAttendanceData[] = [];
         for (let i = 6; i >= 0; i--) {
           const d = subDays(new Date(), i);
@@ -77,27 +104,32 @@ export function useDashboardStats() {
           
           const dayQuery = query(collection(db, COLLECTIONS.ATTENDANCE), where('date', '==', dStr));
           const daySnap = await getDocs(dayQuery);
-          const dayRecords = daySnap.docs.map(doc => doc.data());
+          const dayRecords = daySnap.docs.map(doc => doc.data() as AttendanceRecord);
+
+          const dailyPresent = dayRecords.filter(r => ['present', 'late', 'overtime'].includes(r.status)).length;
+          const dailyLeave = dayRecords.filter(r => r.status === 'leave').length;
 
           weekly.push({
             day: dayName,
-            present: dayRecords.filter(r => r.status === 'present').length,
+            present: dailyPresent,
             late: dayRecords.filter(r => r.status === 'late').length,
-            absent: totalEmployees - dayRecords.length,
-            leave: dayRecords.filter(r => r.status === 'leave').length
+            absent: Math.max(0, totalEmployees - (dailyPresent + dailyLeave)),
+            leave: dailyLeave
           });
         }
         setWeeklyData(weekly);
+        setLoading(false);
 
       } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
-        setError('Failed to synchronized matrix data. Terminal link unstable.');
-      } finally {
+        console.error('Error initializing dashboard listeners:', err);
+        setError('Synchronized matrix failed. Neural link disrupted.');
         setLoading(false);
       }
     }
 
-    fetchStats();
+    initListeners();
+
+    return () => unsubs.forEach(unsub => unsub());
   }, []);
 
   return { data, weeklyData, loading, error };

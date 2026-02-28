@@ -1,8 +1,22 @@
 'use client';
 
-import { Search, Plus, RefreshCw, User, Briefcase, Calendar, ShieldCheck, Mail, Database, Zap, Binary } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  RefreshCw,
+  Users,
+  ShieldCheck,
+  AlertCircle,
+  Filter,
+  ChevronRight,
+  Sparkles,
+  Fingerprint,
+  Cpu,
+  Database,
+  UserPlus,
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { StatusBadge, FaceBadge, ContractBadge } from '@/components/ui/Badge';
+import { FaceBadge, ContractBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
 import Link from 'next/link';
@@ -27,209 +41,290 @@ export default function EmployeesPage() {
     filteredEmployees,
   } = useEmployeeManagement();
 
+  const stats = [
+    {
+      label: 'Force Total',
+      value: employees.length,
+      icon: Users,
+      color: 'var(--att-present)',
+      sub: 'Personnel Count',
+    },
+    {
+      label: 'Secure Scan',
+      value: employees.filter((e) => e.faceRegistered).length,
+      icon: ShieldCheck,
+      color: 'var(--jne-success)',
+      sub: 'Biometric Verified',
+    },
+    {
+      label: 'Pending Enrollment',
+      value: employees.filter((e) => !e.faceRegistered).length,
+      icon: AlertCircle,
+      color: 'var(--att-absent)',
+      sub: 'Action Required',
+    },
+    {
+      label: 'Match Yield',
+      value: filteredEmployees.length,
+      icon: Filter,
+      color: 'var(--primary)',
+      sub: 'Filtered Result',
+    },
+  ];
+
   return (
-    <AdminLayout title="Agent Intelligence" subtitle="Deep-level registry of personnel mobility and authentication codes.">
-      <div className="relative pb-24 px-8 lg:px-12 max-w-[1600px] mx-auto">
-        {/* Dynamic Personnel Ambiance */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-jne-red/5 rounded-full blur-[160px] pointer-events-none animate-pulse -z-10" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none -z-10 animate-[pulse_10s_infinite]" />
+    <AdminLayout title="Daftar Personel Karyawan" subtitle="Registrasi Biometrik & Kesiapan Unit">
+      <div className="dash-root">
 
-        <div className="relative z-10 space-y-12">
-          {/* Tactical Control Array */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col xl:flex-row items-center justify-between gap-8"
-          >
-            <div className="flex items-center gap-4 w-full xl:w-auto">
-              <div className="relative flex-1 xl:w-[450px] group">
-                <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-jne-red transition-all duration-300" />
-                <input
-                  type="text"
-                  className="form-input pl-14"
-                  placeholder="Identify agent by name or code..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
+
+        {/* ── Stats Row ── */}
+        <div className="dash-stats-grid mb-8">
+          <div className="dash-stat-card stat-violet">
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <div>
+                <p className="dash-stat-label opacity-70 mb-0.5">FORCE TOTAL</p>
+                <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.length}</p>
+                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Personnel Count</p>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowAddModal(true)}
-                className="hidden md:flex btn-primary py-4!"
-              >
-                <Plus size={18} />
-                <span>Initialize Agent</span> 
-              </motion.button>
-            </div>
-
-            <div className="flex items-center gap-4 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
-              <div className="glass-card p-1.5 rounded-2xl flex items-center gap-2">
-                 <div className="flex items-center gap-2 px-4 py-2 text-white/30 border-r border-white/5">
-                    <Zap size={14} className="text-jne-warning" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Matrix Filters</span>
-                 </div>
-                 <select
-                  className="bg-transparent text-[11px] font-black text-white px-4 focus:outline-none uppercase tracking-widest cursor-pointer"
-                  value={filterDept}
-                  onChange={e => setFilterDept(e.target.value)}
-                >
-                  {departments.map(d => (
-                    <option key={d} value={d} className="bg-slate-950 font-sans">{d === 'all' ? 'All Sectors' : d}</option>
-                  ))}
-                </select>
-
-                <select
-                  className="bg-transparent text-[11px] font-black text-white px-4 border-l border-white/5 focus:outline-none uppercase tracking-widest cursor-pointer"
-                  value={filterFace}
-                  onChange={e => setFilterFace(e.target.value as any)}
-                >
-                  <option value="all" className="bg-slate-950 font-sans">Biometrics: All</option>
-                  <option value="registered" className="bg-slate-950 font-sans">Verified Only</option>
-                  <option value="unregistered" className="bg-slate-950 font-sans">Pending Auth</option>
-                </select>
+              <div className="dash-stat-icon border-white/5">
+                <Users size={20} strokeWidth={2.5} />
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowAddModal(true)}
-                className="md:hidden btn-primary p-4 rounded-2xl"
-              >
-                <Plus size={24} />
-              </motion.button>
             </div>
-          </motion.div>
-
-          {/* Tactical Summary Matrix */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { label: 'Total Registry', value: employees.length, icon: Database, color: 'text-white/40', glow: 'bg-white/5' },
-              { label: 'Verified Auth', value: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-jne-success', glow: 'bg-jne-success/5' },
-              { label: 'Pending Logic', value: employees.filter(e => !e.faceRegistered).length, icon: Binary, color: 'text-jne-warning', glow: 'bg-jne-warning/5' },
-              { label: 'Active Filter', value: filteredEmployees.length, icon: Search, color: 'text-jne-info', glow: 'bg-jne-info/5' },
-            ].map((stat, i) => (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ y: -8 }}
-                key={stat.label}
-                className="glass-card p-8 rounded-4xl relative overflow-hidden group"
-              >
-                <div className={`absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${stat.glow}`} />
-                <div className="relative z-10 flex flex-col gap-6">
-                  <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center ${stat.color} shadow-inner group-hover:rotate-6 transition-transform`}>
-                    <stat.icon size={26} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-2">{stat.label}</p>
-                    <p className="text-3xl font-black text-white tracking-tight">{stat.value}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
           </div>
 
-          {/* Intelligent Ledger */}
-          <div className="table-container">
-            {loading ? (
-              <div className="py-48 flex justify-center bg-white/2">
-                <PageLoader />
+          <div className="dash-stat-card stat-cyan">
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <div>
+                <p className="dash-stat-label opacity-70 mb-0.5">SECURE SCAN</p>
+                <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.filter((e) => e.faceRegistered).length}</p>
+                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Biometric Verified</p>
               </div>
-            ) : filteredEmployees.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-48 px-12 text-center bg-white/2">
-                <div className="w-24 h-24 rounded-3xl bg-white/5 mb-10 border border-white/10 flex items-center justify-center animate-pulse">
-                  <Database size={56} className="text-white opacity-10" />
-                </div>
-                <h3 className="text-3xl font-black text-white tracking-widest uppercase mb-4">Registry Empty</h3>
-                <p className="text-white/30 text-[12px] max-w-sm font-black uppercase tracking-[0.4em] leading-relaxed">The secure identity database reported zero matches for the current protocol sequence.</p>
-                {search && (
-                  <motion.button 
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSearch('')} 
-                    className="btn-secondary mt-12! px-12!"
-                  >
-                    <RefreshCw size={18} /> Protocol Refresh
-                  </motion.button>
-                )}
+              <div className="dash-stat-icon border-white/5">
+                <ShieldCheck size={20} strokeWidth={2.5} />
               </div>
-            ) : (
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="premium-table w-full">
-                  <thead>
-                    <tr>
-                      <th className="pl-12 text-left">Agent Identity</th>
-                      <th className="text-left">Sector / Identifier</th>
-                      <th className="text-left">Function Profile</th>
-                      <th className="text-left">Authentication Status</th>
-                      <th className="pr-12 text-right">Operational Ledger</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <AnimatePresence mode="popLayout">
-                      {filteredEmployees.map((emp, idx) => (
-                        <motion.tr 
-                          key={emp.id}
-                          layout
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                          className="group hover:bg-white/4 transition-all"
-                        >
-                          <td className="py-6 pl-12">
-                            <div className="flex items-center gap-5">
-                              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center text-white font-black shadow-2xl group-hover:rotate-6 transition-all ring-1 ring-white/5">
-                                <span className="text-lg">{emp.name?.charAt(0)?.toUpperCase()}</span>
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[15px] font-black text-white group-hover:text-jne-red transition-all uppercase tracking-tighter">{emp.name}</span>
-                                <span className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
-                                  <Mail size={12} className="text-jne-red/40" /> {emp.email}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-6">
-                            <div className="flex flex-col">
-                               <div className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 inline-block w-fit mb-1.5">
-                                 <span className="text-[10px] font-black text-white uppercase tracking-widest">{emp.employeeId || '??-UNIT'}</span>
-                               </div>
-                               <span className="text-[10px] text-jne-info font-black uppercase tracking-[0.2em]">{emp.department}</span>
-                            </div>
-                          </td>
-                          <td className="py-6">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-white/70 uppercase tracking-tighter leading-none mb-1.5">{emp.position || 'Field Agent'}</span>
-                              <span className="text-[10px] text-white/20 flex items-center gap-2 font-black uppercase tracking-widest">
-                                <Calendar size={12} /> {emp.joinDate ? format(new Date(emp.joinDate), 'MMM yyyy') : '--'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-6">
-                            <div className="flex items-center gap-4">
-                              <FaceBadge registered={emp.faceRegistered} />
-                              <ContractBadge type={emp.contractType} />
-                            </div>
-                          </td>
-                          <td className="py-6 pr-12 text-right">
-                            <Link
-                              href={`/employees/${emp.id}`}
-                              className="btn-secondary px-6! py-2.5! text-[10px]! rounded-xl! opacity-40 group-hover:opacity-100 hover:bg-jne-red! hover:text-white! hover:border-jne-red! transition-all"
-                            >
-                              Command Profile
-                            </Link>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
+            </div>
+          </div>
+
+          <div className="dash-stat-card stat-coral">
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <div>
+                <p className="dash-stat-label opacity-70 mb-0.5">PENDING ENROLL</p>
+                <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.filter((e) => !e.faceRegistered).length}</p>
+                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Action Required</p>
               </div>
-            )}
+              <div className="dash-stat-icon border-white/5">
+                <AlertCircle size={20} strokeWidth={2.5} />
+              </div>
+            </div>
+          </div>
+
+          <div className="dash-stat-card stat-slate">
+            <div className="relative z-10 w-full flex items-center justify-between">
+              <div>
+                <p className="dash-stat-label opacity-70 mb-0.5">MATCH YIELD</p>
+                <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : filteredEmployees.length}</p>
+                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Filtered Result</p>
+              </div>
+              <div className="dash-stat-icon border-white/5">
+                <Filter size={20} strokeWidth={2.5} />
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* ── Filter / Search Bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="dash-card p-4 transition-all border-white/5 bg-white/2 mb-6"
+        >
+          <div className="flex flex-col xl:flex-row items-center gap-4">
+            <div className="relative flex-1 w-full">
+              <Search
+                size={16}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+              />
+              <input
+                type="text"
+                className="w-full h-12 rounded-xl border border-white/5 bg-white/3 pl-11 pr-4 text-sm text-white placeholder-slate-600 outline-none focus:border-primary/30 focus:bg-white/5 transition-all"
+                placeholder="Search by name, biometric ID, or email hash..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+              <button 
+                onClick={() => setShowAddModal(true)}
+                className="dash-btn-primary flex items-center gap-2 h-12 px-5 min-w-[150px]"
+              >
+                <UserPlus size={16} strokeWidth={3} />
+                Enlist Personnel
+              </button>
+              <select
+                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#7C3AED]/30 transition-all appearance-none cursor-pointer"
+                value={filterDept}
+                onChange={(e) => setFilterDept(e.target.value)}
+              >
+                {departments.map((d) => (
+                  <option key={d} value={d} className="bg-[#0F172A] text-white">
+                    {d === 'all' ? 'All Units' : d}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#7C3AED]/30 transition-all appearance-none cursor-pointer"
+                value={filterFace}
+                onChange={(e) => setFilterFace(e.target.value as any)}
+              >
+                <option value="all" className="bg-[#0F172A]">Biometric Status</option>
+                <option value="registered" className="bg-[#0F172A]">Enrolled</option>
+                <option value="unregistered" className="bg-[#0F172A]">Missing Scan</option>
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setFilterDept('all');
+                  setFilterFace('all' as any);
+                }}
+                className="h-12 w-12 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-slate-400 hover:text-white"
+                title="Reset Matrix"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Main List ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="dash-card overflow-hidden"
+        >
+          <div className="dash-card-header mb-0 bg-white/1 -mx-px -mt-px px-6 py-5 border-b border-white/5">
+            <div>
+              <h3 className="dash-card-title uppercase tracking-wider text-xs">Personnel Registry</h3>
+              <p className="dash-card-sub">Real-time force data across all sectors</p>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <span>Verified: <span className="text-[#10B981]">{employees.filter(e => e.faceRegistered).length}</span></span>
+              <span className="w-px h-3 bg-white/10" />
+              <span>Yield: <span className="text-white">{filteredEmployees.length} Units</span></span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto custom-scrollbar pb-4 -mb-4">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+                  <th className="px-6 py-5">Personnel Asset</th>
+                  <th className="px-6 py-5">Deployment & Subsystem</th>
+                  <th className="px-6 py-5">Designation</th>
+                  <th className="px-6 py-5">Security Level</th>
+                  <th className="px-6 py-5 text-right">Operation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/2">
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={5} className="px-6 py-5"><div className="h-12 w-full dash-skeleton rounded-xl" /></td>
+                    </tr>
+                  ))
+                ) : filteredEmployees.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-24 text-center">
+                      <div className="flex flex-col items-center gap-5">
+                        <div className="p-5 rounded-2xl bg-white/2 border border-white/5">
+                          <Fingerprint size={32} className="text-slate-800" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-white uppercase tracking-widest">No matching personnel recorded</p>
+                          <p className="text-[11px] text-slate-600 font-bold mt-2 uppercase tracking-wide">Adjust matrix parameters or enlist new assets</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <AnimatePresence mode="popLayout">
+                    {filteredEmployees.map((emp, idx) => (
+                      <motion.tr
+                        key={emp.id}
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.02 }}
+                        className="hover:bg-white/1.5 transition-all group"
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="h-11 w-11 flex items-center justify-center rounded-2xl font-black text-sm border border-white/10 bg-white/3 text-white group-hover:border-[#7C3AED]/40 group-hover:bg-[#7C3AED]/5 transition-all shadow-sm">
+                              {emp.name?.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[14px] font-black text-white group-hover:text-primary transition-all tracking-tight leading-tight mb-1">{emp.name}</p>
+                              <p className="text-[10px] font-bold text-slate-600 tracking-wider truncate uppercase max-w-[180px]">{emp.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div>
+                            <p className="text-[12px] font-black text-white/90 uppercase tracking-tight leading-none mb-1">{emp.department}</p>
+                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">ID: {emp.employeeId || '???'}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <p className="text-[12px] font-black text-white/70 uppercase tracking-tight">{emp.position || 'Standard Unit'}</p>
+                          <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest mt-1">
+                            Phase: {emp.joinDate ? format(new Date(emp.joinDate), 'yyyy.MM') : 'Pending'}
+                          </p>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2">
+                            <FaceBadge registered={emp.faceRegistered} />
+                            <ContractBadge type={emp.contractType} />
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          <Link
+                            href={`/employees/${emp.id}`}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-white/5 bg-white/2 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all hover:bg-white/5 hover:text-white"
+                          >
+                            Details
+                            <ChevronRight size={12} strokeWidth={3} />
+                          </Link>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="px-6 py-4 border-t border-white/5 bg-white/1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">
+                <div className="flex items-center gap-1.5">
+                  <Database size={10} />
+                  SYNC READY
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Cpu size={10} />
+                  LATENCY: 12ms
+                </div>
+              </div>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                SYSTEM AGENT v4.2.0
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       <AddEmployeeModal
@@ -240,4 +335,3 @@ export default function EmployeesPage() {
     </AdminLayout>
   );
 }
-

@@ -18,15 +18,15 @@ export function useAddEmployeeLogic(onClose: () => void) {
   });
 
   const handleChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic Validation
+
+    // Validasi lebih ketat
     if (!form.name || !form.email || !form.employeeId || !form.department || !form.shiftId) {
-      alert('Security Protocol: All required fields must be populated.');
+      alert('Semua field wajib harus diisi!');
       return;
     }
 
@@ -42,12 +42,22 @@ export function useAddEmployeeLogic(onClose: () => void) {
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        setForm({ name: '', email: '', phone: '', employeeId: '', department: '', position: '', shiftId: '', contractType: 'permanent', joinDate: new Date().toISOString().split('T')[0] });
+        setForm({
+          name: '',
+          email: '',
+          phone: '',
+          employeeId: '',
+          department: '',
+          position: '',
+          shiftId: '',
+          contractType: 'permanent',
+          joinDate: new Date().toISOString().split('T')[0],
+        });
         onClose();
-      }, 2500);
+      }, 2000);
     } catch (err) {
-      console.error('System Error:', err);
-      alert('Data Sync Failed. Please verify your connection to the secure server.');
+      console.error('Gagal menambah karyawan:', err);
+      alert('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }

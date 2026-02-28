@@ -3,23 +3,27 @@
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import {
-  FileText, UserCheck, AlertTriangle, UserPlus, Bell, X
+  FileText,
+  UserCheck,
+  AlertTriangle,
+  UserPlus,
+  Bell,
+  X,
+  CheckCheck,
 } from 'lucide-react';
 import type { NotificationType } from '@/types';
 import { useNotificationPanelLogic } from '@/hooks/useNotificationPanelLogic';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// ... imports
-
-const iconMap: Record<NotificationType, { icon: React.ElementType; color: string; bg: string }> = {
-  // Using strings for classes instead of hex for style props if possible, 
-  // but the component uses them in style prop.
-  // I will refactor component to use className for colors.
-  leave_request:    { icon: FileText,       color: 'text-jne-warning', bg: 'bg-jne-warning/10' },
-  face_enrolled:    { icon: UserCheck,      color: 'text-jne-success', bg: 'bg-jne-success/10' },
-  face_failed:      { icon: AlertTriangle,  color: 'text-jne-danger', bg: 'bg-jne-danger/10' },
-  new_employee:     { icon: UserPlus,       color: 'text-jne-info', bg: 'bg-jne-info/10' },
-  attendance_alert: { icon: AlertTriangle,  color: 'text-jne-warning', bg: 'bg-jne-warning/10' },
-  system:           { icon: Bell,           color: 'text-jne-overtime', bg: 'bg-jne-overtime/10' },
+// Mapping icon dan warna sesuai palet baru
+const iconMap: Record<NotificationType, { icon: React.ElementType; bgColor: string; iconColor: string }> = {
+  leave_request:      { icon: FileText,      bgColor: 'rgba(217,119,6,0.15)',   iconColor: '#D97706' },
+  face_enrolled:      { icon: UserCheck,     bgColor: 'rgba(22,163,74,0.15)',   iconColor: '#16A34A' },
+  face_failed:        { icon: AlertTriangle, bgColor: 'rgba(192,57,43,0.15)',   iconColor: '#C0392B' },
+  new_employee:       { icon: UserPlus,      bgColor: 'rgba(56,99,195,0.15)',   iconColor: '#3863C3' },
+  attendance_alert:   { icon: AlertTriangle, bgColor: 'rgba(217,119,6,0.15)',   iconColor: '#D97706' },
+  meeting_reminder:   { icon: Bell,          bgColor: 'rgba(67,35,127,0.15)',   iconColor: '#43237F' },
+  system:             { icon: Bell,          bgColor: 'rgba(61,82,128,0.15)',   iconColor: '#3D5280' },
 };
 
 interface NotificationPanelProps {
@@ -27,87 +31,176 @@ interface NotificationPanelProps {
 }
 
 export default function NotificationPanel({ onClose }: NotificationPanelProps) {
-  const { notifications, unreadCount, markAllRead, handleMarkRead } = useNotificationPanelLogic();
+  const { notifications, unreadCount, markAllAsRead, handleMarkRead } = useNotificationPanelLogic();
 
   return (
-    <div
-      className="absolute right-0 top-full mt-4 rounded-[28px] shadow-2xl border border-(--glass-border) z-50 overflow-hidden glass animate-in fade-in slide-in-from-top-4 duration-500 backdrop-blur-2xl"
-      style={{ width: 400, background: 'var(--bg-card)', maxHeight: '80vh' }}
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 12, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      className="absolute right-0 top-full mt-3 z-50 flex flex-col border border-white/10 shadow-2xl overflow-hidden rounded-3xl"
+      style={{
+        width: '380px',
+        maxHeight: '520px',
+        background: 'rgba(5, 8, 28, 0.92)',
+        backdropFilter: 'blur(30px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(160%)',
+      }}
     >
+      {/* Ambient glow line at top */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-jne-red/40 to-transparent pointer-events-none" />
+
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-(--glass-border) bg-linear-to-b from-white/5 to-transparent">
-        <div className="flex items-center gap-2">
-          <h3 className="font-black text-(--text-primary) text-base tracking-tight">Notifications</h3>
-          {unreadCount > 0 && (
-            <span
-              className="text-[9px] font-black px-2.5 py-1 rounded-lg text-white bg-jne-red shadow-[0_0_12px_rgba(244,63,94,0.4)]"
-            >
-              {unreadCount}
-            </span>
-          )}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-white/2">
+        <div className="flex items-center gap-3">
+          <div>
+            <h3 className="text-[14px] font-black text-white uppercase tracking-tight">
+              Notifications
+            </h3>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest">
+                Pulse Monitor
+              </span>
+              {unreadCount > 0 && (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-jne-red/40" />
+                  <span className="text-[8px] text-jne-red font-black uppercase tracking-widest">
+                    {unreadCount} UNREAD
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button
-              onClick={markAllRead}
-              className="text-xs text-jne-subtext hover:text-(--text-secondary) transition-colors"
+              onClick={markAllAsRead}
+              className="text-[10px] font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg border border-white/5"
             >
-              Mark all read
+              Clear All
             </button>
           )}
-          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-white/5 transition-colors">
-            <X size={16} className="text-jne-subtext" />
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-white hover:bg-jne-red/20 hover:border-jne-red/40 transition-all"
+          >
+            <X size={14} />
           </button>
         </div>
       </div>
 
-      {/* Notification List */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 80px)' }}>
+      {/* List */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/1">
         {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6">
-            <Bell size={48} className="text-jne-subtext/20 mb-4" />
-            <p className="text-jne-subtext text-sm">No notifications yet</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center px-8">
+            <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center mb-5 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-jne-success/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Bell size={24} className="text-white/10 group-hover:text-jne-success transition-all duration-500 group-hover:scale-110" />
+            </div>
+            <p className="text-[12px] font-black text-white/40 uppercase tracking-widest">
+              Zero Alerts
+            </p>
+            <p className="text-[10px] text-white/20 font-bold uppercase tracking-tight mt-2 leading-relaxed max-w-[200px]">
+              System is operating at nominal capacity. No pending signals.
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-(--card-border)">
-            {notifications.map((notif) => {
-              const { icon: Icon, color, bg } = iconMap[notif.type] || iconMap.system;
-              return (
-                <div
-                  key={notif.id}
-                  onClick={() => handleMarkRead(notif)}
-                  className={`flex gap-4 px-6 py-5 cursor-pointer transition-all hover:bg-(--bg-input) ${
-                    !notif.isRead ? 'bg-(--bg-input)/50' : 'bg-transparent'
-                  }`}
-                >
-                  <div
-                    className={`flex items-center justify-center rounded-2xl shrink-0 ${bg}`}
-                    style={{ width: 44, height: 44 }}
+          <div className="divide-y divide-white/4">
+            <AnimatePresence mode="popLayout">
+              {notifications.map((notif, idx) => {
+                const config = iconMap[notif.type] || iconMap.system;
+                const Icon = config.icon;
+
+                return (
+                  <motion.div
+                    key={notif.id}
+                    layout
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                    transition={{ delay: idx * 0.03 }}
+                    onClick={() => handleMarkRead(notif)}
+                    className={`relative group p-5 transition-all cursor-pointer ${
+                      notif.isRead ? 'bg-transparent' : 'bg-white/4'
+                    } hover:bg-white/8`}
                   >
-                    <Icon size={20} className={color} />
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className={`text-sm font-bold leading-tight ${notif.isRead ? 'text-jne-subtext' : 'text-(--text-primary)'}`}>{notif.title}</p>
-                      {!notif.isRead && (
-                        <div className="w-2 h-2 rounded-full shrink-0 mt-1 shadow-[0_0_8px_rgba(227,30,36,0.6)] bg-jne-red" />
-                      )}
+                    {!notif.isRead && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-jne-red shadow-[0_0_12px_rgba(255,51,102,0.6)]" />
+                    )}
+
+                    <div className="flex gap-4">
+                      {/* Icon Badge */}
+                      <div
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg relative overflow-hidden"
+                        style={{
+                          background: `linear-gradient(135deg, ${config.iconColor}25, ${config.iconColor}05)`,
+                          border: `1px solid ${config.iconColor}20`,
+                        }}
+                      >
+                        <Icon size={18} style={{ color: config.iconColor }} />
+                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <h4 className={`text-[12px] font-black tracking-tight leading-tight ${
+                            notif.isRead ? 'text-white/60' : 'text-white'
+                          }`}>
+                            {notif.title}
+                          </h4>
+                          <span className="text-[8px] font-mono text-white/20 whitespace-nowrap pt-0.5">
+                            {formatDistanceToNow(new Date(notif.createdAt), {
+                              addSuffix: true,
+                              locale: localeId,
+                            })}
+                          </span>
+                        </div>
+                        <p className={`mt-1 text-[11px] font-medium leading-relaxed line-clamp-2 ${
+                          notif.isRead ? 'text-white/30' : 'text-white/50'
+                        }`}>
+                          {notif.message}
+                        </p>
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <span
+                            className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border"
+                            style={{
+                              borderColor: `${config.iconColor}25`,
+                              color: config.iconColor,
+                              background: `${config.iconColor}10`,
+                            }}
+                          >
+                            {notif.type.replace('_', ' ')}
+                          </span>
+
+                          <div className="h-4 w-4 flex items-center justify-center">
+                            {!notif.isRead && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-jne-red animate-pulse shadow-[0_0_8px_rgba(255,51,102,0.8)]" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-jne-subtext line-clamp-2 leading-relaxed opacity-80">{notif.message}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                       <p className="text-[10px] text-jne-subtext/60 font-medium">
-                        {notif.createdAt
-                          ? formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: localeId })
-                          : ''}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="p-4 bg-white/3 border-t border-white/5">
+        <button
+          onClick={onClose}
+          className="group w-full py-3 rounded-2xl bg-white/4 border border-white/5 text-[10px] font-black text-white/30 hover:text-white hover:bg-white/8 hover:border-white/10 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2"
+        >
+          <X size={12} className="group-hover:rotate-90 transition-transform duration-500" />
+          Dismiss Interface
+        </button>
+      </div>
+    </motion.div>
   );
 }

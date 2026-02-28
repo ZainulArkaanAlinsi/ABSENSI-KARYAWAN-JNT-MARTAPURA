@@ -10,12 +10,14 @@
  * 4. onAttendanceFailed  → Notify admin when employee fails face recognition 3 times
  */
 
+
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 
 admin.initializeApp();
 const db = admin.firestore();
 const messaging = admin.messaging();
+
 
 // ============================================================
 // 1. onEmployeeCreated — Send welcome email when admin adds employee
@@ -58,6 +60,7 @@ export const onEmployeeCreated = functions.firestore
       console.error('Error creating employee:', error);
     }
   });
+
 
 // ============================================================
 // 2. onLeaveStatusUpdate — FCM to employee when leave approved/rejected
@@ -109,6 +112,7 @@ export const onLeaveStatusUpdate = functions.firestore
     }
   });
 
+
 // ============================================================
 // 3. onFaceEnrolled — Notify admin when employee enrolls face
 // ============================================================
@@ -135,6 +139,7 @@ export const onFaceEnrolled = functions.firestore
     console.log(`✅ Face enrolled notification for: ${after.name}`);
   });
 
+
 // ============================================================
 // 4. onAttendanceFailed — Notify admin of repeated face failures
 // ============================================================
@@ -155,6 +160,7 @@ export const onAttendanceFailed = functions.https.onCall(async (data: any) => {
 
   return { success: true };
 });
+
 
 // ============================================================
 // 5. scheduledOvertimeCalc — Daily overtime calculation (optional)

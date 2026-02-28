@@ -60,13 +60,7 @@
       "enabled": true
     }
   },
-  "users": {
-    "uid": "firebase_auth_uid",
-    "email": "admin@jnemtp.com",
-    "name": "Admin JNE",
-    "role": "admin",
-    "isActive": true
-  },
+
   "apphosting": {
     "backendId": "admin-attendance-jne-mtrpr",
     "rootDir": "/",

@@ -30,7 +30,36 @@ export type NotificationType =
   | 'face_failed'
   | 'new_employee'
   | 'attendance_alert'
+  | 'meeting_reminder'
   | 'system';
+
+// ============================================================
+// Department definitions
+// ============================================================
+export const DEPARTMENTS = [
+  'Sales Coordinator (SCO)',
+  'Driver',
+  'Admin Support',
+  'Kurir / Lapangan',
+  'Pick-Up Operations',
+  'Inbound Operations',
+  'Outbound Operations',
+] as const;
+
+export type Department = typeof DEPARTMENTS[number];
+
+export interface DepartmentRule {
+  name: Department;
+  checkInTime: string;       // "HH:mm"
+  checkOutTime: string;      // "HH:mm"  (may be next day e.g. "05:00")
+  checkOutNextDay?: boolean; // true for night shifts
+  toleranceMinutes: number;
+  trackFromHome?: boolean;   // Pick-Up Operations
+  targetBased?: boolean;     // Kurir — target 100 packages
+  dailyTarget?: number;
+  color: string;             // accent color for UI badge
+  description: string;       // short rule description shown on page
+}
 
 // ============================================================
 // Employee
@@ -240,4 +269,73 @@ export interface EmployeeFilter {
   department?: string;
   faceRegistered?: boolean | 'all';
   isActive?: boolean | 'all';
+}
+// ============================================================
+// Calendar & Events
+// ============================================================
+export type EventCategory = 'meeting' | 'training' | 'social' | 'deadline' | 'other';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
+  location?: string;
+  category: EventCategory;
+  attendees: string[]; // employee IDs or names
+  departments?: string[]; // departments invited (for meeting category)
+  organizerId: string;
+  color?: string;
+  imageUrl?: string;
+  price?: number;
+  ticketsLeft?: number;
+  notificationSentDayBefore?: boolean;
+  notificationSent30Min?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Meeting Notification schedule
+// ============================================================
+export interface MeetingNotificationSchedule {
+  id: string;
+  eventId: string;
+  eventTitle: string;
+  targetDepartments: string[];
+  scheduledAt: string; // ISO — when to send
+  type: 'day_before' | '30_min_before';
+  sent: boolean;
+  createdAt: string;
+}
+
+export interface Settings {
+  office: {
+    name: string;
+    address: string;
+    latitude: number | null;
+    longitude: number | null;
+    radiusMeters: number;
+  };
+  company: {
+    companyName: string;
+    appDownloadUrl: string;
+    hrEmail: string;
+    hrPhone: string;
+  };
+  attendance: {
+    maxFaceAttempts: number;
+    faceSimilarityThreshold: number;
+    allowOfflineAttendance: boolean;
+    overtimeCalculation: boolean;
+  };
+  notifications: {
+    notifyOnLeaveRequest: boolean;
+    notifyOnFaceEnrollment: boolean;
+    notifyOnFaceFailure: boolean;
+    notifyOnNewEmployee: boolean;
+    emailNotifications: boolean;
+    adminEmail: string;
+  };
 }

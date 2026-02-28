@@ -12,7 +12,16 @@ export const DAYS: { key: ShiftDay; label: string }[] = [
   { key: 'sunday', label: 'Min' },
 ];
 
-export const SHIFT_COLORS = ['#E31E24', '#2563EB', '#16A34A', '#D97706', '#7C3AED', '#0891B2', '#DB2777'];
+// Attendance-aligned color options for shift cards
+export const SHIFT_COLORS = [
+  '#43237F', // Present (dark purple)
+  '#16A34A', // Late / Green
+  '#C0392B', // Overtime / Red
+  '#3D5280', // Leave / Dark blue
+  '#D97706', // Absent / Orange
+  '#0891B2', // Cyan
+  '#DB2777', // Pink
+];
 
 export const defaultForm = {
   name: '',

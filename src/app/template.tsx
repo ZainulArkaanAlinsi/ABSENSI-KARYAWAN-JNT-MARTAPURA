@@ -8,10 +8,9 @@ export default function Template({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Artificial delay of 2 seconds as requested
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, []);
@@ -23,57 +22,51 @@ export default function Template({ children }: { children: React.ReactNode }) {
           <motion.div
             key="loader"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.5, ease: "circOut" }}
-            className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-(--bg-main)"
+            exit={{ opacity: 0, scale: 1.03 }}
+            transition={{ duration: 0.25, ease: "circOut" }}
+            className="fixed inset-0 z-100 flex flex-col items-center justify-center"
+            style={{ backgroundColor: '#0D1B35' }}
           >
             <div className="relative">
               {/* Outer Pulse */}
               <motion.div
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.6, 0.3]
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 bg-jne-red/20 blur-2xl rounded-full"
+                animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 blur-2xl rounded-full"
+                style={{ background: 'rgba(224,75,58,0.25)' }} // #E04B3A with opacity
               />
-              
+
               {/* Spinning Ring */}
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="w-20 h-20 border-2 border-jne-red/10 border-t-jne-red rounded-full relative z-10"
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-16 h-16 rounded-full relative z-10"
+                style={{ border: '2px solid rgba(224,75,58,0.15)', borderTopColor: '#E04B3A' }}
               />
 
-              {/* Center Logo/Icon */}
+              {/* Center Logo */}
               <div className="absolute inset-0 flex items-center justify-center z-20">
-                <Shield size={32} className="text-jne-red animate-pulse" />
+                <Shield size={28} style={{ color: '#E04B3A' }} className="animate-pulse" />
               </div>
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-8 flex flex-col items-center gap-2"
+              transition={{ delay: 0.1 }}
+              className="mt-6 flex flex-col items-center gap-2"
             >
-              <span className="text-[11px] font-black uppercase tracking-[0.3em] text-(--text-dim) opacity-60">
-                Initializing Matrix
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white opacity-60">
+                JNE Martapura
               </span>
-              <div className="flex gap-1.5 mt-2">
+              <div className="flex gap-1.5 mt-1">
                 {[0, 1, 2].map(i => (
                   <motion.div
                     key={i}
-                    animate={{ 
-                      scale: [1, 1.5, 1],
-                      backgroundColor: ['var(--text-dim)', 'var(--jne-red)', 'var(--text-dim)']
-                    }}
-                    transition={{ 
-                      duration: 1, 
-                      repeat: Infinity, 
-                      delay: i * 0.2 
-                    }}
+                    animate={{ scale: [1, 1.4, 1] }}
+                    transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.15 }}
                     className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: '#E04B3A' }}
                   />
                 ))}
               </div>
@@ -82,9 +75,9 @@ export default function Template({ children }: { children: React.ReactNode }) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="relative z-10"
           >
             {children}

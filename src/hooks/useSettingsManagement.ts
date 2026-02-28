@@ -1,50 +1,79 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Building, Bell, Shield } from 'lucide-react';
-import { getSystemSettings, updateSystemSettings } from '@/lib/firestore';
-import type { SystemSettings } from '@/types';
+import { useState, useEffect, useCallback } from 'react';
+import { getSettings, updateSettings } from '@/lib/firestore/settings';
+import type { Settings } from '@/types';
 
 export const TABS = [
-  { key: 'office', label: 'Lokasi Kantor', icon: MapPin },
-  { key: 'company', label: 'Perusahaan', icon: Building },
-  { key: 'attendance', label: 'Parameter Absensi', icon: Shield },
-  { key: 'notifications', label: 'Notifikasi', icon: Bell },
-];
+  { key: 'office', label: 'Kantor & Lokasi', icon: 'office' },
+  { key: 'company', label: 'Perusahaan', icon: 'company' },
+  { key: 'attendance', label: 'Absensi', icon: 'attendance' },
+  { key: 'notifications', label: 'Notifikasi', icon: 'notifications' },
+] as const;
 
-export const DEFAULT_SETTINGS: SystemSettings = {
-  office: { name: 'JNE MTP', address: '', latitude: -6.2, longitude: 106.8, radiusMeters: 100 },
-  company: { companyName: 'JNE MTP', hrEmail: '', hrPhone: '', appDownloadUrl: '' },
-  attendance: { maxFaceAttempts: 3, faceSimilarityThreshold: 80, allowOfflineAttendance: true, overtimeCalculation: true },
-  notifications: { notifyOnLeaveRequest: true, notifyOnFaceEnrollment: true, notifyOnFaceFailure: true, notifyOnNewEmployee: true, emailNotifications: false, adminEmail: '' },
-};
+export type TabKey = typeof TABS[number]['key'];
 
 export function useSettingsManagement() {
-  const [activeTab, setActiveTab] = useState('office');
-  const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
+  const [activeTab, setActiveTab] = useState<TabKey>('office');
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    getSystemSettings().then(data => {
-      if (data) setSettings(data);
-      setLoading(false);
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const data = await getSettings();
+        if (data) {
+          setSettings(data);
+        } else {
+          // Default settings
+          setSettings({
+            office: { name: '', address: '', latitude: null, longitude: null, radiusMeters: 50 },
+            company: { companyName: '', appDownloadUrl: '', hrEmail: '', hrPhone: '' },
+            attendance: { maxFaceAttempts: 3, faceSimilarityThreshold: 60, allowOfflineAttendance: false, overtimeCalculation: true },
+            notifications: { notifyOnLeaveRequest: true, notifyOnFaceEnrollment: true, notifyOnFaceFailure: false, notifyOnNewEmployee: true, emailNotifications: false, adminEmail: '' }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const update = useCallback((
+    section: keyof Settings,
+    field: string,
+    value: any
+  ) => {
+    setSettings(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value
+        }
+      };
     });
   }, []);
 
-  const update = (section: keyof SystemSettings, field: string, value: unknown) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value },
-    }));
-  };
-
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (!settings) return;
     setSaving(true);
-    await updateSystemSettings(settings);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
+    setSaved(false);
+    try {
+      await updateSettings(settings);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    } finally {
+      setSaving(false);
+    }
+  }, [settings]);
 
   return {
     activeTab,
@@ -55,5 +84,6 @@ export function useSettingsManagement() {
     saved,
     update,
     handleSave,
+    TABS,
   };
 }

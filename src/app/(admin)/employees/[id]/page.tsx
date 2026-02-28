@@ -2,15 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, Phone, Building, Briefcase, Clock, Smartphone, Calendar, RotateCcw, Trash2, Shield } from 'lucide-react';
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Smartphone,
+  Calendar,
+  RotateCcw,
+  Trash2,
+  Shield,
+  Clock,
+  Briefcase,
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { getEmployee, updateEmployee, getShifts } from '@/lib/firestore';
 import type { Employee, Shift } from '@/types';
 import { FaceBadge, ContractBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function EmployeeDetailPage() {
   const params = useParams();
@@ -31,221 +41,291 @@ export default function EmployeeDetailPage() {
   }, [id]);
 
   const handleResetFace = async () => {
-    if (!employee || !confirm('Reset data wajah karyawan ini? Karyawan harus mendaftar ulang wajah.')) return;
+    if (
+      !employee ||
+      !confirm('Reset data wajah karyawan ini? Karyawan harus mendaftar ulang wajah.')
+    )
+      return;
     setResetting(true);
-    await updateEmployee(id, { faceRegistered: false, deviceId: undefined, deviceModel: undefined });
-    setEmployee(prev => prev ? { ...prev, faceRegistered: false } : null);
+    await updateEmployee(id, {
+      faceRegistered: false,
+      deviceId: undefined,
+      deviceModel: undefined,
+    });
+    setEmployee((prev) =>
+      prev
+        ? {
+            ...prev,
+            faceRegistered: false,
+            deviceId: undefined,
+            deviceModel: undefined,
+          }
+        : null
+    );
     setResetting(false);
   };
 
-  const shiftName = shifts.find(s => s.id === employee?.shiftId)?.name || '-';
-  const shift = shifts.find(s => s.id === employee?.shiftId);
+  const shift = shifts.find((s) => s.id === employee?.shiftId);
 
-  if (loading) return <AdminLayout title="Detail Karyawan"><PageLoader /></AdminLayout>;
-  if (!employee) return (
-    <AdminLayout title="Karyawan Tidak Ditemukan">
-      <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-slate-400">Karyawan tidak ditemukan.</p>
-        <button onClick={() => router.back()} className="btn btn-secondary mt-4"><ArrowLeft size={14} /> Kembali</button>
-      </div>
-    </AdminLayout>
-  );
+  if (loading)
+    return (
+      <AdminLayout title="Detail Karyawan">
+        <div className="flex justify-center py-20">
+          <PageLoader />
+        </div>
+      </AdminLayout>
+    );
+
+  if (!employee)
+    return (
+      <AdminLayout title="Karyawan Tidak Ditemukan">
+        <div className="flex flex-col items-center justify-center gap-4 py-20">
+          <p style={{ color: '#9BA4B4' }}>Karyawan tidak ditemukan.</p>
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-white transition-colors"
+            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <ArrowLeft size={14} /> Kembali
+          </button>
+        </div>
+      </AdminLayout>
+    );
 
   return (
-    <AdminLayout title="Personnel Profile" subtitle="Advanced Identity & Access Protocol Matrix">
-      <div className="relative pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none -z-10" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-jne-red/5 rounded-full blur-[120px] pointer-events-none -z-10" />
-
-        <div className="relative z-10 space-y-8">
-          <motion.div 
-            initial={{ opacity: 0, x: -15 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4 border-b border-white/5 pb-6"
+    <AdminLayout
+      title="Detail Karyawan"
+      subtitle={`Profil lengkap untuk ${employee.name}`}
+    >
+      {/* Back Navigation */}
+      <motion.div
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="mb-4"
+      >
+        <button
+          onClick={() => router.back()}
+          className="group inline-flex items-center gap-2 text-xs font-medium transition-colors"
+          style={{ color: '#9BA4B4' }}
+        >
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
           >
-            <button 
-              onClick={() => router.back()} 
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none mb-1.5">Employee Registry</p>
-              <h2 className="text-xl font-bold text-white tracking-tight leading-none uppercase">{employee.name}</h2>
+            <ArrowLeft size={15} />
+          </span>
+          <span>Kembali ke daftar karyawan</span>
+        </button>
+      </motion.div>
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+        {/* Left column */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="space-y-4 xl:col-span-4"
+        >
+          {/* Identity card */}
+          <div
+            className="rounded-2xl border p-6 text-center backdrop-blur-xl"
+            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <div className="relative mb-4 inline-block">
+              <div
+                className="flex h-24 w-24 items-center justify-center rounded-2xl text-3xl font-bold text-white shadow-xl"
+                style={{ backgroundColor: '#0D1B35' }}
+              >
+                {employee.name?.charAt(0)?.toUpperCase()}
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-lg border-2 backdrop-blur-xl"
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+              >
+                <Shield size={14} style={{ color: '#E04B3A' }} />
+              </div>
             </div>
-          </motion.div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            {/* Identity Card */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="xl:col-span-4 space-y-8"
-            >
-              <div className="glass-premium p-6 rounded-2xl border border-white/5 bg-white/3 text-center">
-                <div className="relative inline-block mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-jne-red to-jne-danger flex items-center justify-center text-3xl font-bold text-white shadow-xl shadow-jne-red/20">
-                    {employee.name?.charAt(0)?.toUpperCase()}
+            <h3 className="text-lg font-semibold text-white">{employee.name}</h3>
+            <p className="mt-1 text-sm" style={{ color: '#9BA4B4' }}>
+              {employee.position || '—'} • {employee.department || '—'}
+            </p>
+
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <FaceBadge registered={employee.faceRegistered} />
+              <ContractBadge type={employee.contractType} />
+            </div>
+
+            <div className="mt-6 space-y-4 border-t pt-6 text-left" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+              {[
+                { icon: Mail, label: 'Email', value: employee.email },
+                ...(employee.phone
+                  ? [{ icon: Phone, label: 'Telepon', value: employee.phone }]
+                  : []),
+                {
+                  icon: Calendar,
+                  label: 'Tanggal bergabung',
+                  value: employee.joinDate
+                    ? format(new Date(employee.joinDate), 'dd MMMM yyyy')
+                    : '—',
+                },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                    <item.icon size={14} style={{ color: '#3863C3' }} />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center shadow-lg">
-                    <Shield size={16} className="text-jne-info" />
+                  <div>
+                    <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>{item.label}</p>
+                    <p className="text-sm font-medium text-white">{item.value}</p>
                   </div>
                 </div>
-                
-                <h3 className="text-xl font-bold text-white tracking-tight">{employee.name}</h3>
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1.5">{employee.position} • {employee.department}</p>
-
-                <div className="flex justify-center gap-2 mt-6">
-                  <FaceBadge registered={employee.faceRegistered} />
-                  <ContractBadge type={employee.contractType} />
-                </div>
-
-                <div className="mt-8 pt-8 border-t border-white/5 space-y-4 text-left">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30">
-                      <Mail size={14} />
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Comm Link</p>
-                      <p className="text-xs font-bold text-white/70 truncate">{employee.email}</p>
-                    </div>
-                  </div>
-                  {employee.phone && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30">
-                        <Phone size={14} />
-                      </div>
-                      <div>
-                        <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Mobile Terminal</p>
-                        <p className="text-xs font-bold text-white/70">{employee.phone}</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30">
-                      <Calendar size={14} />
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Activation Date</p>
-                      <p className="text-xs font-bold text-white/70">
-                        {employee.joinDate ? format(new Date(employee.joinDate), 'dd MMMM yyyy') : '-'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Management Sector */}
-              <div className="glass-premium p-6 rounded-2xl border border-white/5 bg-white/3 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-jne-red border border-white/5">
-                    <Shield size={16} />
-                  </div>
-                  <h4 className="text-[10px] font-bold text-white uppercase tracking-widest leading-none">Management Protocols</h4>
-                </div>
-
-                <button
-                  onClick={handleResetFace}
-                  disabled={resetting || !employee.faceRegistered}
-                  className="w-full btn-secondary py-3 flex items-center justify-center gap-2 text-[10px]"
-                >
-                  <RotateCcw size={14} className={resetting ? 'animate-spin' : ''} />
-                  {resetting ? 'Resetting Biometric...' : 'Reset Biometric Data'}
-                </button>
-                
-                <button
-                  className="w-full py-3 rounded-xl bg-white/5 border border-white/5 text-white/40 text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
-                  onClick={() => alert('Feature coming soon: Encrypted password reset.')}
-                >
-                  <Mail size={14} />
-                  Transmit Reset Protocol
-                </button>
-
-                <button
-                  className="w-full py-3 rounded-xl bg-jne-danger/10 border border-jne-danger/20 text-jne-danger text-[10px] font-bold uppercase tracking-widest hover:bg-jne-danger/20 transition-all flex items-center justify-center gap-2"
-                  onClick={() => alert('Confirm personnel decommissioning.')}
-                >
-                  <Trash2 size={14} />
-                  Deactivate Identity
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Matrix Data Column */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="xl:col-span-8 space-y-8"
-            >
-              {/* Asset Allocation */}
-              <div className="glass-premium p-6 rounded-2xl border border-white/5 bg-white/3">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30 border border-white/5">
-                    <Smartphone size={16} />
-                  </div>
-                  <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Asset Assignment</h4>
-                </div>
-
-                {employee.deviceModel ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-white/2 border border-white/5 shadow-inner">
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Terminal Signature</p>
-                      <p className="text-sm font-bold text-white">{employee.deviceModel}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/2 border border-white/5 shadow-inner">
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Global Link Address</p>
-                      <p className="text-xs font-mono text-white/60 break-all">{employee.deviceId || '-'}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-12 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-center opacity-40">
-                    <Smartphone size={32} strokeWidth={1} className="mb-4" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest">No Terminal Registered</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Temporal Protocol */}
-              {shift && (
-                <div className="glass-premium p-6 rounded-2xl border border-white/5 bg-white/3">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/30 border border-white/5">
-                      <Clock size={16} />
-                    </div>
-                    <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Temporal Protocol</h4>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-xl bg-white/2 border border-white/5 shadow-inner text-center">
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Sync Profile</p>
-                      <p className="text-sm font-bold text-jne-red">{shift.name}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/2 border border-white/5 shadow-inner text-center">
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Activation Call</p>
-                      <p className="text-sm font-bold text-white">{shift.checkInTime}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/2 border border-white/5 shadow-inner text-center">
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Release Call</p>
-                      <p className="text-sm font-bold text-white">{shift.checkOutTime}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 p-4 rounded-xl bg-jne-info/5 border border-jne-info/10 flex items-center justify-between">
-                    <p className="text-[9px] font-bold text-jne-info uppercase tracking-widest">Drift Tolerance</p>
-                    <p className="text-[10px] font-bold text-white">{shift.toleranceMinutes} Minutes Buffer</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Activity Ledger Placeholder or More Data */}
-              <div className="glass-premium p-12 rounded-2xl border border-white/5 bg-white/3 border-dashed flex flex-col items-center justify-center text-center opacity-30">
-                <Briefcase size={40} strokeWidth={1} className="mb-4" />
-                <h4 className="text-sm font-bold text-white uppercase tracking-widest">Activity History Terminal</h4>
-                <p className="text-[10px] font-bold uppercase tracking-widest mt-2">Connecting to Intelligence Core...</p>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+
+          {/* Account actions */}
+          <div
+            className="rounded-2xl border p-5 backdrop-blur-xl"
+            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <h4 className="mb-3 text-sm font-semibold text-white">Manajemen Akun</h4>
+            <div className="space-y-2">
+              <button
+                onClick={handleResetFace}
+                disabled={resetting || !employee.faceRegistered}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors disabled:opacity-40"
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }}
+              >
+                <RotateCcw size={14} className={resetting ? 'animate-spin' : ''} />
+                {resetting ? 'Mereset...' : 'Reset Data Wajah'}
+              </button>
+
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors"
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }}
+                onClick={() => alert('Fitur segera hadir!')}
+              >
+                <Mail size={14} />
+                Kirim Reset Password
+              </button>
+
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors"
+                style={{ backgroundColor: 'rgba(192,57,43,0.1)', borderColor: 'rgba(192,57,43,0.2)', color: '#C0392B' }}
+                onClick={() => alert('Konfirmasi nonaktifkan karyawan.')}
+              >
+                <Trash2 size={14} />
+                Nonaktifkan Akun
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right column */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-4 xl:col-span-8"
+        >
+          {/* Device info */}
+          <div
+            className="rounded-2xl border p-5 backdrop-blur-xl"
+            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+                style={{ backgroundColor: '#0D1B35' }}
+              >
+                <Smartphone size={18} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">Perangkat Terdaftar</h4>
+                <p className="text-xs" style={{ color: '#9BA4B4' }}>Perangkat untuk presensi wajah</p>
+              </div>
+            </div>
+
+            {employee.deviceModel ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="rounded-xl border p-3" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Model Perangkat</p>
+                  <p className="mt-1 text-sm text-white">{employee.deviceModel}</p>
+                </div>
+                <div className="rounded-xl border p-3" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Device ID</p>
+                  <p className="mt-1 break-all font-mono text-xs text-white">
+                    {employee.deviceId || '—'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                <Smartphone size={32} style={{ color: '#9BA4B4', opacity: 0.5 }} />
+                <p className="text-sm font-medium" style={{ color: '#9BA4B4' }}>Belum ada perangkat terdaftar</p>
+                <p className="text-xs" style={{ color: '#9BA4B4', opacity: 0.7 }}>
+                  Perangkat akan muncul setelah karyawan melakukan presensi pertama.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Shift info */}
+          {shift && (
+            <div
+              className="rounded-2xl border p-5 backdrop-blur-xl"
+              style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+                  style={{ backgroundColor: '#3863C3' }}
+                >
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white">Jadwal Shift</h4>
+                  <p className="text-xs" style={{ color: '#9BA4B4' }}>Detail jadwal kerja dan toleransi</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Nama Shift</p>
+                  <p className="mt-1 text-sm font-semibold" style={{ color: '#3863C3' }}>{shift.name}</p>
+                </div>
+                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Masuk</p>
+                  <p className="mt-1 text-sm text-white">{shift.checkInTime}</p>
+                </div>
+                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Pulang</p>
+                  <p className="mt-1 text-sm text-white">{shift.checkOutTime}</p>
+                </div>
+              </div>
+
+              <div
+                className="mt-4 flex items-center justify-between rounded-xl px-4 py-3"
+                style={{ backgroundColor: 'rgba(56,99,195,0.1)', border: '1px solid rgba(56,99,195,0.2)' }}
+              >
+                <span className="text-xs font-medium" style={{ color: '#3863C3' }}>Toleransi Keterlambatan</span>
+                <span className="text-sm font-semibold text-white">{shift.toleranceMinutes} menit</span>
+              </div>
+            </div>
+          )}
+
+          {/* Future section */}
+          <div
+            className="flex flex-col items-center gap-3 rounded-2xl border border-dashed p-10 text-center backdrop-blur-xl"
+            style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.1)' }}
+          >
+            <Briefcase size={36} style={{ color: '#9BA4B4', opacity: 0.5 }} />
+            <p className="text-sm font-medium" style={{ color: '#9BA4B4' }}>Riwayat Absensi</p>
+            <p className="max-w-sm text-xs" style={{ color: '#9BA4B4', opacity: 0.7 }}>
+              Fitur riwayat absensi detail akan segera hadir.
+            </p>
+          </div>
+        </motion.div>
       </div>
     </AdminLayout>
   );

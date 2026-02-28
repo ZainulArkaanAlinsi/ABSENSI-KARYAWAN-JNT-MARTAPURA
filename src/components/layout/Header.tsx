@@ -32,42 +32,41 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 right-0 z-40 flex items-center justify-between border-b border-white/4"
+      className="fixed top-0 right-0 z-40 flex items-center justify-between border-b border-white/5"
       style={{
         left: 'var(--sidebar-width)',
         height: 'var(--header-height)',
-        background: 'var(--bg-header)',
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+        background: 'rgba(8, 6, 22, 0.85)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
       }}
     >
-      {/* Ambient glow line at top */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-jne-red/30 to-transparent pointer-events-none" />
+      {/* Ambient glow line at top & bottom */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-att-present/20 to-transparent pointer-events-none" />
+      <div className="absolute -bottom-px left-0 right-0 h-px bg-linear-to-r from-transparent via-white/2 to-transparent pointer-events-none" />
 
       {/* ── LEFT: Page Title Block ── */}
-      <div className="flex items-center gap-5 px-8 min-w-0 flex-1">
+      <div className="flex items-center gap-4 px-8 min-w-0 flex-1">
         <motion.div
           whileHover={{ rotate: 15, scale: 1.1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-          className="relative shrink-0 w-11 h-11 rounded-2xl bg-linear-to-br from-jne-red/20 to-jne-red/5 border border-jne-red/20 flex items-center justify-center shadow-lg shadow-jne-red/10"
+          className="relative shrink-0 w-10 h-10 rounded-xl bg-att-present/10 border border-att-present/20 flex items-center justify-center shadow-lg shadow-att-present/5"
         >
-          <Cpu size={20} className="text-jne-red" />
-          <div className="absolute inset-0 rounded-2xl bg-jne-red/5 animate-pulse" />
+          <Cpu size={18} className="text-att-present" />
+          <div className="absolute inset-0 rounded-xl bg-att-present/5 animate-pulse" />
         </motion.div>
 
         <div className="min-w-0">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">SYSTEM</span>
-            <ChevronRight size={10} className="text-white/15" />
-            <span className="text-[9px] font-black text-jne-red/60 uppercase tracking-[0.3em]">MODULE</span>
+            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em]">ADMIN</span>
+            <div className="w-1 h-1 rounded-full bg-att-present/40" />
+            <span className="text-[8px] font-black text-att-present/80 uppercase tracking-[0.4em]">SYSTEM</span>
           </div>
-          {/* Title */}
-          <h1 className="text-[16px] font-black text-white tracking-tight uppercase leading-none truncate">
+          <h1 className="text-[15px] font-black text-white tracking-tight uppercase leading-none truncate">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-[9px] text-white/25 font-bold uppercase tracking-[0.25em] mt-0.5 truncate font-mono">
+            <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-1 truncate font-mono bg-white/5 px-1.5 py-0.5 rounded inline-block">
               {subtitle}
             </p>
           )}
@@ -84,7 +83,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
           <Search
             size={14}
             className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-              searchFocused ? 'text-jne-red' : 'text-white/20'
+              searchFocused ? 'text-att-present' : 'text-white/20'
             }`}
           />
           <input
@@ -94,7 +93,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             onChange={e => setSearchValue(e.target.value)}
-            className="w-full bg-white/4 border border-white/6 rounded-2xl py-2.5 pl-10 pr-10 text-[12px] font-semibold text-white placeholder:text-white/20 focus:outline-none focus:border-jne-red/40 focus:bg-white/8 focus:shadow-[0_0_0_4px_rgba(255,51,102,0.05)] transition-all duration-300 shadow-inner"
+            className="w-full bg-white/4 border border-white/6 rounded-2xl py-2.5 pl-10 pr-10 text-[12px] font-semibold text-white placeholder:text-white/20 focus:outline-none focus:border-att-present/40 focus:bg-white/8 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.05)] transition-all duration-300 shadow-inner"
           />
           <AnimatePresence>
             {searchValue && (
@@ -210,13 +209,13 @@ export default function Header({ title, subtitle }: HeaderProps) {
             </div>
 
             {/* Avatar */}
-            <div className="relative w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500 via-purple-500 to-jne-red flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 overflow-hidden shrink-0">
+            <div className="relative w-8 h-8 rounded-xl bg-att-present/20 border border-att-present/30 flex items-center justify-center text-att-present font-black shadow-lg shadow-att-present/10 overflow-hidden shrink-0">
               <span className="text-[12px] relative z-10 leading-none">
                 {user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </span>
               {/* Shimmer */}
               <motion.div
-                className="absolute inset-0 bg-linear-to-tr from-transparent via-white/25 to-transparent -skew-x-12"
+                className="absolute inset-0 bg-white/10 -skew-x-12"
                 animate={{ x: ['-150%', '200%'] }}
                 transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
               />
@@ -234,9 +233,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 className="absolute right-0 top-full mt-3 w-64 glass-card rounded-2xl overflow-hidden border border-white/8 shadow-2xl shadow-black/40"
               >
                 {/* Profile Header */}
-                <div className="px-5 py-4 bg-linear-to-br from-jne-red/10 to-transparent border-b border-white/5">
+                <div className="px-5 py-4 bg-white/2 border-b border-white/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 via-purple-500 to-jne-red flex items-center justify-center text-white font-black text-sm shadow-lg overflow-hidden relative">
+                    <div className="w-10 h-10 rounded-xl bg-att-present/20 border border-att-present/30 flex items-center justify-center text-att-present font-black text-sm shadow-lg overflow-hidden relative">
                       <span className="relative z-10">{user?.name?.charAt(0)?.toUpperCase() || 'A'}</span>
                     </div>
                     <div className="min-w-0">

@@ -1,13 +1,30 @@
 'use client';
 
-import { CheckCircle, XCircle, FileText, Loader2, Eye, ShieldAlert, Clock, Inbox, ChevronRight } from 'lucide-react';
+import {
+  CheckCircle,
+  XCircle,
+  FileText,
+  Loader2,
+  Eye,
+  Clock,
+  Inbox,
+  ChevronRight,
+  ShieldAlert,
+  Calendar,
+  Layers,
+  Activity,
+  UserCheck,
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
-import { useLeaveManagement, TABS, LEAVE_TYPE_LABELS } from '@/hooks/useLeaveManagement';
+import {
+  useLeaveManagement,
+  TABS,
+  LEAVE_TYPE_LABELS,
+} from '@/hooks/useLeaveManagement';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LeavesPage() {
@@ -29,252 +46,283 @@ export default function LeavesPage() {
   } = useLeaveManagement();
 
   return (
-    <AdminLayout title="Adjudication Matrix" subtitle="Manage and verify personnel leave authorization protocols.">
-      <div className="relative pb-24 px-8 lg:px-12 max-w-[1600px] mx-auto">
-        {/* Dynamic Field Ambient Effects */}
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[160px] pointer-events-none animate-pulse -z-10" />
-        <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-jne-red/5 rounded-full blur-[120px] pointer-events-none animate-[pulse_8s_infinite_1s] -z-10" />
+    <AdminLayout title="Authorizations" subtitle="Leaves Matrix">
+      <div className="dash-root">
+        {/* ── Header Row ── */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="dash-header-row mb-6 items-end"
+        >
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
+              <span className="text-[10px] font-black text-[#7C3AED] uppercase tracking-[0.3em]">Personnel Governance</span>
+            </div>
+            <h2 className="dash-page-title leading-none">Authorization Queue</h2>
+            <p className="dash-page-sub mt-2 text-slate-500">Processing leave requests and operational status override</p>
+          </div>
 
-        <div className="relative z-10 space-y-12">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row justify-between items-center gap-8 border-b border-white/5 pb-10"
-          >
-            <div className="glass-card p-2 rounded-2xl flex gap-2">
-              {TABS.map(tab => (
+          <div className="flex items-center gap-2">
+             <div
+                className="flex items-center gap-2 rounded-xl bg-white/3 border border-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-400"
+              >
+                <Activity size={14} className={pendingCount > 0 ? "text-amber-500 animate-pulse" : "text-slate-600"} />
+                <span>Queue: <span className={pendingCount > 0 ? "text-white" : "text-slate-600"}>{pendingCount} Pending</span></span>
+              </div>
+          </div>
+        </motion.div>
+
+        {/* ── Tab Bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8 flex items-center justify-between"
+        >
+          <div className="flex bg-white/3 border border-white/5 p-1 rounded-2xl backdrop-blur-xl">
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`relative px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${
-                    activeTab === tab.key 
-                      ? 'text-white' 
-                      : 'text-white/30 hover:text-white'
-                  }`}
+                  className="relative rounded-xl px-6 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all"
+                  style={{
+                    background: isActive ? '#7C3AED' : 'transparent',
+                    color: isActive ? '#fff' : '#64748b',
+                  }}
                 >
-                  <span className="relative z-10">{tab.label}</span>
-                  {activeTab === tab.key && (
+                  {isActive && (
                     <motion.div 
-                      layoutId="activeTabUnderlay"
-                      className="absolute inset-0 bg-linear-to-r from-jne-red to-jne-danger rounded-xl shadow-lg shadow-jne-red/20"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      layoutId="tab-active"
+                      className="absolute inset-0 bg-[#7C3AED] rounded-xl -z-10 shadow-[0_4px_12px_rgba(124,58,237,0.35)]"
                     />
                   )}
+                  {tab.label}
                   {tab.key === 'pending' && pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-6 h-6 bg-jne-red text-white text-[10px] font-black flex items-center justify-center rounded-full border-4 border-slate-950 shadow-2xl z-20">
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#E04B3A] text-[9px] font-black text-white border-2 border-[#0F172A]">
                       {pendingCount}
                     </span>
                   )}
                 </button>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
-            <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-jne-warning/5 border border-jne-warning/10 shadow-inner">
-                <div className="w-2.5 h-2.5 rounded-full bg-jne-warning animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                <span className="text-[10px] font-black text-jne-warning uppercase tracking-[0.3em]">Queue Live: {pendingCount}</span>
-              </div>
-            </div>
-          </motion.div>
+          <button className="dash-btn-secondary text-[10px] py-2 px-4 flex items-center gap-2">
+            <Layers size={14} />
+            Matrix View
+          </button>
+        </motion.div>
 
-          {/* Requests Feed */}
+        {/* ── Requests List ── */}
+        <div className="space-y-4">
           {loading ? (
-            <div className="py-48 flex justify-center"><PageLoader /></div>
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <PageLoader />
+              <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Accessing Data Stream...</p>
+            </div>
           ) : leaves.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass-card flex flex-col items-center justify-center py-56 rounded-4xl border border-dashed border-white/10"
+              className="dash-card flex flex-col items-center gap-6 py-24 text-center border-dashed border-white/10"
             >
-              <div className="relative mb-12">
-                <div className="absolute inset-0 bg-jne-red/5 blur-3xl rounded-full scale-150" />
-                <div className="w-32 h-32 rounded-3xl bg-linear-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center text-white z-10 shadow-2xl">
-                  <Inbox size={64} strokeWidth={1} className="opacity-20" />
-                </div>
+              <div className="h-16 w-16 items-center justify-center rounded-2xl bg-white/2 border border-white/5 flex">
+                <Inbox size={32} className="text-slate-800" />
               </div>
-              <h3 className="text-4xl font-black text-white tracking-widest uppercase mb-4">Queue Depleted</h3>
-              <p className="text-[12px] font-black text-white/20 uppercase tracking-[0.5em] text-center max-w-sm leading-relaxed">
-                Personnel deployment matrix is clear. Initializing system idle protocol.
-              </p>
+              <div>
+                <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">Operational Queue Empty</h4>
+                <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wider">No personnel items requiring immediate authorization at this time.</p>
+              </div>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 gap-6">
-              <AnimatePresence mode="popLayout">
-                {leaves.map((leave, idx) => (
-                  <motion.div 
-                    key={leave.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.98, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.5, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="glass-card p-10 rounded-4xl group overflow-hidden"
-                  >
-                    {/* Status accent glow */}
-                    <div className="absolute top-0 right-0 w-96 h-96 blur-[120px] opacity-[0.03] pointer-events-none bg-indigo-500 group-hover:opacity-[0.08] transition-opacity" />
-
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-12">
-                      {/* Identity Section */}
-                      <div className="flex items-center gap-6 lg:w-80 shrink-0">
-                        <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-black text-white shadow-2xl group-hover:rotate-6 transition-transform">
-                            {leave.employeeName?.charAt(0)}
-                          </div>
-                          <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center shadow-2xl">
-                             <Clock size={16} className="text-white/40" />
-                          </div>
+            <AnimatePresence mode="popLayout">
+              {leaves.map((leave, idx) => (
+                <motion.div
+                  key={leave.id}
+                  layout
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="dash-card p-0 overflow-hidden group hover:border-[#7C3AED]/20 transition-all"
+                >
+                  <div className="flex flex-col xl:flex-row xl:items-stretch">
+                    {/* Personnel Identity Pillar */}
+                    <div className="p-6 xl:w-72 bg-white/1 border-b xl:border-b-0 xl:border-r border-white/5">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="h-12 w-12 flex items-center justify-center rounded-2xl font-black text-lg border border-[#7C3AED]/20 bg-[#7C3AED]/10 text-[#7C3AED] shadow-sm shadow-[#7C3AED]/10 group-hover:scale-105 transition-transform">
+                          {leave.employeeName?.charAt(0)}
                         </div>
-                        <div>
-                          <h4 className="text-xl font-black text-white tracking-tight group-hover:text-jne-red transition-colors uppercase">{leave.employeeName}</h4>
-                          <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em] mt-1.5">
-                             {leave.department} • {leave.employeeId}
-                          </p>
+                        <div className="min-w-0">
+                          <p className="text-[15px] font-black text-white group-hover:text-[#7C3AED] transition-colors leading-tight mb-0.5">{leave.employeeName}</p>
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{leave.employeeId}</p>
                         </div>
                       </div>
-
-                      {/* Details Matrix */}
-                      <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-8">
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Protocol Type</p>
-                          <p className="text-[11px] font-black text-white uppercase tracking-widest bg-white/5 py-1.5 px-3 rounded-lg border border-white/5 inline-block">{LEAVE_TYPE_LABELS[leave.type] || leave.type}</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          <Layers size={10} className="text-[#7C3AED]" />
+                          {leave.department}
                         </div>
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Term Duration</p>
-                          <p className="text-sm font-black text-white flex items-center gap-2 tracking-tight">
-                            {leave.startDate ? format(new Date(leave.startDate), 'dd MMM') : '-'}
-                            <ChevronRight size={14} className="text-white/10" />
-                            {leave.endDate ? format(new Date(leave.endDate), 'dd MMM') : '-'}
-                          </p>
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                          <Clock size={10} />
+                          {leave.createdAt ? format(new Date(leave.createdAt), 'dd MMM, HH:mm') : 'Pending'}
                         </div>
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Net Cycles</p>
-                          <p className="text-sm font-black text-white tracking-tight">{leave.totalDays} WORKDAYS</p>
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">System State</p>
-                          <StatusBadge status={leave.status} size="md" />
-                        </div>
-                      </div>
-
-                      {/* Command Interface */}
-                      <div className="flex items-center justify-end gap-5 lg:w-64 shrink-0">
-                        {leave.documentUrl && (
-                          <motion.a 
-                            whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                            whileTap={{ scale: 0.9 }}
-                            href={leave.documentUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="w-14 h-14 rounded-2xl bg-white/2 text-white/40 hover:text-white transition-all border border-white/5 flex items-center justify-center shadow-inner"
-                          >
-                            <Eye size={22} />
-                          </motion.a>
-                        )}
-                        
-                        {leave.status === 'pending' ? (
-                          <div className="flex gap-4">
-                            <motion.button
-                              whileHover={{ scale: 1.05, y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleApprove(leave)}
-                              disabled={!!processing}
-                              className="px-8 py-5 rounded-2xl bg-linear-to-r from-jne-success to-emerald-500 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl shadow-jne-success/20 transition-all disabled:opacity-50 flex items-center gap-3"
-                            >
-                              {processing === leave.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                              Grant
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.05, y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => openReject(leave)}
-                              disabled={!!processing}
-                              className="w-14 h-14 rounded-2xl bg-jne-danger/5 text-jne-danger hover:bg-jne-danger/10 transition-all border border-jne-danger/20 flex items-center justify-center shadow-2xl"
-                            >
-                              <XCircle size={22} />
-                            </motion.button>
-                          </div>
-                        ) : (
-                          <div className="text-right glass-card px-6 py-3 rounded-2xl border border-white/5 group-hover:border-white/10 transition-all">
-                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] mb-1.5">Verified By</p>
-                            <p className="text-[12px] font-black text-white uppercase tracking-widest">{leave.reviewedBy || 'System Protocol'}</p>
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    <div className="mt-10 pt-10 border-t border-white/5 flex items-start gap-6">
-                      <div className="w-12 h-12 rounded-2xl bg-white/3 flex items-center justify-center shrink-0 border border-white/5 shadow-inner">
-                        <FileText size={20} className="text-indigo-400 opacity-40" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Justification Protocol</p>
-                        <p className="text-sm font-medium text-white/80 leading-relaxed max-w-3xl font-sans">"{leave.reason}"</p>
-                      </div>
-                      {leave.rejectionReason && (
-                        <div className="ml-auto pl-10 border-l border-jne-danger/20 max-w-sm">
-                          <p className="text-[10px] font-black text-jne-danger uppercase tracking-[0.4em] mb-3">Rejection Log</p>
-                          <p className="text-[12px] font-bold text-jne-danger/80 leading-relaxed italic font-sans">"{leave.rejectionReason}"</p>
-                        </div>
-                      )}
+                    {/* Operational Intent Details */}
+                    <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center gap-8">
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 flex-1">
+                          <div>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Intent Protocol</p>
+                            <span className="inline-flex rounded-lg border border-[#7C3AED]/20 bg-[#7C3AED]/10 px-3 py-1.5 text-[10px] font-black text-[#7C3AED] uppercase tracking-widest">
+                              {LEAVE_TYPE_LABELS[leave.type] || leave.type}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Timeline</p>
+                            <div className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums">
+                              <Calendar size={14} className="text-slate-500" />
+                              {leave.startDate ? format(new Date(leave.startDate), 'MMM dd') : '?'}
+                              <span className="text-white/20">—</span>
+                              {leave.endDate ? format(new Date(leave.endDate), 'MMM dd') : '?'}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Yield Loss</p>
+                            <p className="text-sm font-black text-white flex items-center gap-1.5">
+                              {leave.totalDays} <span className="text-[10px] text-slate-500 uppercase">Production Cycles</span>
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Matrix Status</p>
+                            <StatusBadge status={leave.status} />
+                          </div>
+                       </div>
+
+                       {/* Action Block */}
+                       <div className="flex items-center justify-end gap-3 min-w-[200px]">
+                          {leave.documentUrl && (
+                            <a
+                              href={leave.documentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-10 w-10 flex items-center justify-center rounded-xl border border-white/5 bg-white/3 text-slate-500 hover:text-[#7C3AED] hover:border-[#7C3AED]/40 transition-all hover:bg-[#7C3AED]/5"
+                              title="Inspect Evidence"
+                            >
+                              <FileText size={18} />
+                            </a>
+                          )}
+
+                          {leave.status === 'pending' ? (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => openReject(leave)}
+                                disabled={!!processing}
+                                className="h-10 px-4 rounded-xl border border-[#E04B3A]/20 bg-[#E04B3A]/5 text-[#E04B3A] text-[11px] font-black uppercase tracking-widest hover:bg-[#E04B3A]/10 transition-all disabled:opacity-30"
+                              >
+                                {processing === leave.id ? <Loader2 size={16} className="animate-spin" /> : 'Override'}
+                              </button>
+                              <button
+                                onClick={() => handleApprove(leave)}
+                                disabled={!!processing}
+                                className="h-10 px-6 rounded-xl bg-[#7C3AED] text-white text-[11px] font-black uppercase tracking-widest shadow-[0_4px_12px_rgba(124,58,237,0.35)] hover:bg-[#6D28D9] transition-all disabled:opacity-30 flex items-center gap-2"
+                              >
+                                <CheckCircle size={14} strokeWidth={3} />
+                                Authorize
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-right flex items-center gap-3">
+                              <div className="text-right">
+                                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Resolved by</p>
+                                <p className="text-[12px] font-black text-white flex items-center justify-end gap-2 uppercase tracking-wide">
+                                  <UserCheck size={12} className="text-[#10B981]" />
+                                  {leave.reviewedBy || 'System Controller'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                  </div>
+
+                  {/* Supplemental Documentation Strip */}
+                  <div className="bg-white/0.5 border-t border-white/5 p-4 px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-lg bg-[#7C3AED]/5 border border-[#7C3AED]/10">
+                         <FileText size={12} className="text-[#7C3AED]" />
+                      </div>
+                      <p className="text-[12px] font-medium text-slate-500 italic">
+                        &ldquo;{leave.reason}&rdquo;
+                      </p>
+                    </div>
+                    
+                    {leave.rejectionReason && (
+                      <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-[#E04B3A]/5 border border-[#E04B3A]/10">
+                        <ShieldAlert size={14} className="text-[#E04B3A]" />
+                        <p className="text-[11px] font-bold text-[#E04B3A] uppercase tracking-wide italic">
+                          Override Logic: &ldquo;{leave.rejectionReason}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </div>
 
-      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Security Adjudication: Request Termination" maxWidth={600}>
+      {/* Override Protocol Modal */}
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        title="Protocol Override"
+        maxWidth={520}
+      >
         {selectedLeave && (
-          <div className="space-y-12 py-8">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-8 rounded-4xl bg-jne-danger/5 border border-jne-danger/20 flex items-center gap-8 backdrop-blur-3xl shadow-2xl"
-            >
-              <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-jne-danger/20 to-transparent flex items-center justify-center text-jne-danger shrink-0 border border-jne-danger/30 shadow-xl">
-                <ShieldAlert size={40} />
-              </div>
-              <div className="space-y-2">
-                <p className="text-2xl font-black text-white tracking-tight uppercase">{selectedLeave.employeeName}</p>
-                <p className="text-[12px] font-black text-jne-danger/60 uppercase tracking-[0.5em]">{LEAVE_TYPE_LABELS[selectedLeave.type]} Protocol • {selectedLeave.totalDays} WORKDAYS</p>
-              </div>
-            </motion.div>
-
-            <div className="space-y-6">
-              <label className="text-[11px] font-black text-white/20 uppercase tracking-[0.5em] text-center block">Rationale for Termination</label>
-              <div className="relative group">
-                <textarea
-                  className="w-full bg-white/3 border border-white/5 rounded-3xl p-8 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-jne-danger/50 transition-all shadow-inner backdrop-blur-xl min-h-[180px] resize-none font-sans"
-                  placeholder="Declare official grounds for deployment cancellation..."
-                  value={rejectReason}
-                  onChange={e => setRejectReason(e.target.value)}
-                />
-              </div>
-              <p className="text-[10px] text-jne-danger/40 font-black uppercase tracking-[0.3em] text-center italic">This log will be transmitted to personnel terminal via encrypted feed.</p>
+          <div className="space-y-6 pt-2">
+            <div className="flex items-center gap-4 rounded-2xl p-4 bg-[#E04B3A]/5 border border-[#E04B3A]/20">
+               <div className="h-10 w-10 flex items-center justify-center rounded-xl font-black text-sm bg-[#E04B3A] text-white shadow-lg shadow-[#E04B3A]/20">
+                  {selectedLeave.employeeName?.charAt(0)}
+               </div>
+               <div>
+                  <p className="text-sm font-black text-white uppercase tracking-wider">{selectedLeave.employeeName}</p>
+                  <p className="text-[11px] font-bold text-[#E04B3A] uppercase tracking-widest">
+                    {LEAVE_TYPE_LABELS[selectedLeave.type]} Protocol • {selectedLeave.totalDays} Cycle Deduction
+                  </p>
+               </div>
             </div>
 
-            <div className="flex gap-6">
-              <motion.button 
-                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowRejectModal(false)} 
-                className="flex-1 py-5 rounded-[28px] font-black text-[11px] uppercase tracking-[0.3em] text-white/30 border border-white/5 transition-all shadow-xl"
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">Override Logic Justification</label>
+              <textarea
+                className="w-full h-32 rounded-2xl border border-white/10 bg-white/3 p-4 text-sm text-white placeholder-slate-600 outline-none focus:border-[#E04B3A]/30 focus:bg-white/5 transition-all resize-none"
+                placeholder="Declare the technical reason for this authorization override..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowRejectModal(false)}
+                className="flex-1 h-12 rounded-xl border border-white/10 bg-white/5 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
               >
-                Abort Adjudication
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                Cancel
+              </button>
+              <button
                 onClick={handleRejectSubmit}
                 disabled={!rejectReason.trim() || !!processing}
-                className="flex-1 py-5 rounded-[28px] font-black text-[11px] uppercase tracking-[0.3em] bg-linear-to-r from-jne-danger to-red-600 text-white shadow-2xl shadow-jne-danger/40 transition-all disabled:opacity-50 flex items-center justify-center gap-4"
+                className="flex-[1.5] h-12 flex items-center justify-center gap-2 rounded-xl bg-[#E04B3A] text-[11px] font-black text-white uppercase tracking-widest shadow-[0_4px_12px_rgba(224,75,58,0.35)] hover:bg-red-600 transition-all disabled:opacity-30"
               >
-                {processing ? <Loader2 size={20} className="animate-spin" /> : <XCircle size={20} />}
-                Confirm Cancellation
-              </motion.button>
+                {processing ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
+                Confirm Override
+              </button>
             </div>
           </div>
         )}
@@ -282,4 +330,3 @@ export default function LeavesPage() {
     </AdminLayout>
   );
 }
-

@@ -57,7 +57,7 @@ export function useReportManagement() {
 
   // Summary stats
   const summary = {
-    present: filtered.filter(a => a.status === 'present').length,
+    present: filtered.filter(a => ['present', 'late', 'overtime'].includes(a.status)).length,
     late: filtered.filter(a => a.status === 'late').length,
     absent: filtered.filter(a => a.status === 'absent').length,
     leave: filtered.filter(a => a.status === 'leave').length,

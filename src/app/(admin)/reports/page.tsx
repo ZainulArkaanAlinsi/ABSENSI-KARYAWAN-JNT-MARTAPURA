@@ -1,13 +1,29 @@
 'use client';
 
-import { Download, BarChart3, Calendar, Filter, User, Briefcase, Activity, ShieldCheck, Zap } from 'lucide-react';
+import {
+  Download,
+  BarChart3,
+  Calendar,
+  Filter,
+  User,
+  Briefcase,
+  Activity,
+  ShieldCheck,
+  Zap,
+  ChevronRight,
+  Database,
+  Cpu,
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import type { AttendanceStatus } from '@/types';
 import { StatusBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
-import { useReportManagement, STATUS_OPTIONS, minsToHours } from '@/hooks/useReportManagement';
+import {
+  useReportManagement,
+  STATUS_OPTIONS,
+  minsToHours,
+} from '@/hooks/useReportManagement';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ReportsPage() {
@@ -31,272 +47,339 @@ export default function ReportsPage() {
     exportCSV,
   } = useReportManagement();
 
+  const summaryCards = [
+    {
+      key: 'present',
+      label: 'Optimal',
+      value: summary.present,
+      color: '#10B981',
+      icon: ShieldCheck,
+    },
+    {
+      key: 'late',
+      label: 'Deviation',
+      value: summary.late,
+      color: '#E04B3A',
+      icon: Activity,
+    },
+    {
+      key: 'absent',
+      label: 'Offline',
+      value: summary.absent,
+      color: '#F59E0B',
+      icon: User,
+    },
+    {
+      key: 'leave',
+      label: 'Authorized',
+      value: summary.leave,
+      color: '#3B82F6',
+      icon: Calendar,
+    },
+    {
+      key: 'overtime',
+      label: 'Overflow',
+      value: summary.overtime,
+      color: '#8B5CF6',
+      icon: Zap,
+    },
+  ];
+
+  const periodLabel =
+    startDate && endDate
+      ? `${format(new Date(startDate), 'yyyy.MM.dd')} — ${format(
+          new Date(endDate),
+          'yyyy.MM.dd',
+        )}`
+      : 'Infinite Period';
+
   return (
-    <AdminLayout title="Intelligence Core" subtitle="Deep-level analysis of personnel mobility and operational attendance.">
-      <div className="relative pb-24 px-8 lg:px-12 max-w-[1600px] mx-auto">
-        {/* Dynamic Analytics Field Blobs */}
-        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-jne-red/5 rounded-full blur-[160px] pointer-events-none animate-pulse -z-10" />
-        <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none animate-[pulse_12s_infinite_2s] -z-10" />
-
-        <div className="relative z-10 space-y-12">
-        {/* Intelligence Filters Panel */}
-        <motion.div 
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-10 rounded-4xl relative overflow-hidden"
+    <AdminLayout title="Intelligence" subtitle="Reports Hub">
+      <div className="dash-root">
+        {/* ── Header Row ── */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="dash-header-row mb-6 items-end"
         >
-          {/* Panel Accent */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-jne-red/40 via-purple-500/40 to-jne-red/40" />
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
-            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-jne-red/10 flex items-center justify-center text-jne-red border border-jne-red/20 shadow-xl">
-                <Filter size={24} />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-white tracking-tight uppercase">Intelligence Synthesis</h3>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mt-1.5">Sequence Parameters</p>
-              </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
+              <span className="text-[10px] font-black text-[#7C3AED] uppercase tracking-[0.3em]">Data Aggregator</span>
             </div>
-
-            <motion.button 
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={exportCSV} 
-              className="btn-primary py-5! px-12! rounded-2xl! group shadow-2xl shadow-jne-red/20"
-            >
-              <Download size={18} className="group-hover:-translate-y-0.5 transition-transform duration-300" />
-              <span>Extract Protocol</span>
-            </motion.button>
+            <h2 className="dash-page-title leading-none">Intelligence Hub</h2>
+            <p className="dash-page-sub mt-2 text-slate-500">Multidimensional attendance analytics & audit logs</p>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Commencement</label>
-              <div className="relative group">
-                <Calendar size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-jne-red group-focus-within:scale-110 transition-transform" />
-                <input type="date" className="form-input pl-14" value={startDate}
-                  onChange={e => setStartDate(e.target.value)} />
-              </div>
+
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={exportCSV}
+              className="dash-btn-secondary flex items-center gap-2"
+            >
+              <Download size={16} />
+              Export Records
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── Filter Engine ── */}
+        <motion.div
+           initial={{ opacity: 0, y: 10 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.1 }}
+           className="dash-card p-6 border-white/5 bg-white/2 mb-8"
+        >
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <Calendar size={10} /> Beginning
+              </label>
+              <input
+                type="date"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Termination</label>
-              <div className="relative group">
-                <Calendar size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-jne-red group-focus-within:scale-110 transition-transform" />
-                <input type="date" className="form-input pl-14" value={endDate}
-                  onChange={e => setEndDate(e.target.value)} />
-              </div>
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <Calendar size={10} /> Termination
+              </label>
+              <input
+                type="date"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Personnel Matrix</label>
-              <div className="relative group">
-                <User size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-jne-red group-focus-within:scale-110 transition-transform" />
-                <select className="form-input pl-14 appearance-none cursor-pointer" value={filterEmployee}
-                  onChange={e => setFilterEmployee(e.target.value)}>
-                  <option value="all" className="bg-[#0f172a]">All Identity Nodes</option>
-                  {employees.map(e => <option key={e.id} value={e.id} className="bg-[#0f172a]">{e.name}</option>)}
-                </select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <User size={10} /> Personnel
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                value={filterEmployee}
+                onChange={(e) => setFilterEmployee(e.target.value)}
+              >
+                <option value="all" className="bg-[#0F172A]">Cross-Personnel</option>
+                {employees.map((e) => (
+                  <option key={e.id} value={e.id} className="bg-[#0F172A]">
+                    {e.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Sector Assignment</label>
-              <div className="relative group">
-                <Briefcase size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-jne-red group-focus-within:scale-110 transition-transform" />
-                <select className="form-input pl-14 appearance-none cursor-pointer" value={filterDept}
-                  onChange={e => setFilterDept(e.target.value)}>
-                  {departments.map(d => <option key={d} value={d} className="bg-[#0f172a]">{d === 'all' ? 'Universal Sectors' : d}</option>)}
-                </select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <Briefcase size={10} /> Unit
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                value={filterDept}
+                onChange={(e) => setFilterDept(e.target.value)}
+              >
+                {departments.map((d) => (
+                  <option key={d} value={d} className="bg-[#0F172A]">
+                    {d === 'all' ? 'Cross-Unit' : d}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Protocol Status</label>
-              <div className="relative group">
-                <Activity size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-jne-red group-focus-within:scale-110 transition-transform" />
-                <select className="form-input pl-14 appearance-none cursor-pointer" value={filterStatus}
-                  onChange={e => setFilterStatus(e.target.value as AttendanceStatus | 'all')}>
-                  {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-[#0f172a] font-sans">{s.label}</option>)}
-                </select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <Activity size={10} /> Status
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as AttendanceStatus | 'all')}
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value} className="bg-[#0F172A]">
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </motion.div>
 
-        {/* Matrix Performance Summary */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
-          {[
-            { label: 'Deployed', value: summary.present, color: 'text-jne-success', icon: ShieldCheck, glow: 'bg-jne-success/5' },
-            { label: 'Delayed', value: summary.late, color: 'text-jne-warning', icon: Activity, glow: 'bg-jne-warning/5' },
-            { label: 'Signal Lost', value: summary.absent, color: 'text-jne-danger', icon: User, glow: 'bg-jne-danger/5' },
-            { label: 'Authorized', value: summary.leave, color: 'text-jne-info', icon: Calendar, glow: 'bg-jne-info/5' },
-            { label: 'Overdriven', value: summary.overtime, color: 'text-jne-overtime', icon: Zap, glow: 'bg-jne-overtime/5' },
-          ].map((s, idx) => (
-            <motion.div 
-              key={s.label}
+        {/* ── Metrics Grid ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+           {summaryCards.map((s, i) => (
+            <motion.div
+              key={s.key}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05, duration: 0.5 }}
-              whileHover={{ y: -8 }}
-              className="glass-card p-8 rounded-4xl relative overflow-hidden group"
+              transition={{ delay: 0.2 + i * 0.05 }}
+              className="dash-card p-4 relative overflow-hidden"
             >
-              <div className={`absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${s.glow}`} />
-              <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center ${s.color} mb-6 shadow-inner group-hover:rotate-12 transition-transform`}>
-                   <s.icon size={24} />
-                </div>
-                <p className={`text-4xl font-black tracking-tighter ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-3 text-white/30">{s.label}</p>
+              <div className="flex items-center justify-between mb-3">
+                <s.icon size={14} className="text-slate-500" />
+                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Aggregate</span>
               </div>
+              <p className="text-2xl font-black text-white tabular-nums mb-0.5">{loading ? '—' : s.value}</p>
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">{s.label}</p>
+              <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color} 0%, transparent 100%)`, opacity: 0.4 }} />
             </motion.div>
-          ))}
+           ))}
         </div>
 
-        {/* Global Intelligence Ledger */}
-        <div className="table-container">
-          <div className="flex items-center justify-between px-10 py-8 border-b border-white/5 bg-white/3">
+        {/* ── Result Matrix ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="dash-card overflow-hidden"
+        >
+          <div className="dash-card-header mb-0 bg-white/1 -mx-px -mt-px px-6 py-5 border-b border-white/5">
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight uppercase">Intelligence Ledger</h3>
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mt-2">
-                <span className="text-jne-red">{filtered.length}</span> Active Record Identified
-              </p>
+              <h3 className="dash-card-title uppercase tracking-wider text-xs">Transactional Matrix</h3>
+              <p className="dash-card-sub">{periodLabel}</p>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/30 border border-white/5 shadow-inner">
-              <BarChart3 size={28} />
+            <div className="flex items-center gap-3">
+               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-slate-400">
+                <BarChart3 size={14} className="text-[#7C3AED]" />
+                <span className="text-white">{filtered.length}</span> SIGNALS DETECTED
+              </div>
             </div>
           </div>
-          
-          <div className="p-2">
-            {loading ? (
-              <div className="py-24 flex justify-center"><PageLoader /></div>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-48 px-12 text-center">
-                <div className="w-24 h-24 rounded-3xl bg-white/5 mb-10 border border-white/10 flex items-center justify-center animate-pulse">
-                  <Activity size={56} className="text-white opacity-10" />
-                </div>
-                <h3 className="text-3xl font-black text-white tracking-widest uppercase mb-4">No Matrix Data</h3>
-                <p className="text-white/30 text-[12px] max-w-sm font-black uppercase tracking-[0.4em] leading-relaxed">Adjust sequence filters to retrieve deep-level mobility data.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="premium-table w-full">
-                  <thead>
-                    <tr>
-                      <th className="pl-10 text-left">Temporal Log</th>
-                      <th className="text-left">Personnel</th>
-                      <th className="text-left">Sector</th>
-                      <th className="text-center">Protocol Status</th>
-                      <th className="text-center">Pulse Grid</th>
-                      <th className="text-center">Net Duration</th>
-                      <th className="text-center">Deviation</th>
-                      <th className="pr-10 text-right">Bio-Score</th>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+                  <th className="px-6 py-5">Temporal Index</th>
+                  <th className="px-6 py-5">Personnel asset</th>
+                  <th className="px-6 py-5 text-center">Resolution</th>
+                  <th className="px-6 py-5 text-center">Entry/Exit</th>
+                  <th className="px-6 py-5 text-center">Yield</th>
+                  <th className="px-6 py-5 text-center">Deltas</th>
+                  <th className="px-6 py-5 text-right">Biometric</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/2">
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={7} className="px-6 py-5"><div className="h-10 w-full dash-skeleton rounded-xl" /></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    <AnimatePresence mode="popLayout">
-                      {filtered.map((record, idx) => (
-                        <motion.tr 
-                          key={record.id}
-                          layout
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.01, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                          className="group hover:bg-white/4 transition-all"
-                        >
-                          <td className="py-6 pl-10 border-b border-white/5 group-last:border-none">
-                            <div className="flex flex-col">
-                              <span className="text-[13px] font-black text-white uppercase tracking-tighter">
-                                {record.date ? format(new Date(record.date), 'dd MMM yyyy') : '-'}
-                              </span>
-                              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Sync Protocol</span>
-                            </div>
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none">
-                            <div className="flex items-center gap-4">
-                              <div className="w-11 h-11 rounded-xl bg-linear-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center text-[10px] font-black text-white border border-white/5 shadow-inner group-hover:rotate-6 transition-transform ring-1 ring-white/5">
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-24 text-center">
+                      <div className="flex flex-col items-center gap-5">
+                        <div className="p-5 rounded-2xl bg-white/2 border border-white/5">
+                          <Database size={32} className="text-slate-800" />
+                        </div>
+                        <p className="text-[11px] font-black text-slate-600 uppercase tracking-[0.2em]">Matrix produced zero matching signals</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <AnimatePresence mode="popLayout">
+                    {filtered.map((record, idx) => (
+                      <motion.tr
+                        key={record.id}
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.015 }}
+                        className="hover:bg-white/1.5 transition-all group"
+                      >
+                        <td className="px-6 py-5">
+                           <p className="text-[12px] font-black text-white/90 font-mono tracking-tight leading-none mb-1">
+                             {record.date ? format(new Date(record.date), 'yyyy.MM.dd') : '????.??.??'}
+                           </p>
+                           <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Temporal Log</p>
+                        </td>
+                        <td className="px-6 py-5">
+                           <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 flex items-center justify-center rounded-xl font-black text-xs border border-white/10 bg-white/3 text-white">
                                 {record.employeeName?.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-sm font-black text-white tracking-tight uppercase group-hover:text-jne-red transition-all">{record.employeeName}</p>
-                                <p className="text-[9px] font-black text-white/20 tracking-[0.3em] uppercase mt-1">{record.employeeId}</p>
+                                <p className="text-[13px] font-black text-white group-hover:text-[#7C3AED] transition-all tracking-tight leading-none mb-1">{record.employeeName}</p>
+                                <p className="text-[10px] font-bold text-slate-600 tracking-wider uppercase">{record.employeeId}</p>
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none">
-                             <div className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 inline-block">
-                               <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">{record.department}</span>
-                             </div>
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none text-center">
-                            <StatusBadge status={record.status} size="sm" />
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none">
-                            <div className="flex items-center justify-center gap-4">
-                              <div className="flex flex-col items-end">
-                                <span className="text-[11px] font-black text-jne-success tabular-nums">{record.checkIn?.time || '--:--'}</span>
-                                <span className="text-[8px] font-black text-white/10 uppercase tracking-widest mt-0.5">IN</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-5 text-center align-middle">
+                          <StatusBadge status={record.status} />
+                        </td>
+                        <td className="px-6 py-5">
+                           <div className="flex items-center justify-center gap-4">
+                              <div className="text-center">
+                                <p className="text-[11px] font-black font-mono text-emerald-500 tabular-nums leading-none mb-1">{record.checkIn?.time || '--:--'}</p>
+                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Entry</p>
                               </div>
-                              <div className="w-px h-8 bg-white/5" />
-                              <div className="flex flex-col items-start">
-                                <span className="text-[11px] font-black text-jne-danger tabular-nums">{record.checkOut?.time || '--:--'}</span>
-                                <span className="text-[8px] font-black text-white/10 uppercase tracking-widest mt-0.5">OUT</span>
+                              <span className="w-px h-6 bg-white/5" />
+                              <div className="text-center">
+                                <p className="text-[11px] font-black font-mono text-jne-red tabular-nums leading-none mb-1">{record.checkOut?.time || '--:--'}</p>
+                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Exit</p>
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none text-center">
-                            <div className="flex flex-col">
-                              <span className="text-[13px] font-black text-white tabular-nums tracking-tighter">{minsToHours(record.totalWorkMinutes)}</span>
-                              <span className="text-[8px] font-black text-white/10 uppercase tracking-widest mt-0.5">Net Time</span>
-                            </div>
-                          </td>
-                          <td className="py-6 border-b border-white/5 group-last:border-none">
-                            <div className="flex flex-col gap-2 items-center">
+                           </div>
+                        </td>
+                        <td className="px-6 py-5 text-center">
+                           <p className="text-[13px] font-black text-white/80 font-mono tabular-nums leading-none">
+                             {minsToHours(record.totalWorkMinutes)}
+                           </p>
+                           <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-1.5">Hours</p>
+                        </td>
+                        <td className="px-6 py-5 text-center">
+                           <div className="flex flex-col items-center gap-1.5">
                               {(record.lateMinutes || 0) > 0 && (
-                                <motion.span 
-                                  initial={{ scale: 0.9 }}
-                                  animate={{ scale: 1 }}
-                                  className="text-[9px] font-black text-jne-warning bg-jne-warning/10 px-3 py-1 rounded-lg border border-jne-warning/20 shadow-lg shadow-jne-warning/5 uppercase tracking-widest"
-                                >
-                                  LATE +{record.lateMinutes}M
-                                </motion.span>
+                                <span className="px-2 py-0.5 rounded-md border border-[#E04B3A]/20 bg-[#E04B3A]/10 text-[9px] font-black text-[#E04B3A] uppercase tracking-wider">
+                                  Tardy +{record.lateMinutes}m
+                                </span>
                               )}
                               {(record.overtimeMinutes || 0) > 0 && (
-                                <motion.span 
-                                  initial={{ scale: 0.9 }}
-                                  animate={{ scale: 1 }}
-                                  className="text-[9px] font-black text-jne-overtime bg-jne-overtime/10 px-3 py-1 rounded-lg border border-jne-overtime/20 shadow-lg shadow-jne-overtime/5 uppercase tracking-widest"
-                                >
-                                  OT +{record.overtimeMinutes}M
-                                </motion.span>
+                                <span className="px-2 py-0.5 rounded-md border border-[#7C3AED]/20 bg-[#7C3AED]/10 text-[9px] font-black text-[#7C3AED] uppercase tracking-wider">
+                                  Overflow +{record.overtimeMinutes}m
+                                </span>
                               )}
-                              {!record.lateMinutes && !record.overtimeMinutes && <span className="text-white/5 text-[10px] font-black">—</span>}
-                            </div>
-                          </td>
-                          <td className="py-6 pr-10 border-b border-white/5 group-last:border-none text-right">
-                            {record.checkIn?.faceScore ? (
-                              <div className="inline-flex flex-col items-end gap-1.5">
-                                <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 shadow-inner">
-                                  <span
-                                    className="text-[12px] font-black tabular-nums tracking-tighter"
-                                    style={{ color: record.checkIn.faceScore >= 80 ? 'var(--jne-success)' : 'var(--jne-danger)' }}
-                                  >
-                                    {record.checkIn.faceScore.toFixed(0)}%
-                                  </span>
-                                </div>
-                                <span className="text-[8px] font-black text-white/10 uppercase tracking-widest">Bio Secure</span>
-                              </div>
-                            ) : <span className="text-white/5 text-[9px] font-black tracking-[0.3em] uppercase">Unsecured</span>}
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
-              </div>
-            )}
+                              {!record.lateMinutes && !record.overtimeMinutes && (
+                                <span className="text-slate-800 text-[10px]">—</span>
+                              )}
+                           </div>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                           {record.checkIn?.faceScore ? (
+                             <div className="flex flex-col items-end">
+                               <p className="text-[13px] font-black font-mono tabular-nums leading-none mb-1" style={{ color: record.checkIn.faceScore >= 80 ? '#10B981' : '#E04B3A' }}>
+                                 {record.checkIn.faceScore.toFixed(0)}%
+                               </p>
+                               <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Certainty</p>
+                             </div>
+                           ) : <span className="text-slate-800 text-[10px]">—</span>}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
-        </div>
+
+          <div className="px-6 py-4 border-t border-white/5 bg-white/1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">
+                <div className="flex items-center gap-1.5">
+                  <Database size={10} />
+                  INDEX READY
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Cpu size={10} />
+                  CYCLES: 1.2M
+                </div>
+              </div>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                ANALYTICS ENGINE v1.4
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </AdminLayout>
   );
 }
-
