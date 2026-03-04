@@ -15,7 +15,7 @@ export type AttendanceStatus =
 export type LeaveType = 'sick' | 'annual' | 'personal' | 'emergency' | 'other';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
 
-export type ShiftDay =
+export type WorkDay =
   | 'monday'
   | 'tuesday'
   | 'wednesday'
@@ -23,6 +23,7 @@ export type ShiftDay =
   | 'friday'
   | 'saturday'
   | 'sunday';
+
 
 export type NotificationType =
   | 'leave_request'
@@ -36,30 +37,32 @@ export type NotificationType =
 // ============================================================
 // Department definitions
 // ============================================================
-export const DEPARTMENTS = [
-  'Sales Coordinator (SCO)',
-  'Driver',
-  'Admin Support',
-  'Kurir / Lapangan',
-  'Pick-Up Operations',
-  'Inbound Operations',
-  'Outbound Operations',
-] as const;
-
-export type Department = typeof DEPARTMENTS[number];
+export type Department =
+  | 'rider_delivery'
+  | 'driver_delivery'
+  | 'inbound_outbound'
+  | 'pick_up'
+  | 'admin_support'
+  | 'accounting'
+  | 'sales_sco';
 
 export interface DepartmentRule {
-  name: Department;
+  id: Department;
+  name: string;
   checkInTime: string;       // "HH:mm"
-  checkOutTime: string;      // "HH:mm"  (may be next day e.g. "05:00")
-  checkOutNextDay?: boolean; // true for night shifts
+  checkOutTime: string;      // "HH:mm"
+  checkOutNextDay?: boolean;
   toleranceMinutes: number;
-  trackFromHome?: boolean;   // Pick-Up Operations
-  targetBased?: boolean;     // Kurir — target 100 packages
+  trackFromHome?: boolean;
+  gpsRequired: boolean;
+  radiusMeters?: number;
+  targetBased?: boolean;
   dailyTarget?: number;
-  color: string;             // accent color for UI badge
-  description: string;       // short rule description shown on page
+  color: string;
+  description: string;
+  target?: string;
 }
+
 
 // ============================================================
 // Employee
@@ -70,10 +73,10 @@ export interface Employee {
   name: string;
   email: string;
   phone?: string;
-  department: string;
+  department: Department;
   position: string;
   employeeId: string;
-  shiftId: string;
+  jamKerjaId: string;
   role: UserRole;
   faceRegistered: boolean;
   fcmToken?: string;
@@ -84,25 +87,28 @@ export interface Employee {
   joinDate: string; // ISO date string
   contractType: 'permanent' | 'contract' | 'intern';
   isActive: boolean;
+  firstLogin: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 // ============================================================
-// Shift
+// Jam Kerja (formerly Shift)
 // ============================================================
-export interface Shift {
+export interface JamKerja {
   id: string;
   name: string;
   checkInTime: string;  // "HH:mm"
   checkOutTime: string; // "HH:mm"
   toleranceMinutes: number;
-  workingDays: ShiftDay[];
+  workingDays: WorkDay[];
+
   color: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
 
 // ============================================================
 // Attendance
@@ -112,9 +118,10 @@ export interface AttendanceRecord {
   userId: string;
   employeeName: string;
   employeeId: string;
-  department: string;
-  shiftId: string;
+  department: Department;
+  jamKerjaId: string;
   date: string; // "YYYY-MM-DD"
+
   status: AttendanceStatus;
   checkIn?: {
     time: string;
@@ -148,8 +155,9 @@ export interface LeaveRequest {
   userId: string;
   employeeName: string;
   employeeId: string;
-  department: string;
+  department: Department;
   type: LeaveType;
+
   status: LeaveStatus;
   startDate: string;
   endDate: string;
@@ -338,4 +346,34 @@ export interface Settings {
     emailNotifications: boolean;
     adminEmail: string;
   };
+}
+// ============================================================
+// Salary & Payroll
+// ============================================================
+export interface SalaryRecord {
+  id: string;
+  userId: string;
+  employeeName: string;
+  employeeId: string;
+  month: number; // 1-12
+  year: number;
+  baseSalary: number;
+  overtimePay: number;
+  allowance: number;
+  deductions: {
+    late: number;
+    absent: number;
+    other: number;
+  };
+  netSalary: number;
+  status: 'draft' | 'published' | 'paid';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SalarySummary {
+  totalPayroll: number;
+  totalOvertime: number;
+  totalDeductions: number;
+  employeeCount: number;
 }

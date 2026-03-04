@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   reactCompiler: true,
+  // Required for next/image when using static export
+  images: {
+    unoptimized: true,
+  },
   // Force Turbopack to use the correct project root
   // @ts-ignore
   turbopack: {

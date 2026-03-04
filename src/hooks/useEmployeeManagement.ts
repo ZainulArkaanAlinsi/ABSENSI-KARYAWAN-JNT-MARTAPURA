@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { subscribeToEmployees, getShifts } from '@/lib/firestore';
-import type { Employee, Shift } from '@/types';
+import { subscribeToEmployees, getJamKerjas } from '@/lib/firestore';
+import type { Employee, JamKerja } from '@/types';
 
 export function useEmployeeManagement() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [jamKerjas, setJamKerjas] = useState<JamKerja[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('all');
@@ -16,11 +16,11 @@ export function useEmployeeManagement() {
       setEmployees(data);
       setLoading(false);
     });
-    getShifts().then(setShifts);
+    getJamKerjas().then(setJamKerjas);
     return unsub;
   }, []);
 
-  const departments = ['all', ...Array.from(new Set(employees.map(e => e.department).filter(Boolean)))];
+  const departments = ['all', 'rider_delivery', 'driver_delivery', 'inbound_outbound', 'pick_up', 'admin_support', 'accounting', 'sales_sco'];
 
   const filteredEmployees = employees.filter(emp => {
     const matchSearch = !search ||
@@ -34,11 +34,11 @@ export function useEmployeeManagement() {
     return matchSearch && matchDept && matchFace;
   });
 
-  const shiftMap = Object.fromEntries(shifts.map(s => [s.id, s.name]));
+  const jamKerjaMap = Object.fromEntries((jamKerjas || []).map(s => [s.id, s.name]));
 
   return {
-    employees,
-    shifts,
+    employees: employees || [],
+    jamKerjas: jamKerjas || [],
     loading,
     search,
     setSearch,
@@ -49,7 +49,8 @@ export function useEmployeeManagement() {
     showAddModal,
     setShowAddModal,
     departments,
-    filteredEmployees,
-    shiftMap,
+    filteredEmployees: filteredEmployees || [],
+    jamKerjaMap,
   };
 }
+

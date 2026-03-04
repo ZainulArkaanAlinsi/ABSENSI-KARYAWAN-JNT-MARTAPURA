@@ -4,7 +4,8 @@ import { Bell, Search, LogOut, Sun, Moon, Cpu, ChevronRight, Terminal, X } from 
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import { useHeaderLogic } from '@/hooks/useHeaderLogic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { animate } from 'animejs';
 
 interface HeaderProps {
   title: string;
@@ -30,6 +31,62 @@ export default function Header({ title, subtitle }: HeaderProps) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
+  const searchRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const cpuRef = useRef<HTMLDivElement>(null);
+
+  // Search Bar Focus Animation
+  useEffect(() => {
+    const target = searchRef.current;
+    if (!target) return;
+
+    if (searchFocused) {
+      animate(target, {
+        scale: 1.02,
+        boxShadow: '0 0 20px rgba(124, 58, 237, 0.1)',
+        duration: 400,
+        easing: 'easeOutElastic(1, .8)'
+      });
+    } else {
+      animate(target, {
+        scale: 1,
+        boxShadow: '0 0 0px rgba(124, 58, 237, 0)',
+        duration: 300,
+        easing: 'easeOutQuad'
+      });
+    }
+  }, [searchFocused]);
+
+  // Periodic CPU Icon Rotation/Pulse
+  useEffect(() => {
+    const target = cpuRef.current;
+    if (!target) return;
+
+    const animation = animate(target, {
+      rotate: '+=15',
+      duration: 3000,
+      loop: true,
+      direction: 'alternate',
+      easing: 'easeInOutQuad'
+    });
+    return () => {
+      animation.pause();
+    };
+  }, []);
+
+  // Bell Shake when unreadCount changes
+  useEffect(() => {
+    const target = bellRef.current;
+    if (target && unreadCount > 0) {
+      animate(target, {
+        translateX: [0, -3, 3, -3, 3, 0],
+        duration: 500,
+        easing: 'easeInOutSine',
+        loop: 3
+      });
+    }
+  }, [unreadCount]);
+
   return (
     <header
       className="fixed top-0 right-0 z-40 flex items-center justify-between border-b border-white/5"
@@ -41,15 +98,16 @@ export default function Header({ title, subtitle }: HeaderProps) {
         WebkitBackdropFilter: 'blur(20px) saturate(160%)',
       }}
     >
-      {/* Ambient glow line at top & bottom */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-att-present/20 to-transparent pointer-events-none" />
-      <div className="absolute -bottom-px left-0 right-0 h-px bg-linear-to-r from-transparent via-white/2 to-transparent pointer-events-none" />
+      {/* Header Accent Line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-att-present/10 pointer-events-none" />
+      <div className="absolute -bottom-px left-0 right-0 h-px bg-white/5 pointer-events-none" />
 
       {/* ── LEFT: Page Title Block ── */}
       <div className="flex items-center gap-4 px-8 min-w-0 flex-1">
         <motion.div
           whileHover={{ rotate: 15, scale: 1.1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+          ref={cpuRef}
           className="relative shrink-0 w-10 h-10 rounded-xl bg-att-present/10 border border-att-present/20 flex items-center justify-center shadow-lg shadow-att-present/5"
         >
           <Cpu size={18} className="text-att-present" />
@@ -59,8 +117,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em]">ADMIN</span>
-            <div className="w-1 h-1 rounded-full bg-att-present/40" />
-            <span className="text-[8px] font-black text-att-present/80 uppercase tracking-[0.4em]">SYSTEM</span>
+            <div className="w-1 h-1 rounded-full bg-[#E04B3A]/40" />
+            <span className="text-[8px] font-black text-[#E04B3A]/80 uppercase tracking-[0.4em]">SYSTEM</span>
+
           </div>
           <h1 className="text-[15px] font-black text-white tracking-tight uppercase leading-none truncate">
             {title}
@@ -73,11 +132,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
         </div>
       </div>
 
-      {/* ── CENTER: Search Bar ── */}
       <div className="hidden lg:flex flex-1 justify-center px-4 max-w-xl mx-auto">
-        <motion.div
-          animate={searchFocused ? { scale: 1.02 } : { scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        <div
+          ref={searchRef}
           className="relative w-full"
         >
           <Search
@@ -108,7 +165,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
               </motion.button>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
       </div>
 
       {/* ── RIGHT: Action Cluster ── */}
@@ -147,15 +204,35 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>
-          <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+          <button
+            ref={bellRef}
             onClick={toggleNotifications}
+            onMouseEnter={() => {
+              if (bellRef.current) {
+                animate(bellRef.current, {
+                  scale: 1.1,
+                  rotate: '15deg',
+                  duration: 200,
+                  easing: 'easeOutQuad'
+                });
+              }
+            }}
+            onMouseLeave={() => {
+              if (bellRef.current) {
+                animate(bellRef.current, {
+                  scale: 1,
+                  rotate: '0deg',
+                  duration: 200,
+                  easing: 'easeOutQuad'
+                });
+              }
+            }}
             className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 shadow-inner ${
               showNotifications
-                ? 'bg-jne-red/15 border-jne-red/30 text-jne-red'
+                ? 'bg-[#E04B3A]/15 border-[#E04B3A]/30 text-[#E04B3A]'
                 : 'bg-white/4 border-white/6 text-white/40 hover:text-white hover:bg-white/8 hover:border-white/10'
             }`}
+
           >
             <Bell size={15} strokeWidth={2} />
             {unreadCount > 0 && (
@@ -164,7 +241,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-jne-red shadow-[0_0_8px_rgba(255,51,102,0.8)]" />
               </span>
             )}
-          </motion.button>
+          </button>
 
           <AnimatePresence>
             {showNotifications && (
@@ -194,7 +271,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
           >
             {/* Text info */}
             <div className="hidden lg:flex flex-col items-end">
-              <p className="text-[11px] font-black text-white leading-none uppercase tracking-tight group-hover:text-jne-red transition-colors duration-300">
+              <p className="text-[11px] font-black text-white leading-none uppercase tracking-tight group-hover:text-[#E04B3A] transition-colors duration-300">
+
                 {user?.name || 'CENTRAL ADMIN'}
               </p>
               <div className="flex items-center gap-1.5 mt-1">

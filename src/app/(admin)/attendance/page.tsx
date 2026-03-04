@@ -72,14 +72,16 @@ export default function AttendancePage() {
               whileTap={{ scale: 0.98 }}
               onClick={() =>
                 router.push(
-                  `/attendance/${encodeURIComponent(rule.name.toLowerCase().replace(/[\s/()]+/g, '-'))}`,
+                  `/head-units/${rule.id}`,
                 )
               }
+
               className="group dash-card p-0 overflow-hidden text-left transition-all border-white/5 active:scale-95"
               style={{ 
                 borderRadius: '1.25rem',
-                background: `${rule.color}08`,
-                border: `0.5px solid ${rule.color}15`
+                background: `${rule.color}73`, // ~0.45 opacity
+                border: `1.5px solid ${rule.color}CC`, // ~0.8 opacity
+                boxShadow: '0 8px 32px -4px rgba(0,0,0,0.4)'
               }}
             >
 
@@ -90,9 +92,9 @@ export default function AttendancePage() {
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
                     style={{ 
-                      background: `${rule.color}10`, 
-                      border: `0.5px solid ${rule.color}25`,
-                      boxShadow: `0 4px 12px ${rule.color}08` 
+                      background: 'rgba(255,255,255,0.1)', 
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
                     }}
                   >
                     <span style={{ color: rule.color }}>
@@ -117,7 +119,8 @@ export default function AttendancePage() {
 
                 {/* Rule Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-5">
-                  <RuleBadge label="Shift Entry" value={rule.checkInTime} />
+                  <RuleBadge label="Jam Masuk" value={rule.checkInTime} />
+
                   <RuleBadge
                     label="End Threshold"
                     value={rule.checkOutNextDay ? `${rule.checkOutTime} (+1)` : rule.checkOutTime}

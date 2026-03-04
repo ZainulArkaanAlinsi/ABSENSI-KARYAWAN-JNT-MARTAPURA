@@ -48,8 +48,8 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
         WebkitBackdropFilter: 'blur(30px) saturate(160%)',
       }}
     >
-      {/* Ambient glow line at top */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-jne-red/40 to-transparent pointer-events-none" />
+      {/* Accent Line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-jne-red/40 pointer-events-none" />
 
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-white/2">
@@ -95,7 +95,7 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
       <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/1">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center px-8">
-            <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-white/5 to-transparent border border-white/10 flex items-center justify-center mb-5 group relative overflow-hidden">
+            <div className="w-16 h-16 rounded-4xl bg-white/5 border border-white/10 flex items-center justify-center mb-5 group relative overflow-hidden">
               <div className="absolute inset-0 bg-jne-success/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <Bell size={24} className="text-white/10 group-hover:text-jne-success transition-all duration-500 group-hover:scale-110" />
             </div>
@@ -135,7 +135,7 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
                       <div
                         className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg relative overflow-hidden"
                         style={{
-                          background: `linear-gradient(135deg, ${config.iconColor}25, ${config.iconColor}05)`,
+                          background: `${config.iconColor}25`,
                           border: `1px solid ${config.iconColor}20`,
                         }}
                       >

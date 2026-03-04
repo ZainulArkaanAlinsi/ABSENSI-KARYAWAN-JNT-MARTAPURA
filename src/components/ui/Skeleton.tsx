@@ -31,7 +31,8 @@ export function Skeleton({ className = '', variant = 'rect' }: SkeletonProps) {
         }}
         className="absolute inset-0 w-full h-full"
         style={{
-          background: 'linear-gradient(90deg, transparent, rgba(224,75,58,0.1), transparent)',
+          backgroundColor: '#E04B3A',
+          opacity: 0.1
         }}
       />
     </div>

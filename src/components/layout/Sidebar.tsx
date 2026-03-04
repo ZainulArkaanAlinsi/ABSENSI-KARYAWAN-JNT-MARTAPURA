@@ -1,12 +1,45 @@
 'use client';
 
 import Link from 'next/link';
-import { LogOut, Shield } from 'lucide-react';
+import Image from 'next/image';
+import { LogOut } from 'lucide-react';
+import logo from '../../../assets/logo-jne.png';
 import { useSidebarLogic } from '@/hooks/useSidebarLogic';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { animate } from 'animejs';
 
 export default function Sidebar() {
   const { signOut, isActive, navItems } = useSidebarLogic();
+  const navRef = useRef<HTMLElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+
+  // Staggered Entry Animation for Nav Items
+  useEffect(() => {
+    if (navRef.current) {
+      const items = navRef.current.querySelectorAll('.nav-item-animate');
+      animate(items, {
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        duration: 800,
+        delay: (el, i) => i * 100, // Manual stagger for v4 or checking utils
+        easing: 'easeOutExpo'
+      });
+    }
+  }, []);
+
+  // Magnetic/Floated Logo Animation
+  useEffect(() => {
+    if (logoRef.current) {
+      animate(logoRef.current, {
+        translateY: [-2, 2],
+        duration: 2000,
+        loop: true,
+        direction: 'alternate',
+        easing: 'easeInOutSine'
+      });
+    }
+  }, []);
 
   return (
     <aside
@@ -19,27 +52,26 @@ export default function Sidebar() {
     >
       {/* Ambient top glow */}
       <div
-        className="pointer-events-none absolute left-0 top-0 h-72 w-full"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(67,35,127,0.22) 0%, transparent 70%)',
-        }}
+        className="pointer-events-none absolute left-0 top-0 h-72 w-full bg-primary/5"
       />
 
       {/* Brand node */}
-      <div className="flex items-center gap-3 px-5 py-7">
-        <motion.div
-          whileHover={{ scale: 1.08, rotate: 4 }}
-          whileTap={{ scale: 0.93 }}
-          className="flex shrink-0 items-center justify-center rounded-2xl shadow-lg shadow-primary/20"
+      <div className="flex items-center gap-3 px-4 py-7">
+        <div
+          ref={logoRef}
+          className="flex shrink-0 items-center justify-center rounded-xl bg-white shadow-lg shadow-black/5"
           style={{
             width: 42,
             height: 42,
-            background: 'var(--att-present)',
+            padding: '4px',
           }}
         >
-          <Shield size={20} color="white" strokeWidth={2.5} />
-        </motion.div>
+          <Image 
+            src={logo} 
+            alt="JNE Logo" 
+            className="object-contain"
+          />
+        </div>
         <div>
           <p className="text-[13px] font-black uppercase tracking-tight text-white leading-none">
             JNE Admin
@@ -59,22 +91,55 @@ export default function Sidebar() {
       </p>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
-        {navItems.map(({ href, label, icon: Icon }: any) => {
+      <nav ref={navRef} className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {navItems.map((item: any, idx: number) => {
+          if (item.isHeader) {
+            return (
+              <p
+                key={`header-${idx}`}
+                className="mb-2 mt-6 px-4 text-[9px] font-black uppercase tracking-[0.3em] text-white/20 first:mt-0"
+              >
+                {item.label}
+              </p>
+            );
+          }
+
+          const { href, label, icon: Icon } = item;
           const active = isActive(href);
           return (
-            <Link key={href} href={href} className="block outline-none">
-              <motion.div
-                whileHover={!active ? { x: 3 } : {}}
+            <Link 
+              key={href} 
+              href={href} 
+              className="block outline-none nav-item-animate opacity-0"
+              onMouseEnter={(e) => {
+                if (!active) {
+                  animate(e.currentTarget, {
+                    translateX: 4,
+                    duration: 300,
+                    easing: 'easeOutQuad'
+                  });
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  animate(e.currentTarget, {
+                    translateX: 0,
+                    duration: 300,
+                    easing: 'easeOutQuad'
+                  });
+                }
+              }}
+            >
+              <div
                 className={`relative flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 transition-all duration-300 ${
                   active ? 'text-white' : 'text-white/40 hover:text-white/80'
                 }`}
                 style={
                   active
                     ? {
-                        background: 'rgba(124, 58, 237, 0.08)',
-                        border: '0.5px solid rgba(124, 58, 237, 0.2)',
-                        boxShadow: '0 4px 15px -2px rgba(124, 58, 237, 0.1)',
+                        background: 'rgba(227, 30, 36, 0.08)', // Using JNE Red
+                        border: '0.5px solid rgba(227, 30, 36, 0.2)',
+                        boxShadow: '0 4px 15px -2px rgba(227, 30, 36, 0.1)',
                       }
                     : {
                         background: 'transparent',
@@ -90,13 +155,14 @@ export default function Sidebar() {
                       className="absolute left-0 w-0.5 rounded-full"
                       style={{
                         height: 20,
-                        background: '#7C3AED',
-                        boxShadow: '0 0 12px rgba(124, 58, 237, 0.5)',
+                        background: '#E31E24', // JNE Red
+                        boxShadow: '0 0 12px rgba(227, 30, 36, 0.5)',
                       }}
                       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
                     />
                   )}
                 </AnimatePresence>
+
 
                 {/* Icon */}
                 <div
@@ -120,7 +186,7 @@ export default function Sidebar() {
                 >
                   {label}
                 </span>
-              </motion.div>
+              </div>
             </Link>
           );
         })}

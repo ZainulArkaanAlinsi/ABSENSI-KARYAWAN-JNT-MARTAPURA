@@ -177,8 +177,7 @@ export default function DepartmentAttendancePage() {
             </div>
           </div>
           <div 
-            className="absolute -right-20 -top-20 h-40 w-40 rounded-full blur-[80px]" 
-            style={{ background: `${rule.color}20` }}
+            className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary/5" 
           />
         </motion.div>
 
@@ -211,7 +210,7 @@ export default function DepartmentAttendancePage() {
               </div>
               <div 
                 className="absolute inset-x-0 bottom-0 h-[2.5px]" 
-                style={{ background: `linear-gradient(90deg, ${s.color} 0%, transparent 100%)` }} 
+                style={{ background: s.color, opacity: 0.6 }} 
               />
               <div 
                 className="absolute -right-4 -bottom-4 opacity-5 transition-transform group-hover:scale-125 group-hover:opacity-10" 
@@ -354,7 +353,7 @@ export default function DepartmentAttendancePage() {
             from effective work minutes. This mechanism ensures yield integrity for {rule.name} shifts. 
             Overflow (Overtime) is not commutative with tardiness penalties.
           </p>
-          <div className="absolute right-0 top-0 h-full w-24 bg-linear-to-l from-primary/5 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 h-full w-24 bg-primary/5 pointer-events-none" />
         </div>
       </div>
     </AdminLayout>

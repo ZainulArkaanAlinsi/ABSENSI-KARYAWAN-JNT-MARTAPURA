@@ -36,7 +36,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return () => {
       unsubscribe();
     };
-  }, [user]);
+  }, [user]); 
 
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.isRead).length;

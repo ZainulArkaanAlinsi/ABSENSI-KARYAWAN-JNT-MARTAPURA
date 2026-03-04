@@ -20,8 +20,19 @@ import {
   Cpu
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useRef } from 'react';
+
+// ── Real JNE Assets (served from /public via next/image) ──
+import logoJne from '../../assets/logo-jne.png';
+import jneOrangPaket from '../../assets/JNE-logo-orang-paket.png';
+import jneMobil3d from '../../assets/jne-mobil-3d.png';
+import jneMotor from '../../assets/jne-motor-2.png';
+import logoDelivery from '../../assets/logo-delivery.png';
+import logoJneMegangHp from '../../assets/logo-jne-megang-hp.png';
+import orangJneSalam from '../../assets/orang-jne-salam.png';
+import jneMobilCepat from '../../assets/jne-mobil-cepat-logo.png';
 
 // Animations dengan easing string (TypeScript friendly)
 const fadeInUp = {
@@ -62,9 +73,9 @@ export default function EnhancedLandingPage() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0.3]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50 text-[#0F172A] selection:bg-[#BE123C] selection:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-white text-[#0F172A] selection:bg-[#BE123C] selection:text-white font-sans overflow-x-hidden">
       
-      {/* Background Elements */}
+      {/* Background Elements — Solid Accents */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <motion.div 
           animate={{ 
@@ -73,7 +84,7 @@ export default function EnhancedLandingPage() {
             y: [0, -30, 0]
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[5%] left-[10%] w-[40vw] h-[40vw] bg-linear-to-r from-[#BE123C]/5 via-[#4F46E5]/10 to-[#0D9488]/5 rounded-full blur-[120px]"
+          className="absolute top-[5%] left-[10%] w-[40vw] h-[40vw] bg-[#BE123C]/5 rounded-full blur-[120px]"
         />
         <motion.div 
           animate={{ 
@@ -82,11 +93,11 @@ export default function EnhancedLandingPage() {
             y: [0, 40, 0]
           }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[10%] right-[5%] w-[35vw] h-[35vw] bg-linear-to-l from-[#4F46E5]/10 via-[#0D9488]/10 to-[#BE123C]/5 rounded-full blur-[100px]"
+          className="absolute bottom-[10%] right-[5%] w-[35vw] h-[35vw] bg-[#4F46E5]/10 rounded-full blur-[100px]"
         />
         
         {/* Grid overlay sederhana */}
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(rgba(224,75,58,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(224,75,58,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 opacity-5" style={{ background: 'rgba(224,75,58,0.05)' }} />
       </div>
 
       {/* Navigation */}
@@ -100,16 +111,17 @@ export default function EnhancedLandingPage() {
           <div className="bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-full px-6 h-16 flex items-center justify-between transition-all hover:bg-white/80">
             <div className="flex items-center gap-2">
               <motion.div 
-                whileHover={{ rotate: 180, scale: 1.1 }}
+                whileHover={{ scale: 1.08 }}
                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                className="w-10 h-10 bg-linear-to-br from-[#4F46E5] to-[#4338CA] rounded-lg flex items-center justify-center shadow-md"
+                className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md shadow-black/10 p-1"
               >
-                <Shield size={20} className="text-white" />
+                <Image src={logoJne} alt="JNE Logo" width={36} height={36} className="object-contain" />
               </motion.div>
               <span className="text-xl font-bold tracking-tight">
-                JNE <span className="bg-linear-to-r from-[#4F46E5] to-[#4338CA] bg-clip-text text-transparent">MTP.</span>
+                JNE <span className="text-[#E04B3A]">MTP.</span>
               </span>
             </div>
+
 
             <div className="hidden lg:flex items-center gap-8 text-xs font-semibold text-slate-400 uppercase tracking-wider">
               {['Features', 'Security', 'Integrations'].map((item) => (
@@ -124,7 +136,7 @@ export default function EnhancedLandingPage() {
               {user ? (
                  <Link 
                   href="/dashboard"
-                  className="bg-linear-to-r from-[#0F172A] to-slate-800 text-white px-6 py-2 rounded-xl font-semibold text-sm hover:shadow-lg transition-all hover:scale-105 active:scale-95"
+                  className="bg-[#0F172A] text-white px-6 py-2 rounded-xl font-semibold text-sm hover:shadow-lg transition-all hover:scale-105 active:scale-95"
                 >
                   Dashboard
                 </Link>
@@ -135,10 +147,11 @@ export default function EnhancedLandingPage() {
                   </Link>
                   <Link 
                     href="/login"
-                    className="bg-linear-to-r from-[#4F46E5] to-[#4338CA] text-white px-6 py-2 rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-[#4F46E5]/30 transition-all hover:scale-105 active:scale-95"
+                    className="bg-[#E04B3A] text-white px-6 py-2 rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-[#E04B3A]/30 transition-all hover:scale-105 active:scale-95"
                   >
-                    Get Started
+                    Login Admin
                   </Link>
+
                 </>
               )}
             </div>
@@ -170,11 +183,12 @@ export default function EnhancedLandingPage() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight leading-[1.1] mb-6"
           >
-            THE NEW <br />
-            <span className="bg-linear-to-r from-[#4F46E5] via-[#6366F1] to-[#4338CA] bg-clip-text text-transparent animate-gradient">
-              STANDARD.
+            PRECISION <br />
+            <span className="text-[#E04B3A]">
+              ATTENDANCE.
             </span>
           </motion.h1>
+
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -194,11 +208,12 @@ export default function EnhancedLandingPage() {
           >
             <Link 
               href="/login"
-              className="group bg-linear-to-r from-[#4F46E5] to-[#4338CA] text-white px-8 py-4 rounded-full font-semibold text-base flex items-center gap-2 hover:shadow-xl hover:shadow-[#4F46E5]/30 transition-all hover:scale-105 active:scale-95"
+              className="group bg-[#E04B3A] text-white px-8 py-4 rounded-full font-semibold text-base flex items-center gap-2 hover:shadow-xl hover:shadow-[#E04B3A]/30 transition-all hover:scale-105 active:scale-95"
             >
-              Access System 
+              Access Admin Panel 
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
+
             <button className="group bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-900 px-8 py-4 rounded-full font-semibold text-base hover:bg-white transition-all flex items-center gap-2 hover:shadow-lg">
               Case Study 
               <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -206,56 +221,105 @@ export default function EnhancedLandingPage() {
           </motion.div>
         </motion.div>
 
-        {/* Hero Visual */}
+        {/* Hero Visual — Real JNE Image Showcase */}
         <motion.div 
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 1 }}
           className="mt-16 relative z-10 max-w-5xl mx-auto"
         >
-          <div className="bg-white/30 backdrop-blur-2xl rounded-3xl border border-white/30 p-4 shadow-2xl">
-            <div className="bg-linear-to-br from-[#0F172A] to-slate-900 rounded-2xl aspect-video w-full overflow-hidden relative">
-              {/* Terminal header */}
-              <div className="absolute top-0 left-0 right-0 h-12 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/70" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/70" />
-                </div>
-                <div className="bg-white/10 px-3 py-1 rounded-full text-[8px] font-semibold text-white/40 uppercase tracking-wider ml-2">
-                  System_Protocol_Live.exe
-                </div>
-                <div className="ml-auto flex items-center gap-1">
-                  <Cpu size={12} className="text-white/30" />
-                  <span className="text-white/20 text-[10px]">v4.2.0</span>
-                </div>
+          {/* Outer card */}
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl border border-white/40 p-5 shadow-2xl">
+            {/* Top strip: brand dots + label */}
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#E04B3A]/60" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
-              
-              {/* Konten dummy */}
-              <div className="absolute inset-0 flex items-center justify-center p-10">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                  {[0,1,2,3].map(i => (
-                    <motion.div 
-                      key={i}
-                      animate={{ y: [0, -10, 0], opacity: [0.5, 0.8, 0.5] }}
-                      transition={{ duration: 3, repeat: Infinity, delay: i*0.3 }}
-                      className="h-32 bg-white/5 rounded-xl border border-white/10"
-                    />
-                  ))}
-                </div>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">JNE Martapura · Attendance Platform</span>
+              <div className="ml-auto flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Live</span>
               </div>
+            </div>
 
-              {/* HUD Element */}
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute top-16 right-6 w-28 h-28 rounded-full border border-white/10 flex items-center justify-center"
+            {/* Main image grid */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Large featured image */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="col-span-2 relative overflow-hidden rounded-2xl bg-[#CC0000] aspect-video flex items-end shadow-lg"
               >
-                <div className="absolute flex flex-col items-center">
-                  <p className="text-white font-bold text-xl">98.4<span className="text-[#4F46E5]">%</span></p>
-                  <p className="text-white/30 text-[8px] font-semibold uppercase tracking-wider">Integrity</p>
+                <Image
+                  src={jneOrangPaket}
+                  alt="JNE Delivery Officer"
+                  fill
+                  className="object-contain object-bottom"
+                  sizes="(max-width:768px) 100vw, 60vw"
+                  priority
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
+                <div className="relative z-10 p-4">
+                  <span className="text-white text-xs font-black uppercase tracking-widest bg-white/10 backdrop-blur px-3 py-1 rounded-full">Delivery Excellence</span>
                 </div>
               </motion.div>
+
+              {/* Right column: two stacked images */}
+              <div className="flex flex-col gap-3">
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="relative overflow-hidden rounded-2xl bg-slate-100 flex-1 flex items-center justify-center p-3 shadow-md"
+                >
+                  <Image
+                    src={jneMobil3d}
+                    alt="JNE Vehicle 3D"
+                    width={200}
+                    height={120}
+                    className="object-contain w-full h-full"
+                  />
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="relative overflow-hidden rounded-2xl bg-[#CC0000]/8 border border-[#CC0000]/15 flex-1 flex items-center justify-center p-3 shadow-md"
+                >
+                  <Image
+                    src={jneMotor}
+                    alt="JNE Motorcycle"
+                    width={200}
+                    height={120}
+                    className="object-contain w-full h-full"
+                  />
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Bottom strip: more assets */}
+            <div className="grid grid-cols-4 gap-3 mt-3">
+              {[
+                { src: logoDelivery,    alt: 'Delivery Logo',     bg: 'bg-slate-50' },
+                { src: logoJneMegangHp, alt: 'JNE Officer HP',    bg: 'bg-[#CC0000]/5' },
+                { src: orangJneSalam,   alt: 'JNE Officer Wave',  bg: 'bg-slate-50' },
+                { src: jneMobilCepat,   alt: 'JNE Express Logo',  bg: 'bg-[#CC0000]/5' },
+              ].map(({ src, alt, bg }, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -4 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                  className={`relative overflow-hidden rounded-xl ${bg} flex items-center justify-center p-2 shadow-sm border border-slate-100 aspect-square`}
+                >
+                  <Image
+                    src={src}
+                    alt={alt}
+                    width={100}
+                    height={100}
+                    className="object-contain w-full h-full"
+                  />
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.div>
@@ -295,9 +359,10 @@ export default function EnhancedLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <motion.h2 {...fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4">
-               Unified Core <br /> 
-               <span className="bg-linear-to-r from-[#4F46E5] to-[#4338CA] bg-clip-text text-transparent">Technologies.</span>
+               Unified JNE <br /> 
+               <span className="text-[#E04B3A]">Core Ecosystem.</span>
             </motion.h2>
+
             <motion.p {...fadeInUp} transition={{ delay: 0.1 }} className="text-lg text-slate-500 max-w-2xl mx-auto">
                More than just attendance. A complete ecosystem built for the scale and demands of JNE's logistics network.
             </motion.p>
@@ -324,7 +389,7 @@ export default function EnhancedLandingPage() {
                 whileHover={{ y: -8 }}
                 className="group relative p-6 rounded-2xl bg-white border border-slate-100 hover:shadow-xl transition-all cursor-pointer"
               >
-                <div className={`w-14 h-14 bg-linear-to-br ${f.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md`}>
+                <div className={`w-14 h-14 bg-primary rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md`}>
                   <f.icon size={28} className="text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">{f.title}</h3>
@@ -343,7 +408,7 @@ export default function EnhancedLandingPage() {
         <div className="max-w-7xl mx-auto">
           <motion.div 
             {...scaleIn}
-            className="bg-linear-to-br from-[#0F172A] to-slate-900 rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
+            className="bg-[#0F172A] rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
           >
             <motion.div 
               animate={{ scale: [1, 1.2, 1], rotate: [0, 10, 0] }}
@@ -379,11 +444,12 @@ export default function EnhancedLandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-20">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-linear-to-br from-[#4F46E5] to-[#4338CA] rounded-lg flex items-center justify-center shadow-md">
-                  <Shield size={22} className="text-white" />
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md shadow-black/10 p-1.5 border border-slate-100">
+                  <Image src={logoJne} alt="JNE Logo" width={36} height={36} className="object-contain" />
                 </div>
                 <span className="text-2xl font-bold tracking-tight">JNE MTP.</span>
               </div>
+
               <p className="text-slate-400 text-base max-w-md mb-8">
                 Advancing the courier experience through intelligent workforce monitoring. Martapura Branch Internal System.
               </p>
@@ -435,14 +501,6 @@ export default function EnhancedLandingPage() {
       </footer>
 
       <style jsx global>{`
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 8s ease infinite;
-        }
         ::selection {
           background: #E04B3A;
           color: white;

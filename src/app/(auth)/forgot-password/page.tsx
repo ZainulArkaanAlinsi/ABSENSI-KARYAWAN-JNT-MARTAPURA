@@ -3,17 +3,19 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Shield } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
+import logoJne from '../../../../assets/logo-jne.png';
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#1A1F2E] flex items-center justify-center relative overflow-hidden">
-      {/* Background pattern */}
+      {/* Background pattern — Flat Accents */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#E04B3A_0%,transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#3863C3_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[#E04B3A]/10" />
+        <div className="absolute inset-0 bg-[#3863C3]/10" />
       </div>
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-10" />
 
@@ -23,12 +25,18 @@ export default function ForgotPasswordPage() {
         className="relative z-10 w-full max-w-md mx-4"
       >
         <div className="bg-[#1B2A4A] rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl p-8">
-          <Link 
-            href="/login" 
-            className="inline-flex items-center gap-2 text-xs text-[#9BA4B4] hover:text-white mb-8 transition-colors"
-          >
-            <ArrowLeft size={14} /> Back to Login
-          </Link>
+          {/* Top brand row */}
+          <div className="flex items-center justify-between mb-8">
+            <Link 
+              href="/login" 
+              className="inline-flex items-center gap-2 text-xs text-[#9BA4B4] hover:text-white transition-colors"
+            >
+              <ArrowLeft size={14} /> Back to Login
+            </Link>
+            <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md p-1.5">
+              <Image src={logoJne} alt="JNE Logo" width={28} height={28} className="object-contain" />
+            </div>
+          </div>
 
           <div className="space-y-6">
             <div className="w-12 h-12 bg-[#E04B3A]/10 rounded-xl flex items-center justify-center border border-[#E04B3A]/20">
@@ -67,7 +75,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-linear-to-r from-[#E04B3A] to-[#C0392B] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+                  className="w-full bg-[#E04B3A] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all hover:scale-[1.02]"
                 >
                   Send Recovery Link
                 </button>

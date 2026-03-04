@@ -38,9 +38,9 @@ const StatCard = ({ title, value, subtitle, icon: Icon, className, delay = 0, on
   >
     <div className="relative z-10 w-full flex items-center justify-between">
       <div>
-        <p className="dash-stat-label opacity-80 mb-0.5">{title}</p>
+        <p className="dash-stat-label font-black mb-0.5">{title}</p>
         <p className="dash-stat-value leading-none">{value}</p>
-        {subtitle && <p className="dash-stat-sub font-bold mt-1.5 opacity-90">{subtitle}</p>}
+        {subtitle && <p className="dash-stat-sub font-black mt-1.5 opacity-100">{subtitle}</p>}
       </div>
       <div className="dash-stat-icon border-white/5">
         <Icon size={22} strokeWidth={2.5} />
@@ -76,14 +76,14 @@ export default function DashboardPage() {
 
   const today = format(new Date(), 'EEEE, dd MMMM yyyy');
 
-  // Attendance status palette - Refined for premium look
+  // Attendance status palette - Electric Solid
   const ATT = {
-    present:  '#7C3AED', // Vibrant Purple
-    late:     '#E04B3A', // JNE Red
-    overtime: '#10B981', // Emerald
+    present:  '#8B5CF6', // Electric Violet
+    late:     '#F59E0B', // Amber
+    overtime: '#06B6D4', // Cyan
     leave:    '#3B82F6', // Blue
-    absent:   '#F59E0B', // Amber
-    total:    '#F1F5F9',
+    absent:   '#F43F5E', // Red/Coral
+    total:    '#F8FAFC',
   };
 
   const donutData = [
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                   { label: 'Tardy', color: ATT.late },
                 ].map(l => (
                   <div key={l.label} className="dash-legend-item">
-                    <span className="dash-legend-dot" style={{ background: l.color, boxShadow: `0 0 10px ${l.color}80` }} />
+                    <span className="dash-legend-dot" style={{ background: l.color }} />
                     <span>{l.label}</span>
                   </div>
                 ))}
@@ -254,22 +254,12 @@ export default function DashboardPage() {
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={ATT.present} stopOpacity={0.3} />
-                        <stop offset="95%" stopColor={ATT.present} stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="gLate" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={ATT.late} stopOpacity={0.3} />
-                        <stop offset="95%" stopColor={ATT.late} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis 
                       dataKey="day" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 800 }} 
+                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
                       dy={15} 
                     />
                     <YAxis hide domain={['auto', 'auto']} />
@@ -279,8 +269,9 @@ export default function DashboardPage() {
                       dataKey="present" 
                       name="Active" 
                       stroke={ATT.present} 
-                      strokeWidth={3} 
-                      fill="url(#gPresent)" 
+                      strokeWidth={4} 
+                      fill={ATT.present}
+                      fillOpacity={0.15}
                       dot={false} 
                       activeDot={{ r: 6, fill: ATT.present, stroke: '#fff', strokeWidth: 2 }} 
                     />
@@ -289,8 +280,9 @@ export default function DashboardPage() {
                       dataKey="late" 
                       name="Tardy" 
                       stroke={ATT.late} 
-                      strokeWidth={3} 
-                      fill="url(#gLate)" 
+                      strokeWidth={4} 
+                      fill={ATT.late}
+                      fillOpacity={0.15}
                       dot={false} 
                       activeDot={{ r: 6, fill: ATT.late, stroke: '#fff', strokeWidth: 2 }} 
                     />

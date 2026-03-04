@@ -15,8 +15,9 @@ import {
   Briefcase,
 } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { getEmployee, updateEmployee, getShifts } from '@/lib/firestore';
-import type { Employee, Shift } from '@/types';
+import { getEmployee, updateEmployee, getJamKerjas } from '@/lib/firestore';
+import type { Employee, JamKerja } from '@/types';
+
 import { FaceBadge, ContractBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format } from 'date-fns';
@@ -28,17 +29,19 @@ export default function EmployeeDetailPage() {
   const id = params.id as string;
 
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [jamKerjas, setJamKerjas] = useState<JamKerja[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
-    Promise.all([getEmployee(id), getShifts()]).then(([emp, sh]) => {
+    Promise.all([getEmployee(id), getJamKerjas()]).then(([emp, jk]) => {
       setEmployee(emp);
-      setShifts(sh);
+      setJamKerjas(jk);
       setLoading(false);
     });
   }, [id]);
+
 
   const handleResetFace = async () => {
     if (
@@ -65,7 +68,8 @@ export default function EmployeeDetailPage() {
     setResetting(false);
   };
 
-  const shift = shifts.find((s) => s.id === employee?.shiftId);
+  const jamKerja = jamKerjas.find((s) => s.id === employee?.jamKerjaId);
+
 
   if (loading)
     return (
@@ -270,8 +274,8 @@ export default function EmployeeDetailPage() {
             )}
           </div>
 
-          {/* Shift info */}
-          {shift && (
+          {/* Jam Kerja info */}
+          {jamKerja && (
             <div
               className="rounded-2xl border p-5 backdrop-blur-xl"
               style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
@@ -279,38 +283,41 @@ export default function EmployeeDetailPage() {
               <div className="mb-4 flex items-center gap-3">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-                  style={{ backgroundColor: '#3863C3' }}
+                  style={{ backgroundColor: '#E04B3A' }}
                 >
                   <Clock size={18} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Jadwal Shift</h4>
+                  <h4 className="text-sm font-semibold text-white">Jadwal Jam Kerja</h4>
                   <p className="text-xs" style={{ color: '#9BA4B4' }}>Detail jadwal kerja dan toleransi</p>
                 </div>
               </div>
 
+
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Nama Shift</p>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: '#3863C3' }}>{shift.name}</p>
+                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Nama</p>
+                  <p className="mt-1 text-sm font-semibold" style={{ color: '#E04B3A' }}>{jamKerja.name}</p>
                 </div>
                 <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                   <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Masuk</p>
-                  <p className="mt-1 text-sm text-white">{shift.checkInTime}</p>
+                  <p className="mt-1 text-sm text-white">{jamKerja.checkInTime}</p>
                 </div>
                 <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                   <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Pulang</p>
-                  <p className="mt-1 text-sm text-white">{shift.checkOutTime}</p>
+                  <p className="mt-1 text-sm text-white">{jamKerja.checkOutTime}</p>
                 </div>
               </div>
 
+
               <div
                 className="mt-4 flex items-center justify-between rounded-xl px-4 py-3"
-                style={{ backgroundColor: 'rgba(56,99,195,0.1)', border: '1px solid rgba(56,99,195,0.2)' }}
+                style={{ backgroundColor: 'rgba(224,75,58,0.1)', border: '1px solid rgba(224,75,58,0.2)' }}
               >
-                <span className="text-xs font-medium" style={{ color: '#3863C3' }}>Toleransi Keterlambatan</span>
-                <span className="text-sm font-semibold text-white">{shift.toleranceMinutes} menit</span>
+                <span className="text-xs font-medium" style={{ color: '#E04B3A' }}>Toleransi Keterlambatan</span>
+                <span className="text-sm font-semibold text-white">{jamKerja.toleranceMinutes} menit</span>
               </div>
+
             </div>
           )}
 

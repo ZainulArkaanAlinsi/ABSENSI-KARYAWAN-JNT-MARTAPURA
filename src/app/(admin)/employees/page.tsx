@@ -19,6 +19,7 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { FaceBadge, ContractBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
@@ -27,7 +28,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function EmployeesPage() {
   const {
     employees,
-    shifts,
+    jamKerjas,
     loading,
     search,
     setSearch,
@@ -40,6 +41,7 @@ export default function EmployeesPage() {
     departments,
     filteredEmployees,
   } = useEmployeeManagement();
+
 
   const stats = [
     {
@@ -82,9 +84,9 @@ export default function EmployeesPage() {
           <div className="dash-stat-card stat-violet">
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
-                <p className="dash-stat-label opacity-70 mb-0.5">FORCE TOTAL</p>
+                <p className="dash-stat-label font-black mb-0.5">FORCE TOTAL</p>
                 <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.length}</p>
-                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Personnel Count</p>
+                <p className="dash-stat-sub font-black mt-1.5 opacity-100 uppercase text-[9px] tracking-wider">Personnel Count</p>
               </div>
               <div className="dash-stat-icon border-white/5">
                 <Users size={20} strokeWidth={2.5} />
@@ -95,9 +97,9 @@ export default function EmployeesPage() {
           <div className="dash-stat-card stat-cyan">
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
-                <p className="dash-stat-label opacity-70 mb-0.5">SECURE SCAN</p>
+                <p className="dash-stat-label font-black mb-0.5">SECURE SCAN</p>
                 <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.filter((e) => e.faceRegistered).length}</p>
-                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Biometric Verified</p>
+                <p className="dash-stat-sub font-black mt-1.5 opacity-100 uppercase text-[9px] tracking-wider">Biometric Verified</p>
               </div>
               <div className="dash-stat-icon border-white/5">
                 <ShieldCheck size={20} strokeWidth={2.5} />
@@ -108,9 +110,9 @@ export default function EmployeesPage() {
           <div className="dash-stat-card stat-coral">
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
-                <p className="dash-stat-label opacity-70 mb-0.5">PENDING ENROLL</p>
+                <p className="dash-stat-label font-black mb-0.5">PENDING ENROLL</p>
                 <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : employees.filter((e) => !e.faceRegistered).length}</p>
-                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Action Required</p>
+                <p className="dash-stat-sub font-black mt-1.5 opacity-100 uppercase text-[9px] tracking-wider">Action Required</p>
               </div>
               <div className="dash-stat-icon border-white/5">
                 <AlertCircle size={20} strokeWidth={2.5} />
@@ -121,9 +123,9 @@ export default function EmployeesPage() {
           <div className="dash-stat-card stat-slate">
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
-                <p className="dash-stat-label opacity-70 mb-0.5">MATCH YIELD</p>
+                <p className="dash-stat-label font-black mb-0.5">MATCH YIELD</p>
                 <p className="dash-stat-value leading-none tabular-nums text-white">{loading ? '—' : filteredEmployees.length}</p>
-                <p className="dash-stat-sub font-bold mt-1.5 opacity-60 uppercase text-[9px] tracking-wider">Filtered Result</p>
+                <p className="dash-stat-sub font-black mt-1.5 opacity-100 uppercase text-[9px] tracking-wider">Filtered Result</p>
               </div>
               <div className="dash-stat-icon border-white/5">
                 <Filter size={20} strokeWidth={2.5} />
@@ -155,13 +157,14 @@ export default function EmployeesPage() {
             </div>
             
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-              <button 
+              <AnimatedButton 
                 onClick={() => setShowAddModal(true)}
                 className="dash-btn-primary flex items-center gap-2 h-12 px-5 min-w-[150px]"
+                animationType="pop"
               >
                 <UserPlus size={16} strokeWidth={3} />
                 Enlist Personnel
-              </button>
+              </AnimatedButton>
               <select
                 className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#7C3AED]/30 transition-all appearance-none cursor-pointer"
                 value={filterDept}
@@ -184,7 +187,7 @@ export default function EmployeesPage() {
                 <option value="unregistered" className="bg-[#0F172A]">Missing Scan</option>
               </select>
 
-              <button
+              <AnimatedButton
                 onClick={() => {
                   setSearch('');
                   setFilterDept('all');
@@ -192,9 +195,10 @@ export default function EmployeesPage() {
                 }}
                 className="h-12 w-12 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-slate-400 hover:text-white"
                 title="Reset Matrix"
+                animationType="tilt"
               >
                 <RefreshCw size={16} />
-              </button>
+              </AnimatedButton>
             </div>
           </div>
         </motion.div>
@@ -218,27 +222,28 @@ export default function EmployeesPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto custom-scrollbar pb-4 -mb-4">
+          <div className="overflow-x-auto custom-scrollbar max-h-[calc(100vh-480px)] overflow-y-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
                   <th className="px-6 py-5">Personnel Asset</th>
                   <th className="px-6 py-5">Deployment & Subsystem</th>
                   <th className="px-6 py-5">Designation</th>
+                  <th className="px-6 py-5">Jadwal Kerja</th>
                   <th className="px-6 py-5">Security Level</th>
                   <th className="px-6 py-5 text-right">Operation</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/2">
+              <tbody className="divide-y divide-white/2 employee-list-body">
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={5} className="px-6 py-5"><div className="h-12 w-full dash-skeleton rounded-xl" /></td>
+                      <td colSpan={6} className="px-6 py-5"><div className="h-12 w-full dash-skeleton rounded-xl" /></td>
                     </tr>
                   ))
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-24 text-center">
+                    <td colSpan={6} className="px-6 py-24 text-center">
                       <div className="flex flex-col items-center gap-5">
                         <div className="p-5 rounded-2xl bg-white/2 border border-white/5">
                           <Fingerprint size={32} className="text-slate-800" />
@@ -251,57 +256,74 @@ export default function EmployeesPage() {
                     </td>
                   </tr>
                 ) : (
-                  <AnimatePresence mode="popLayout">
-                    {filteredEmployees.map((emp, idx) => (
-                      <motion.tr
-                        key={emp.id}
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: idx * 0.02 }}
-                        className="hover:bg-white/1.5 transition-all group"
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="h-11 w-11 flex items-center justify-center rounded-2xl font-black text-sm border border-white/10 bg-white/3 text-white group-hover:border-[#7C3AED]/40 group-hover:bg-[#7C3AED]/5 transition-all shadow-sm">
-                              {emp.name?.charAt(0)}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[14px] font-black text-white group-hover:text-primary transition-all tracking-tight leading-tight mb-1">{emp.name}</p>
-                              <p className="text-[10px] font-bold text-slate-600 tracking-wider truncate uppercase max-w-[180px]">{emp.email}</p>
-                            </div>
+                  filteredEmployees.map((emp, idx) => (
+                    <motion.tr
+                      key={emp.id}
+                      layout
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03, duration: 0.4 }}
+                      className="hover:bg-white/1.5 transition-all group"
+                    >
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="h-11 w-11 flex items-center justify-center rounded-2xl font-black text-sm border border-white/10 bg-white/3 text-white group-hover:border-[#7C3AED]/40 group-hover:bg-[#7C3AED]/5 transition-all shadow-sm">
+                            {emp.name?.charAt(0)}
                           </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div>
-                            <p className="text-[12px] font-black text-white/90 uppercase tracking-tight leading-none mb-1">{emp.department}</p>
-                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">ID: {emp.employeeId || '???'}</p>
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-black text-white group-hover:text-primary transition-all tracking-tight leading-tight mb-1">{emp.name}</p>
+                            <p className="text-[10px] font-bold text-slate-600 tracking-wider truncate uppercase max-w-[180px]">{emp.email}</p>
                           </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <p className="text-[12px] font-black text-white/70 uppercase tracking-tight">{emp.position || 'Standard Unit'}</p>
-                          <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest mt-1">
-                            Phase: {emp.joinDate ? format(new Date(emp.joinDate), 'yyyy.MM') : 'Pending'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div>
+                          <p className="text-[12px] font-black text-white/90 uppercase tracking-tight leading-none mb-1">{emp.department}</p>
+                          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">ID: {emp.employeeId || '???'}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <p className="text-[12px] font-black text-white/70 uppercase tracking-tight">{emp.position || 'Standard Unit'}</p>
+                        <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest mt-1">
+                          Phase: {(() => {
+                            if (!emp.joinDate) return 'Pending';
+                            try {
+                              const d = new Date(emp.joinDate);
+                              return isNaN(d.getTime()) ? 'Pending' : format(d, 'yyyy.MM');
+                            } catch { return 'Pending'; }
+                          })()}
+                        </p>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <p className="text-[12px] font-black text-white/80 leading-tight">
+                            {jamKerjas?.find(jk => jk.id === emp.jamKerjaId)?.name || 'Default Shift'}
                           </p>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            <FaceBadge registered={emp.faceRegistered} />
-                            <ContractBadge type={emp.contractType} />
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <Link
-                            href={`/employees/${emp.id}`}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-white/5 bg-white/2 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all hover:bg-white/5 hover:text-white"
-                          >
-                            Details
-                            <ChevronRight size={12} strokeWidth={3} />
-                          </Link>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
+                          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mt-1">
+                            {(() => {
+                              const jk = jamKerjas?.find(j => j.id === emp.jamKerjaId);
+                              return jk ? `${jk.checkInTime} - ${jk.checkOutTime}` : '08:00 - 17:00';
+                            })()}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2">
+                          <FaceBadge registered={emp.faceRegistered} />
+                          <ContractBadge type={emp.contractType} />
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <Link
+                          href={`/employees/${emp.id}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-white/5 bg-white/2 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all hover:bg-white/5 hover:text-white"
+                        >
+                          Details
+                          <ChevronRight size={12} strokeWidth={3} />
+                        </Link>
+                      </td>
+                    </motion.tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -330,8 +352,9 @@ export default function EmployeesPage() {
       <AddEmployeeModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        shifts={shifts}
+        jamKerjas={jamKerjas}
       />
+
     </AdminLayout>
   );
 }

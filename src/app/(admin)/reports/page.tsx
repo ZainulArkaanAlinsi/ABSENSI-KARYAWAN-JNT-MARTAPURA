@@ -220,7 +220,7 @@ export default function ReportsPage() {
               </div>
               <p className="text-2xl font-black text-white tabular-nums mb-0.5">{loading ? '—' : s.value}</p>
               <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">{s.label}</p>
-              <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color} 0%, transparent 100%)`, opacity: 0.4 }} />
+              <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: s.color, opacity: 0.4 }} />
             </motion.div>
            ))}
         </div>

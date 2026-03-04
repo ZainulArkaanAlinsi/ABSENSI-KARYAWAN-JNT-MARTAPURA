@@ -1,8 +1,9 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { animate } from 'animejs';
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,10 +14,23 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = 560 }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       document.body.style.paddingRight = 'var(--removed-scroll-width, 0px)';
+      
+      // AnimeJS Pop Entry
+      if (modalRef.current) {
+        animate(modalRef.current, {
+          scale: [0.9, 1],
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 600,
+          easing: 'easeOutElastic(1, .8)'
+        });
+      }
     } else {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
@@ -37,19 +51,16 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
             if (e.target === e.currentTarget) onClose();
           }}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative w-full glass-card rounded-2xl border border-white/10 shadow-2xl my-auto shrink-0"
+          <div
+            ref={modalRef}
+            className="relative w-full glass-card rounded-2xl border border-white/10 shadow-2xl my-auto shrink-0 opacity-0"
             style={{
               maxWidth,
               boxShadow: 'var(--shadow-premium)',
             }}
           >
             {/* Header dengan garis aksen */}
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-linear-to-r from-transparent via-primary to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-primary" />
 
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -69,8 +80,8 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
             </div>
 
             {/* Dekorasi tambahan */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
-          </motion.div>
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
+          </div>
         </div>
       )}
     </AnimatePresence>

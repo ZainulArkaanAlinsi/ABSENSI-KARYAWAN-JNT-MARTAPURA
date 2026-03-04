@@ -9,11 +9,16 @@ import {
   Lock,
   ArrowRight,
   Shield,
-  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoginLogic } from "@/hooks/useLoginLogic";
 import Link from "next/link";
+import Image from "next/image";
+import { useState } from "react";
+
+// Direct static imports from the assets folder — no /public copy needed
+import logoJne from "../../../../assets/logo-jne.png";
+import jneBg from "../../../../assets/JNE-logo-orang-paket.png";
 
 export default function LoginPage() {
   const {
@@ -29,245 +34,300 @@ export default function LoginPage() {
     handleSubmit,
   } = useLoginLogic();
 
+  const [rememberMe, setRememberMe] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#1A1F2E] flex items-center justify-center relative overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#E04B3A_0%,transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#3863C3_0%,transparent_50%)]" />
+    /* fixed inset-0 prevents ANY scrolling; the page is always exactly the viewport */
+    <div className="fixed inset-0 flex overflow-hidden" style={{ background: "#CC0000" }}>
+
+      {/* ===== LEFT PANEL – Branding ===== */}
+      <div
+        className="hidden lg:flex w-[52%] flex-col justify-between relative overflow-hidden"
+        style={{ background: "#B30000" }}
+      >
+        {/* Subtle dot pattern */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        {/* Top header */}
+        <div className="relative z-10 px-12 pt-12 flex items-center gap-4">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg p-1.5">
+            <Image
+              src={logoJne}
+              alt="JNE Logo"
+              width={52}
+              height={52}
+              className="object-contain"
+            />
+          </div>
+          <div>
+            <p className="text-white/70 text-xs font-bold uppercase tracking-widest">
+              JNE Martapura
+            </p>
+            <h2 className="text-white text-xl font-bold leading-tight">
+              Attendance System
+            </h2>
+          </div>
+        </div>
+
+        {/* Center hero */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-10 text-center">
+          <Image
+            src={jneBg}
+            alt="JNE Illustration"
+            width={380}
+            height={380}
+            className="object-contain drop-shadow-2xl mb-8"
+            priority
+          />
+          <h1 className="text-white text-4xl font-black leading-tight mb-3">
+            Welcome Back!
+          </h1>
+          <p className="text-white/70 text-base leading-relaxed max-w-xs">
+            Sistem absensi karyawan JNE Martapura yang aman, cepat, dan terpercaya.
+          </p>
+        </div>
+
+        {/* Bottom status */}
+        <div className="relative z-10 px-12 pb-10">
+          <div className="flex items-center gap-6 text-white/60 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400" />
+              </span>
+              System Online
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Shield size={13} />
+              AES-256 Encrypted
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-10" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-6xl mx-4"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-          {/* Left: Branding Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="space-y-8 p-8 lg:p-12"
-          >
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[#E04B3A]/20 blur-2xl rounded-full" />
-                <div className="relative w-16 h-16 bg-linear-to-br from-[#E04B3A] to-[#C0392B] rounded-2xl flex items-center justify-center shadow-xl">
-                  <Shield size={32} className="text-white" />
-                </div>
-              </div>
-              <div>
-                <p className="text-[#9BA4B4] text-xs font-semibold uppercase tracking-widest">
-                  JNE Martapura
-                </p>
-                <h2 className="text-white text-2xl font-bold tracking-tight">
-                  Attendance System
-                </h2>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-black text-white leading-tight">
-                Welcome Back,
-                <br />
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-[#E04B3A] to-[#3863C3]">
-                  Authorized Personnel
-                </span>
-              </h1>
-              <p className="text-[#9BA4B4] text-sm max-w-md leading-relaxed">
-                Secure face recognition attendance system with real-time monitoring and AES-256 encryption.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-[#9BA4B4]">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#16A34A] opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#16A34A]" />
-                </span>
-                System Online
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles size={14} className="text-[#E04B3A]" />
-                AI Ready
-              </div>
-            </div>
-
-            {/* Feature list */}
-            <div className="grid grid-cols-2 gap-4 max-w-md">
-              {[
-                "Face Recognition",
-                "GPS Tracking",
-                "Real-time Sync",
-                "Encrypted",
-              ].map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-center gap-2 text-xs text-[#9BA4B4] bg-white/5 px-3 py-2 rounded-lg border border-white/10"
-                >
-                  <div className="w-1 h-1 rounded-full bg-[#E04B3A]" />
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Right: Login Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-[#1B2A4A] rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl p-8 lg:p-10"
-          >
-            {/* Success Overlay */}
-            <AnimatePresence>
-              {isSuccess && (
+      {/* ===== RIGHT PANEL – Login Form (white) ===== */}
+      <div className="flex-1 bg-white flex flex-col justify-center items-center overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="w-full max-w-md px-8 relative"
+        >
+          {/* Success overlay */}
+          <AnimatePresence>
+            {isSuccess && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white"
+              >
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#1B2A4A]/90 backdrop-blur-xl rounded-3xl"
+                  initial={{ scale: 0.7 }}
+                  animate={{ scale: 1 }}
+                  className="flex flex-col items-center gap-4"
                 >
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    className="flex flex-col items-center gap-4"
-                  >
-                    <div className="w-20 h-20 bg-[#16A34A]/10 rounded-2xl flex items-center justify-center border border-[#16A34A]/20">
-                      <CheckCircle2 size={40} className="text-[#16A34A]" />
-                    </div>
-                    <p className="text-white text-xl font-bold">Access Granted</p>
-                    <p className="text-[#9BA4B4] text-xs">Redirecting to dashboard...</p>
-                  </motion.div>
+                  <div className="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <CheckCircle2 size={40} className="text-white" />
+                  </div>
+                  <p className="text-gray-900 text-2xl font-bold">Access Granted</p>
+                  <p className="text-gray-500 text-sm">Redirecting to dashboard...</p>
                 </motion.div>
-              )}
-            </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="space-y-2">
-                <p className="text-[#E04B3A] text-xs font-semibold uppercase tracking-widest">
-                  Authentication Required
-                </p>
-                <h3 className="text-white text-2xl font-bold">Admin Login</h3>
-                <div className="w-12 h-1 bg-[#E04B3A]/50 rounded-full" />
-              </div>
+          {/* Mobile logo (shows on small screens) */}
+          <div className="flex lg:hidden items-center gap-3 mb-8 pb-6 border-b border-gray-100">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow p-1.5 bg-white border border-gray-100">
+              <Image src={logoJne} alt="JNE" width={40} height={40} className="object-contain" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">JNE Martapura</p>
+              <h2 className="text-gray-900 text-lg font-bold">Attendance System</h2>
+            </div>
+          </div>
 
-              {/* Error Alert */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-red-500/20 flex items-center justify-center text-red-500 text-sm font-bold">
-                      !
-                    </div>
-                    <p className="text-sm text-red-500/90 flex-1">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          {/* Heading */}
+          <div className="mb-8">
+            <p className="text-[#CC0000] text-xs font-bold uppercase tracking-widest mb-1">
+              Admin Portal
+            </p>
+            <h3 className="text-gray-900 text-3xl font-black">Sign In</h3>
+            <p className="text-gray-500 text-sm mt-1.5">
+              Masukkan kredensial Anda untuk masuk ke dashboard.
+            </p>
+            <div className="mt-3 h-1 w-12 rounded-full" style={{ background: "#CC0000" }} />
+          </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[#9BA4B4] text-xs font-semibold uppercase tracking-wider ml-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      size={16}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9BA4B4]"
-                    />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm placeholder:text-[#9BA4B4]/50 focus:outline-none focus:border-[#E04B3A]/50 focus:ring-2 focus:ring-[#E04B3A]/20 transition-all"
-                      placeholder="admin@jne.mtp"
-                      required
-                    />
-                  </div>
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3"
+              >
+                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
+                  !
                 </div>
+                <p className="text-sm text-red-700">{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                <div className="space-y-2">
-                  <label className="text-[#9BA4B4] text-xs font-semibold uppercase tracking-wider ml-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      size={16}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9BA4B4]"
-                    />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-12 text-white text-sm placeholder:text-[#9BA4B4]/50 focus:outline-none focus:border-[#E04B3A]/50 focus:ring-2 focus:ring-[#E04B3A]/20 transition-all"
-                      placeholder="••••••••"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={togglePassword}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9BA4B4] hover:text-white transition-colors"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-sm bg-[#E04B3A] shadow-[0_0_8px_rgba(224,75,58,0.5)]" />
-                    </div>
-                    <span className="text-[#9BA4B4] text-xs">Remember me</span>
-                  </div>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-[#9BA4B4] hover:text-white transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-
-                <motion.button
-                  type="submit"
-                  disabled={loading || isSuccess}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-linear-to-r from-[#E04B3A] to-[#C0392B] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-[#E04B3A]/20 flex items-center justify-center gap-2 hover:from-[#E04B3A] hover:to-[#B0302A] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>Authenticating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign In</span>
-                      <ArrowRight size={18} />
-                    </>
-                  )}
-                </motion.button>
-              </form>
-
-              <div className="text-center text-[#9BA4B4] text-xs border-t border-white/10 pt-6">
-                <p>© 2025 JNE Martapura. All rights reserved.</p>
-                <p className="mt-1 opacity-60">Secure Connection • AES-256</p>
+            {/* Email */}
+            <div>
+              <label className="block text-gray-700 text-sm font-semibold mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                />
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border border-gray-200 bg-gray-50 rounded-xl py-3.5 pl-11 pr-4 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                  style={{ "--tw-ring-color": "#CC0000" } as React.CSSProperties}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#CC0000")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
+                  placeholder="admin@jne.mtp"
+                  required
+                  autoComplete="email"
+                />
               </div>
             </div>
-          </motion.div>
-        </div>
-      </motion.div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-gray-700 text-sm font-semibold mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <Lock
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                />
+                <input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border border-gray-200 bg-gray-50 rounded-xl py-3.5 pl-11 pr-12 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#CC0000")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  id="toggle-password"
+                  onClick={togglePassword}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember me + Forgot password */}
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer select-none group">
+                <button
+                  type="button"
+                  id="remember-me"
+                  role="checkbox"
+                  aria-checked={rememberMe}
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#CC0000]/30 ${
+                    rememberMe
+                      ? "border-[#CC0000]"
+                      : "border-gray-300 bg-white group-hover:border-red-300"
+                  }`}
+                  style={{ background: rememberMe ? "#CC0000" : undefined }}
+                >
+                  {rememberMe && (
+                    <motion.svg
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      width="10"
+                      height="8"
+                      viewBox="0 0 10 8"
+                      fill="none"
+                    >
+                      <path
+                        d="M1 4L3.5 6.5L9 1"
+                        stroke="white"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </motion.svg>
+                  )}
+                </button>
+                <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">
+                  Ingat saya
+                </span>
+              </label>
+              <Link
+                href="/forgot-password"
+                id="forgot-password-link"
+                className="text-sm font-semibold hover:underline transition-colors"
+                style={{ color: "#CC0000" }}
+              >
+                Lupa password?
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <motion.button
+              type="submit"
+              id="login-submit"
+              disabled={loading || isSuccess}
+              whileHover={{ scale: loading || isSuccess ? 1 : 1.015 }}
+              whileTap={{ scale: loading || isSuccess ? 1 : 0.985 }}
+              className="w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-base disabled:opacity-60 transition-colors mt-1 shadow-lg"
+              style={{ background: "#CC0000" }}
+              onMouseEnter={(e) => !loading && !isSuccess && (e.currentTarget.style.background = "#aa0000")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#CC0000")}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Mengautentikasi...</span>
+                </>
+              ) : (
+                <>
+                  <span>Masuk</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-gray-400 text-xs mt-8 pt-6 border-t border-gray-100 flex items-center justify-center gap-1.5">
+            <Shield size={11} />
+            © 2025 JNE Martapura · Secure Connection · AES-256
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }

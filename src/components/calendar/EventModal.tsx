@@ -342,8 +342,7 @@ export default function EventModal({
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #43237F 0%, #5a2fa8 100%)' }}
+                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-opacity-90 bg-[#43237F]"
               >
                 {initialData ? 'Simpan Perubahan' : 'Buat Acara'}
               </button>

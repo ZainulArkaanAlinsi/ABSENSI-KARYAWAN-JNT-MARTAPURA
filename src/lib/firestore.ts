@@ -19,7 +19,7 @@ import {
 import { db } from '@/lib/firebase';
 import type {
   Employee,
-  Shift,
+  JamKerja,
   LeaveRequest,
   AttendanceRecord,
   AdminNotification,
@@ -28,18 +28,21 @@ import type {
   CalendarEvent,
 } from '@/types';
 
+
 // ============================================================
 // Collection References
 // ============================================================
 export const COLLECTIONS = {
   USERS: 'users',
-  SHIFTS: 'shifts',
+  JAM_KERJA: 'shifts', // Keeping 'shifts' as collection name for now but renaming constant
   ATTENDANCE: 'attendance',
   LEAVES: 'leaves',
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
   EVENTS: 'events',
+  SALARIES: 'salaries',
 } as const;
+
 
 // ============================================================
 // Helpers
@@ -60,8 +63,10 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     department: data.department || '',
     position: data.position || '',
     employeeId: data.employeeId || '',
-    shiftId: data.shiftId || '',
+    jamKerjaId: data.jamKerjaId || '',
+
     role: data.role || 'employee',
+
     faceRegistered: data.faceRegistered ?? false,
     fcmToken: data.fcmToken,
     deviceId: data.deviceId,
@@ -71,12 +76,13 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     joinDate: toDate(data.joinDate),
     contractType: data.contractType || 'permanent',
     isActive: data.isActive ?? true,
+    firstLogin: data.firstLogin ?? true,
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
   };
 }
 
-function mapShift(id: string, data: DocumentData): Shift {
+function mapJamKerja(id: string, data: DocumentData): JamKerja {
   return {
     id,
     name: data.name || '',
@@ -90,6 +96,7 @@ function mapShift(id: string, data: DocumentData): Shift {
     updatedAt: toDate(data.updatedAt),
   };
 }
+
 
 function mapLeave(id: string, data: DocumentData): LeaveRequest {
   return {
@@ -121,8 +128,10 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     employeeName: data.employeeName || '',
     employeeId: data.employeeId || '',
     department: data.department || '',
-    shiftId: data.shiftId || '',
+    jamKerjaId: data.jamKerjaId || '',
+
     date: data.date || '',
+
     status: data.status || 'absent',
     checkIn: data.checkIn,
     checkOut: data.checkOut,
@@ -225,15 +234,15 @@ export function subscribeToEmployees(callback: (employees: Employee[]) => void) 
 }
 
 // ============================================================
-// Shifts
+// Jam Kerja
 // ============================================================
-export async function getShifts(): Promise<Shift[]> {
-  const snap = await getDocs(collection(db, COLLECTIONS.SHIFTS));
-  return snap.docs.map((d) => mapShift(d.id, d.data()));
+export async function getJamKerjas(): Promise<JamKerja[]> {
+  const snap = await getDocs(collection(db, COLLECTIONS.JAM_KERJA));
+  return snap.docs.map((d) => mapJamKerja(d.id, d.data()));
 }
 
-export async function addShift(data: Omit<Shift, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  const ref = await addDoc(collection(db, COLLECTIONS.SHIFTS), {
+export async function addJamKerja(data: Omit<JamKerja, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  const ref = await addDoc(collection(db, COLLECTIONS.JAM_KERJA), {
     ...data,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -241,21 +250,67 @@ export async function addShift(data: Omit<Shift, 'id' | 'createdAt' | 'updatedAt
   return ref.id;
 }
 
-export async function updateShift(id: string, data: Partial<Shift>): Promise<void> {
-  await updateDoc(doc(db, COLLECTIONS.SHIFTS, id), {
+export async function updateJamKerja(id: string, data: Partial<JamKerja>): Promise<void> {
+  await updateDoc(doc(db, COLLECTIONS.JAM_KERJA, id), {
     ...data,
     updatedAt: serverTimestamp(),
   });
 }
 
-export async function deleteShift(id: string): Promise<void> {
-  await deleteDoc(doc(db, COLLECTIONS.SHIFTS, id));
+export async function deleteJamKerja(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.JAM_KERJA, id));
 }
 
-export function subscribeToShifts(callback: (shifts: Shift[]) => void) {
-  return onSnapshot(collection(db, COLLECTIONS.SHIFTS), (snap) => {
-    callback(snap.docs.map((d) => mapShift(d.id, d.data())));
+export function subscribeToJamKerjas(callback: (jamKerjas: JamKerja[]) => void) {
+  return onSnapshot(collection(db, COLLECTIONS.JAM_KERJA), (snap) => {
+    callback(snap.docs.map((d) => mapJamKerja(d.id, d.data())));
   });
+}
+
+
+// ============================================================
+// Salaries
+// ============================================================
+function mapSalary(id: string, data: DocumentData): any {
+  return {
+    id,
+    ...data,
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
+  };
+}
+
+export async function getSalariesByMonth(month: number, year: number): Promise<any[]> {
+  const q = query(
+    collection(db, COLLECTIONS.SALARIES),
+    where('month', '==', month),
+    where('year', '==', year)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => mapSalary(d.id, d.data()));
+}
+
+export async function saveSalaryRecord(data: any): Promise<void> {
+  const q = query(
+    collection(db, COLLECTIONS.SALARIES),
+    where('userId', '==', data.userId),
+    where('month', '==', data.month),
+    where('year', '==', data.year)
+  );
+  const snap = await getDocs(q);
+  
+  if (!snap.empty) {
+    await updateDoc(doc(db, COLLECTIONS.SALARIES, snap.docs[0].id), {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    await addDoc(collection(db, COLLECTIONS.SALARIES), {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }
 }
 
 // ============================================================
@@ -345,9 +400,10 @@ export function subscribeToTodayAttendance(
   return onSnapshot(q, (snap) => {
     const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
     const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    callback(sorted.slice(0, 20));
+    callback(sorted);
   });
 }
+
 
 // ============================================================
 // Notifications
