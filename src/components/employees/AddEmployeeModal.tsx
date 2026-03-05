@@ -11,7 +11,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
-import type { JamKerja } from '@/types';
+import type { JamKerja, DepartmentItem } from '@/types';
 import { useAddEmployeeLogic } from '@/hooks/useAddEmployeeLogic';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,24 +24,18 @@ interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   jamKerjas: JamKerja[];
+  departmentItems: DepartmentItem[];
 }
 
 
-const DEPARTMENTS = [
-  { id: 'rider_delivery', name: 'Rider Delivery' },
-  { id: 'driver_delivery', name: 'Driver Delivery' },
-  { id: 'inbound_outbound', name: 'Inbound & Outbound' },
-  { id: 'pick_up', name: 'Pick Up' },
-  { id: 'admin_support', name: 'Admin Support' },
-  { id: 'accounting', name: 'Accounting' },
-  { id: 'sales_sco', name: 'Sales Counter Officer (SCO)' },
-];
+
 
 
 export default function AddEmployeeModal({
   isOpen,
   onClose,
   jamKerjas,
+  departmentItems,
 }: AddEmployeeModalProps) {
 
   const { loading, success, form, handleChange, handleSubmit } =
@@ -198,8 +192,8 @@ export default function AddEmployeeModal({
                       required
                     >
                       <option value="" disabled style={{ backgroundColor: '#1B2A4A' }}>Pilih unit kerja</option>
-                      {DEPARTMENTS.map((d) => (
-                        <option key={d.id} value={d.id} style={{ backgroundColor: '#1B2A4A' }}>
+                      {departmentItems.map((d) => (
+                        <option key={d.id} value={d.name} style={{ backgroundColor: '#1B2A4A' }}>
                           {d.name}
                         </option>
                       ))}

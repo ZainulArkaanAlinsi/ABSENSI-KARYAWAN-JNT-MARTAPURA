@@ -5,7 +5,7 @@ import { ArrowLeft, Mail, Shield } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import logoJne from '../../../../assets/logo-jne.png';
+const logoJne = '/logo-jne.svg';
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);

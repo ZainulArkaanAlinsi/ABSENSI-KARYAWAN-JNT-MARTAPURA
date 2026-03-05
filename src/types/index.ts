@@ -37,14 +37,17 @@ export type NotificationType =
 // ============================================================
 // Department definitions
 // ============================================================
-export type Department =
-  | 'rider_delivery'
-  | 'driver_delivery'
-  | 'inbound_outbound'
-  | 'pick_up'
-  | 'admin_support'
-  | 'accounting'
-  | 'sales_sco';
+export type Department = string;
+
+export interface DepartmentItem {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface DepartmentRule {
   id: Department;
@@ -346,34 +349,4 @@ export interface Settings {
     emailNotifications: boolean;
     adminEmail: string;
   };
-}
-// ============================================================
-// Salary & Payroll
-// ============================================================
-export interface SalaryRecord {
-  id: string;
-  userId: string;
-  employeeName: string;
-  employeeId: string;
-  month: number; // 1-12
-  year: number;
-  baseSalary: number;
-  overtimePay: number;
-  allowance: number;
-  deductions: {
-    late: number;
-    absent: number;
-    other: number;
-  };
-  netSalary: number;
-  status: 'draft' | 'published' | 'paid';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SalarySummary {
-  totalPayroll: number;
-  totalOvertime: number;
-  totalDeductions: number;
-  employeeCount: number;
 }

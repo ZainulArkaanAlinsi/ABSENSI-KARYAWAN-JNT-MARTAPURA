@@ -16,9 +16,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
-// Direct static imports from the assets folder — no /public copy needed
-import logoJne from "../../../../assets/logo-jne.png";
-import jneBg from "../../../../assets/JNE-logo-orang-paket.png";
+// Direct asset paths from /public
+const logoJne = '/logo-jne.svg';
+const jneBg   = '/JNE-logo-orang-paket.svg';
 
 export default function LoginPage() {
   const {

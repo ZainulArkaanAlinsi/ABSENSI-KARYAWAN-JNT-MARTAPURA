@@ -14,7 +14,7 @@ import { COLLECTIONS } from '@/lib/firestore';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import type { AttendanceRecord, Employee } from '@/types';
 
-export interface AnalyticsStats {
+interface AnalyticsStats {
   totalEmployees: number;
   faceRegisteredCount: number;
   presentToday: number;
@@ -22,10 +22,11 @@ export interface AnalyticsStats {
   onLeaveToday: number;
   absentToday: number;
   overtimeThisMonth: number;
-  
+  pendingLeaves: number;
+
   // Advanced Metrics
-  engagementIndex: number; // % of employees attending regularly
-  punctualityRate: number; // % of non-late attendance vs total attendance
+  engagementIndex: number;
+  punctualityRate: number;
   departmentDistribution: { name: string; attendance: number }[];
   weeklyTrends: {
     day: string;
@@ -53,15 +54,18 @@ export function useDashboardStats() {
         // 1. Core Counts
         const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
         const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'), where('faceRegistered', '==', true));
-        
-        const [empSnap, faceSnap] = await Promise.all([
+        const pendingLeavesQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
+
+        const [empSnap, faceSnap, pendingLeavesSnap] = await Promise.all([
           getDocs(empQuery),
-          getCountFromServer(faceQuery)
+          getCountFromServer(faceQuery),
+          getCountFromServer(pendingLeavesQuery),
         ]);
 
         const employees = empSnap.docs.map(d => ({ id: d.id, ...d.data() } as Employee));
         const totalEmployees = employees.length;
         const faceRegisteredCount = faceSnap.data().count;
+        const pendingLeaves = pendingLeavesSnap.data().count;
 
         // 2. Attendance & Department Distribution
         const attQuery = query(
@@ -133,10 +137,11 @@ export function useDashboardStats() {
             onLeaveToday,
             absentToday,
             overtimeThisMonth,
+            pendingLeaves,
             engagementIndex,
             punctualityRate,
             departmentDistribution,
-            weeklyTrends
+            weeklyTrends,
           });
           setLoading(false);
         });
@@ -154,5 +159,8 @@ export function useDashboardStats() {
     return () => unsubs.forEach(unsub => unsub());
   }, []);
 
-  return { data, loading, error };
+  // Expose weeklyData as a top-level convenience (dashboard destructures it directly).
+  const weeklyData = data?.weeklyTrends ?? [];
+
+  return { data, weeklyData, loading, error };
 }

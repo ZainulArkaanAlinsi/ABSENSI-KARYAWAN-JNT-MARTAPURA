@@ -56,8 +56,8 @@ export default function LeavesPage() {
         >
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
-              <span className="text-[10px] font-black text-[#7C3AED] uppercase tracking-[0.3em]">Personnel Governance</span>
+              <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black text-[#10B981] uppercase tracking-[0.3em]">Personnel Governance</span>
             </div>
             <h2 className="dash-page-title leading-none">Authorization Queue</h2>
             <p className="dash-page-sub mt-2 text-slate-500">Processing leave requests and operational status override</p>

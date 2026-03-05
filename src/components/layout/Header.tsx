@@ -89,68 +89,66 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 right-0 z-40 flex items-center justify-between border-b border-white/5"
+      className="fixed top-0 right-0 z-40 flex items-center justify-between border-b transition-all duration-500 backdrop-blur-3xl"
       style={{
         left: 'var(--sidebar-width)',
         height: 'var(--header-height)',
-        background: 'rgba(8, 6, 22, 0.85)',
-        backdropFilter: 'blur(20px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.8))',
+        borderColor: 'var(--glass-border, rgba(0, 0, 0, 0.05))',
       }}
     >
-      {/* Header Accent Line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-att-present/10 pointer-events-none" />
-      <div className="absolute -bottom-px left-0 right-0 h-px bg-white/5 pointer-events-none" />
+      {/* ── Ambient Glow Background ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
+        <div className="absolute -top-[150%] -right-[20%] w-[600px] h-[600px] rounded-full blur-[120px]" 
+          style={{ background: 'radial-gradient(circle, rgba(227, 30, 36, 0.08) 0%, transparent 70%)' }} />
+      </div>
 
       {/* ── LEFT: Page Title Block ── */}
-      <div className="flex items-center gap-4 px-8 min-w-0 flex-1">
+      <div className="flex items-center gap-5 px-8 min-w-0 flex-1 relative z-10">
         <motion.div
-          whileHover={{ rotate: 15, scale: 1.1 }}
+          whileHover={{ rotate: 15, scale: 1.15 }}
+          whileTap={{ scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           ref={cpuRef}
-          className="relative shrink-0 w-10 h-10 rounded-xl bg-att-present/10 border border-att-present/20 flex items-center justify-center shadow-lg shadow-att-present/5"
+          className="relative shrink-0 w-11 h-11 rounded-2xl bg-white border border-stone-100 flex items-center justify-center shadow-xl shadow-red-500/5 group"
         >
-          <Cpu size={18} className="text-att-present" />
-          <div className="absolute inset-0 rounded-xl bg-att-present/5 animate-pulse" />
+          <Cpu size={20} className="text-red-600 group-hover:animate-pulse" />
+          <div className="absolute inset-0 rounded-2xl bg-red-600/5 transition-opacity opacity-0 group-hover:opacity-100" />
         </motion.div>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em]">ADMIN</span>
-            <div className="w-1 h-1 rounded-full bg-[#E04B3A]/40" />
-            <span className="text-[8px] font-black text-[#E04B3A]/80 uppercase tracking-[0.4em]">SYSTEM</span>
-
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <span className="text-[10px] font-black text-stone-400 uppercase tracking-[0.4em] opacity-60">Control Center</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-red-600/20" />
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50/50 border border-red-100/50">
+               <span className="text-[9px] font-black text-red-600 uppercase tracking-widest leading-none">JNE Cloud</span>
+            </div>
           </div>
-          <h1 className="text-[15px] font-black text-white tracking-tight uppercase leading-none truncate">
+          <h1 className="text-[18px] font-black text-gray-900 tracking-tighter uppercase leading-none truncate italic">
             {title}
           </h1>
-          {subtitle && (
-            <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-1 truncate font-mono bg-white/5 px-1.5 py-0.5 rounded inline-block">
-              {subtitle}
-            </p>
-          )}
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 justify-center px-4 max-w-xl mx-auto">
+      <div className="hidden lg:flex flex-1 justify-center px-4 max-w-xl mx-auto relative z-10">
         <div
           ref={searchRef}
-          className="relative w-full"
+          className="relative w-full group"
         >
           <Search
             size={14}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-              searchFocused ? 'text-att-present' : 'text-white/20'
+            className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-500 ${
+              searchFocused ? 'text-red-600' : 'text-gray-400'
             }`}
           />
           <input
             type="text"
-            placeholder="Search Protocol..."
+            placeholder="Cari data, laporan..."
             value={searchValue}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             onChange={e => setSearchValue(e.target.value)}
-            className="w-full bg-white/4 border border-white/6 rounded-2xl py-2.5 pl-10 pr-10 text-[12px] font-semibold text-white placeholder:text-white/20 focus:outline-none focus:border-att-present/40 focus:bg-white/8 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.05)] transition-all duration-300 shadow-inner"
+            className="w-full bg-white/40 border border-stone-100/50 rounded-2xl py-3 pl-10 pr-10 text-[13px] font-bold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-red-600/30 focus:bg-white focus:ring-8 focus:ring-red-600/5 transition-all duration-500 shadow-sm group-hover:border-stone-200"
           />
           <AnimatePresence>
             {searchValue && (
@@ -159,9 +157,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={() => setSearchValue('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-900 transition-colors"
               >
-                <X size={13} />
+                <X size={14} />
               </motion.button>
             )}
           </AnimatePresence>
@@ -169,34 +167,34 @@ export default function Header({ title, subtitle }: HeaderProps) {
       </div>
 
       {/* ── RIGHT: Action Cluster ── */}
-      <div className="flex items-center gap-3 px-8 flex-1 justify-end">
+      <div className="flex items-center gap-5 px-8 flex-1 justify-end relative z-10">
         {/* Theme Toggle */}
         <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
+          whileHover={{ scale: 1.1, y: -2 }}
+          whileTap={{ scale: 0.9 }}
           onClick={toggleTheme}
-          className="relative w-9 h-9 rounded-xl bg-white/4 border border-white/6 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/8 hover:border-white/10 transition-all duration-300 shadow-inner overflow-hidden"
+          className="relative w-10 h-10 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-gray-500 hover:text-red-600 hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500"
         >
           <AnimatePresence mode="wait">
             {theme === 'dark' ? (
               <motion.div
                 key="moon"
-                initial={{ opacity: 0, y: 8, rotate: -30 }}
-                animate={{ opacity: 1, y: 0, rotate: 0 }}
-                exit={{ opacity: 0, y: -8, rotate: 30 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Moon size={15} strokeWidth={2} />
+                <Moon size={16} strokeWidth={2.5} />
               </motion.div>
             ) : (
               <motion.div
                 key="sun"
-                initial={{ opacity: 0, y: 8, rotate: -30 }}
-                animate={{ opacity: 1, y: 0, rotate: 0 }}
-                exit={{ opacity: 0, y: -8, rotate: 30 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, rotate: -45, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Sun size={15} className="text-jne-warning" strokeWidth={2} />
+                <Sun size={16} className="text-orange-500" strokeWidth={2.5} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -204,53 +202,34 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.9 }}
             ref={bellRef}
             onClick={toggleNotifications}
-            onMouseEnter={() => {
-              if (bellRef.current) {
-                animate(bellRef.current, {
-                  scale: 1.1,
-                  rotate: '15deg',
-                  duration: 200,
-                  easing: 'easeOutQuad'
-                });
-              }
-            }}
-            onMouseLeave={() => {
-              if (bellRef.current) {
-                animate(bellRef.current, {
-                  scale: 1,
-                  rotate: '0deg',
-                  duration: 200,
-                  easing: 'easeOutQuad'
-                });
-              }
-            }}
-            className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 shadow-inner ${
+            className={`relative w-10 h-10 rounded-2xl border flex items-center justify-center transition-all duration-500 shadow-sm ${
               showNotifications
-                ? 'bg-[#E04B3A]/15 border-[#E04B3A]/30 text-[#E04B3A]'
-                : 'bg-white/4 border-white/6 text-white/40 hover:text-white hover:bg-white/8 hover:border-white/10'
+                ? 'bg-red-600 border-red-600 text-white shadow-xl shadow-red-200'
+                : 'bg-white border-stone-100 text-gray-400 hover:text-red-600 hover:shadow-xl hover:shadow-red-500/5'
             }`}
-
           >
-            <Bell size={15} strokeWidth={2} />
+            <Bell size={16} strokeWidth={2.5} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-jne-red opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-jne-red shadow-[0_0_8px_rgba(255,51,102,0.8)]" />
+              <span className="absolute top-2 right-2 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 border-2 border-white shadow-sm" />
               </span>
             )}
-          </button>
+          </motion.button>
 
           <AnimatePresence>
             {showNotifications && (
               <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="absolute right-0 top-full mt-3"
+                exit={{ opacity: 0, y: 16, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 top-full mt-4"
               >
                 <NotificationPanel onClose={() => setShowNotifications(false)} />
               </motion.div>
@@ -258,100 +237,90 @@ export default function Header({ title, subtitle }: HeaderProps) {
           </AnimatePresence>
         </div>
 
-        {/* Divider */}
-        <div className="h-7 w-px bg-white/8 mx-1" />
-
         {/* User Profile */}
         <div className="relative" ref={userRef}>
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={toggleUserMenu}
-            className="flex items-center gap-3 py-1.5 px-3 rounded-2xl bg-white/4 border border-white/6 hover:bg-white/8 hover:border-white/10 transition-all duration-300 shadow-inner group"
+            className="flex items-center gap-4 py-2 px-4 rounded-[1.25rem] bg-white border border-stone-100 hover:border-red-100/50 hover:shadow-2xl hover:shadow-red-500/10 transition-all duration-500 shadow-sm group"
           >
             {/* Text info */}
             <div className="hidden lg:flex flex-col items-end">
-              <p className="text-[11px] font-black text-white leading-none uppercase tracking-tight group-hover:text-[#E04B3A] transition-colors duration-300">
-
-                {user?.name || 'CENTRAL ADMIN'}
+              <p className="text-[13px] font-black text-gray-900 leading-none uppercase tracking-tighter group-hover:text-red-600 transition-colors">
+                {user?.name || 'CENTRAL'}
               </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-jne-success opacity-60" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-jne-success" />
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                 </span>
-                <p className="text-[8px] text-white/30 font-black uppercase tracking-[0.2em]">
-                  {user?.role || 'ADMIN'}
+                <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">
+                  {user?.role || 'SYSTEM'}
                 </p>
               </div>
             </div>
 
             {/* Avatar */}
-            <div className="relative w-8 h-8 rounded-xl bg-att-present/20 border border-att-present/30 flex items-center justify-center text-att-present font-black shadow-lg shadow-att-present/10 overflow-hidden shrink-0">
-              <span className="text-[12px] relative z-10 leading-none">
+            <div className="relative w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-xl shadow-red-600/30 overflow-hidden shrink-0 group-hover:rotate-6 transition-transform">
+              <span className="text-[13px] relative z-10 leading-none">
                 {user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </span>
-              {/* Shimmer */}
-              <motion.div
-                className="absolute inset-0 bg-white/10 -skew-x-12"
-                animate={{ x: ['-150%', '200%'] }}
-                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
-              />
+              <div className="absolute inset-0 bg-linear-to-tr from-black/20 to-transparent" />
             </div>
           </motion.button>
 
-          {/* Dropdown */}
+          {/* User Menu Dropdown */}
           <AnimatePresence>
             {showUserMenu && (
               <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="absolute right-0 top-full mt-3 w-64 glass-card rounded-2xl overflow-hidden border border-white/8 shadow-2xl shadow-black/40"
+                exit={{ opacity: 0, y: 16, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 top-full mt-4 w-72 bg-white/90 backdrop-blur-3xl rounded-3xl overflow-hidden border border-stone-100 shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
               >
                 {/* Profile Header */}
-                <div className="px-5 py-4 bg-white/2 border-b border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-att-present/20 border border-att-present/30 flex items-center justify-center text-att-present font-black text-sm shadow-lg overflow-hidden relative">
-                      <span className="relative z-10">{user?.name?.charAt(0)?.toUpperCase() || 'A'}</span>
+                <div className="px-6 py-7 bg-stone-50/50 border-b border-stone-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-red-600 flex items-center justify-center text-white font-black text-lg shadow-xl shadow-red-600/30 group-hover:rotate-3 transition-transform">
+                      {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[12px] font-black text-white uppercase tracking-tight truncate">
+                      <p className="text-[15px] font-black text-gray-900 uppercase tracking-tight truncate italic">
                         {user?.name || 'CENTRAL ADMIN'}
                       </p>
-                      <p className="text-[9px] text-white/40 font-mono truncate mt-0.5">{user?.email}</p>
+                      <p className="text-[11px] text-gray-500 font-bold truncate mt-1">{user?.email}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Status Row */}
-                <div className="px-5 py-3 flex items-center gap-2.5 border-b border-white/5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-jne-success opacity-60" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-jne-success" />
-                    </span>
-                    <span className="text-[9px] font-black text-jne-success uppercase tracking-widest">Auth Active</span>
+                {/* Status List */}
+                <div className="px-6 py-4 flex flex-col gap-3 border-b border-stone-50 bg-white/50">
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500 shadow-sm" />
+                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest leading-none">Status</span>
+                     </div>
+                     <span className="text-[10px] font-black text-green-600 uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded-full">ACTIVE</span>
                   </div>
-                  <div className="flex items-center gap-1 ml-auto">
-                    <Terminal size={10} className="text-white/20" />
-                    <span className="text-[9px] text-white/20 font-mono uppercase">{user?.role?.toUpperCase()}</span>
+                  <div className="flex items-center justify-between">
+                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">System Role</span>
+                     <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{user?.role?.toUpperCase()}</span>
                   </div>
                 </div>
 
                 {/* Sign Out */}
-                <div className="p-2">
-                  <motion.button
-                    whileHover={{ x: 4 }}
+                <div className="p-3">
+                  <button
                     onClick={signOut}
-                    className="w-full text-left px-4 py-3 rounded-xl text-[11px] text-white/60 hover:text-jne-red hover:bg-jne-red/10 transition-all font-black uppercase tracking-[0.15em] flex items-center gap-3 group"
+                    className="w-full text-left px-5 py-4 rounded-2xl text-[12px] text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all font-black uppercase tracking-widest flex items-center gap-4 group"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-jne-red/8 border border-jne-red/15 flex items-center justify-center group-hover:bg-jne-red/15 transition-colors">
-                      <LogOut size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                    <div className="w-9 h-9 rounded-xl bg-stone-50 flex items-center justify-center group-hover:bg-red-100 group-hover:text-red-600 transition-colors border border-stone-100">
+                      <LogOut size={16} />
                     </div>
-                    Terminate Session
-                  </motion.button>
+                    LOGOUT SYSTEM
+                  </button>
                 </div>
               </motion.div>
             )}

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarDays, Users, Bell } from 'lucide-react';
 import { format, parseISO, startOfDay } from 'date-fns';
 import type { CalendarEvent } from '@/types';
-import { DEPARTMENTS } from '@/types';
 
 type EventModalProps = {
   isOpen: boolean;
@@ -25,8 +24,8 @@ const CATEGORY_OPTIONS = [
 ];
 
 const EVENT_COLORS = [
-  '#43237F', '#3863C3', '#0891B2', '#16A34A',
-  '#D97706', '#C0392B', '#7C3AED', '#0EA5E9',
+  '#059669', '#3863C3', '#0891B2', '#16A34A',
+  '#D97706', '#C0392B', '#10B981', '#0EA5E9',
 ];
 
 export default function EventModal({
@@ -45,7 +44,7 @@ export default function EventModal({
     startDate: '',
     endDate: '',
     category: 'meeting' as string,
-    color: '#43237F',
+    color: '#059669',
     departments: [] as string[],
     attendees: [] as string[],
   });
@@ -63,7 +62,7 @@ export default function EventModal({
           ? format(parseISO(initialData.endDate), "yyyy-MM-dd'T'HH:mm")
           : '',
         category:    initialData.category || 'meeting',
-        color:       initialData.color || '#43237F',
+        color:       initialData.color || '#059669',
         departments: initialData.departments || [],
         attendees:   initialData.attendees || [],
       });
@@ -77,7 +76,7 @@ export default function EventModal({
         departments: [],
         attendees: [],
         category: 'meeting',
-        color: '#43237F',
+        color: '#059669',
         startDate: format(base, "yyyy-MM-dd'T'09:00"),
         endDate:   format(base, "yyyy-MM-dd'T'10:00"),
       }));
@@ -131,8 +130,8 @@ export default function EventModal({
             style={{ background: '#0F172A' }}
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#43237F30' }}>
-                <CalendarDays size={17} style={{ color: '#a87fd6' }} />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#10B98130' }}>
+                <CalendarDays size={17} style={{ color: '#34d399' }} />
               </div>
               <div>
                 <h3 className="text-base font-bold text-white">
@@ -164,7 +163,7 @@ export default function EventModal({
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Contoh: Rapat bulanan SCO"
-                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#43237F]/60 focus:ring-2 focus:ring-[#43237F]/20"
+                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#10B981]/60 focus:ring-2 focus:ring-[#10B981]/20"
                 required
               />
             </div>
@@ -183,7 +182,7 @@ export default function EventModal({
                     className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all"
                     style={
                       form.category === value
-                        ? { background: '#43237F', borderColor: '#43237F', color: '#fff' }
+                        ? { background: '#059669', borderColor: '#059669', color: '#fff' }
                         : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }
                     }
                   >
@@ -202,7 +201,7 @@ export default function EventModal({
                 className="space-y-2"
               >
                 <div className="flex items-center gap-2 mt-4">
-                  <Users size={13} style={{ color: '#a87fd6' }} />
+                  <Users size={13} style={{ color: '#34d399' }} />
                   <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
                     Karyawan yang diundang (Opsional)
                   </label>
@@ -228,7 +227,7 @@ export default function EventModal({
                             className="w-full flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-[11px] font-medium transition-all"
                             style={
                               active
-                                ? { background: 'rgba(67,35,127,0.2)', borderColor: 'rgba(67,35,127,0.5)', color: '#d4b8ff' }
+                                ? { background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.5)', color: '#6ee7b7' }
                                 : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)', color: '#9BA4B4' }
                             }
                           >
@@ -241,9 +240,9 @@ export default function EventModal({
                 </div>
 
                 {(form.departments.length > 0 || form.attendees.length > 0) && (
-                  <div className="flex items-start gap-2 rounded-xl border border-[#43237F]/20 bg-[#43237F]/8 p-3 mt-2">
-                    <Bell size={12} className="mt-0.5 shrink-0" style={{ color: '#a87fd6' }} />
-                    <p className="text-[11px] leading-relaxed" style={{ color: '#a87fd6' }}>
+                  <div className="flex items-start gap-2 rounded-xl border border-[#10B981]/20 bg-[#10B981]/8 p-3 mt-2">
+                    <Bell size={12} className="mt-0.5 shrink-0" style={{ color: '#34d399' }} />
+                    <p className="text-[11px] leading-relaxed" style={{ color: '#34d399' }}>
                       Notifikasi push otomatis akan dikirim ke {form.departments.length} departemen dan {form.attendees.length} karyawan —
                       <strong> 1 hari sebelum</strong> dan <strong>30 menit sebelum</strong> meeting dimulai.
                     </p>
@@ -262,7 +261,7 @@ export default function EventModal({
                   type="datetime-local"
                   value={form.startDate}
                   onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                  className="w-full rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white outline-none focus:border-[#43237F]/60"
+                  className="w-full rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white outline-none focus:border-[#10B981]/60"
                   required
                 />
               </div>
@@ -274,7 +273,7 @@ export default function EventModal({
                   type="datetime-local"
                   value={form.endDate}
                   onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                  className="w-full rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white outline-none focus:border-[#43237F]/60"
+                  className="w-full rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white outline-none focus:border-[#10B981]/60"
                   required
                 />
               </div>
@@ -289,7 +288,7 @@ export default function EventModal({
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Agenda rapat, catatan penting, dsb."
-                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#43237F]/60"
+                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#10B981]/60"
                 rows={3}
               />
             </div>
@@ -304,7 +303,7 @@ export default function EventModal({
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                 placeholder="Nama ruangan, link Google Meet, dsb."
-                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#43237F]/60"
+                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-[#10B981]/60"
               />
             </div>
 
@@ -342,7 +341,7 @@ export default function EventModal({
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-opacity-90 bg-[#43237F]"
+                className="flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-opacity-90 bg-[#10B981]"
               >
                 {initialData ? 'Simpan Perubahan' : 'Buat Acara'}
               </button>

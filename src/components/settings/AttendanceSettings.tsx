@@ -34,7 +34,7 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="pg-form-label">Ambang Kemiripan Wajah</label>
-            <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>
+            <span className="text-sm font-semibold" style={{ color: '#10B981' }}>
               {settings.faceSimilarityThreshold ?? 60}%
             </span>
           </div>
@@ -43,7 +43,7 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
             min={60}
             max={99}
             step={1}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-violet-600"
+            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-emerald-600"
             value={settings.faceSimilarityThreshold ?? 60}
             onChange={(e) => {
               const val = e.target.value;

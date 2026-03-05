@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { LogOut } from 'lucide-react';
-import logo from '../../../assets/logo-jne.png';
+const logo = '/logo-jne.svg';
 import { useSidebarLogic } from '@/hooks/useSidebarLogic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef } from 'react';
@@ -43,61 +43,52 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-0 bottom-0 z-50 flex flex-col border-r border-white/5 transition-all duration-700"
+      className="fixed left-0 top-0 bottom-0 z-50 flex flex-col border-r transition-all duration-700 backdrop-blur-3xl"
       style={{
         width: 'var(--sidebar-width)',
-        background: 'rgba(8, 6, 22, 0.95)',
-        backdropFilter: 'blur(32px)',
+        background: 'var(--glass-bg, rgba(255, 255, 255, 0.8))',
+        borderColor: 'var(--glass-border, rgba(0, 0, 0, 0.05))',
       }}
     >
-      {/* Ambient top glow */}
-      <div
-        className="pointer-events-none absolute left-0 top-0 h-72 w-full bg-primary/5"
-      />
-
       {/* Brand node */}
-      <div className="flex items-center gap-3 px-4 py-7">
-        <div
+      <div className="flex items-center gap-3 px-6 py-10">
+        <motion.div
           ref={logoRef}
-          className="flex shrink-0 items-center justify-center rounded-xl bg-white shadow-lg shadow-black/5"
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          className="flex shrink-0 items-center justify-center rounded-2xl bg-white shadow-xl shadow-red-500/10"
           style={{
-            width: 42,
-            height: 42,
-            padding: '4px',
+            width: 48,
+            height: 48,
+            padding: '6px',
+            border: '1px solid rgba(255,255,255,0.8)'
           }}
         >
           <Image 
             src={logo} 
-            alt="JNE Logo" 
+            alt="JNE Logo"
+            width={32}
+            height={32}
             className="object-contain"
           />
-        </div>
+        </motion.div>
         <div>
-          <p className="text-[13px] font-black uppercase tracking-tight text-white leading-none">
-            JNE Admin
+          <p className="text-[15px] font-black uppercase tracking-tighter text-gray-900 leading-none">
+            JNE <span className="text-red-600">Admin</span>
           </p>
-          <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">
-            Attendance System
+          <p className="mt-1.5 text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">
+            Smart Logistics
           </p>
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="mx-4 mb-3 h-px bg-white/6" />
-
-      {/* Section label */}
-      <p className="mb-2 px-5 text-[9px] font-black uppercase tracking-[0.3em] text-white/20">
-        Navigasi
-      </p>
-
       {/* Navigation */}
-      <nav ref={navRef} className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <nav ref={navRef} className="flex-1 space-y-1.5 overflow-y-auto px-4 pb-6 scrollbar-none">
         {navItems.map((item: any, idx: number) => {
           if (item.isHeader) {
             return (
               <p
                 key={`header-${idx}`}
-                className="mb-2 mt-6 px-4 text-[9px] font-black uppercase tracking-[0.3em] text-white/20 first:mt-0"
+                className="mb-3 mt-8 px-4 text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 opacity-60 first:mt-0"
               >
                 {item.label}
               </p>
@@ -111,103 +102,80 @@ export default function Sidebar() {
               key={href} 
               href={href} 
               className="block outline-none nav-item-animate opacity-0"
-              onMouseEnter={(e) => {
-                if (!active) {
-                  animate(e.currentTarget, {
-                    translateX: 4,
-                    duration: 300,
-                    easing: 'easeOutQuad'
-                  });
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  animate(e.currentTarget, {
-                    translateX: 0,
-                    duration: 300,
-                    easing: 'easeOutQuad'
-                  });
-                }
-              }}
             >
-              <div
-                className={`relative flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 transition-all duration-300 ${
-                  active ? 'text-white' : 'text-white/40 hover:text-white/80'
+              <motion.div
+                whileHover={{ x: 6 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className={`relative flex items-center gap-4 rounded-2xl px-4 py-3.5 transition-all duration-500 ${
+                  active ? 'text-red-600 shadow-lg shadow-red-500/5' : 'text-gray-500 hover:text-gray-900'
                 }`}
                 style={
                   active
                     ? {
-                        background: 'rgba(227, 30, 36, 0.08)', // Using JNE Red
-                        border: '0.5px solid rgba(227, 30, 36, 0.2)',
-                        boxShadow: '0 4px 15px -2px rgba(227, 30, 36, 0.1)',
+                        background: 'rgba(255, 245, 245, 0.6)',
+                        border: '1px solid rgba(227, 30, 36, 0.08)',
                       }
                     : {
                         background: 'transparent',
-                        border: '0.5px solid transparent',
+                        border: '1px solid transparent',
                       }
                 }
               >
-                {/* Active left accent pill */}
+                {/* Active marker (Dynamic Glow) */}
                 <AnimatePresence>
                   {active && (
                     <motion.div
-                      layoutId="sidebar-pill"
-                      className="absolute left-0 w-0.5 rounded-full"
-                      style={{
-                        height: 20,
-                        background: '#E31E24', // JNE Red
-                        boxShadow: '0 0 12px rgba(227, 30, 36, 0.5)',
-                      }}
-                      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                      layoutId="sidebar-active-marker"
+                      className="absolute left-0 w-1.5 rounded-r-full bg-red-600 shadow-[2px_0_12px_rgba(220,38,38,0.4)]"
+                      style={{ height: 28 }}
+                      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                     />
                   )}
                 </AnimatePresence>
 
-
-                {/* Icon */}
+                {/* Icon wrapper */}
                 <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all"
-                  style={
-                    active
-                      ? { background: 'rgba(124, 58, 237, 0.2)', color: 'var(--att-present)' }
-                      : { background: 'rgba(255,255,255,0.04)', color: 'inherit' }
-                  }
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
+                    active 
+                      ? 'bg-red-600 text-white shadow-xl shadow-red-600/20' 
+                      : 'bg-white/40 text-gray-400 group-hover:bg-white group-hover:shadow-sm border border-transparent'
+                  }`}
                 >
                   <Icon
-                    size={16}
+                    size={18}
                     strokeWidth={active ? 2.5 : 2}
                   />
                 </div>
 
                 {/* Label */}
                 <span
-                  className="truncate text-[12px] font-semibold leading-none"
-                  style={{ letterSpacing: '-0.01em' }}
+                  className="truncate text-[13px] font-black uppercase tracking-tight"
                 >
                   {label}
                 </span>
-              </div>
+              </motion.div>
             </Link>
           );
         })}
       </nav>
 
-      {/* Divider */}
-      <div className="mx-4 mb-3 h-px bg-white/6" />
-
-      {/* Sign-out */}
-      <div className="px-3 pb-6">
+      {/* Footer / Sign-out */}
+      <div className="px-4 border-t border-gray-100/50 py-8">
         <motion.button
-          whileHover={{ x: 3 }}
+          whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
           onClick={signOut}
-          className="group flex w-full items-center gap-3.5 rounded-xl border border-transparent px-3.5 py-2.5 text-white/30 transition-all hover:border-red-500/20 hover:bg-red-500/8 hover:text-red-400"
+          className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/4 transition-all group-hover:bg-red-500/15">
-            <LogOut size={15} />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 transition-all group-hover:bg-red-100 group-hover:text-red-600">
+            <LogOut size={16} />
           </div>
-          <span className="text-[12px] font-semibold">Keluar</span>
+          <span className="text-[13px] font-black uppercase tracking-tight">Keluar Portal</span>
         </motion.button>
+        <p className="mt-6 px-3 text-[8px] font-black text-gray-300 uppercase tracking-[0.4em] text-center opacity-50">
+          © 2026 JNE MARTAPURA
+        </p>
       </div>
     </aside>
   );

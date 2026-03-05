@@ -3,7 +3,8 @@
 import {
   Users, UserCheck, UserX, FileText, BarChart3,
   AlertCircle, RefreshCw, CalendarDays, ChevronRight,
-  CheckCircle2, AlertTriangle, UserMinus, Clock
+  CheckCircle2, AlertTriangle, UserMinus, Clock,
+  ArrowUpRight, Activity, Zap, Target
 } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import {
@@ -15,35 +16,41 @@ import { format } from 'date-fns';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useRouter } from 'next/navigation';
 
-// ─── Stat Card ─────────────────────────────────────────────────────────────
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: React.ElementType;
-  gradient: string;
-  delay?: number;
-  onClick?: () => void;
-}
-
+// ─── Stat Card (Bento Style) ─────────────────────────────────────────────────────────────
 const StatCard = ({ title, value, subtitle, icon: Icon, className, delay = 0, onClick }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-    whileHover={{ y: -5, scale: 1.02 }}
+    initial={{ opacity: 0, y: 20, scale: 0.98 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
+    whileHover={{ y: -6, scale: 1.01 }}
+    whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`dash-stat-card ${className}`}
+    className={`dash-stat-card glass-card glass-highlight ${className} group relative overflow-hidden`}
     style={{ cursor: onClick ? 'pointer' : 'default' }}
   >
-    <div className="relative z-10 w-full flex items-center justify-between">
-      <div>
-        <p className="dash-stat-label font-black mb-0.5">{title}</p>
-        <p className="dash-stat-value leading-none">{value}</p>
-        {subtitle && <p className="dash-stat-sub font-black mt-1.5 opacity-100">{subtitle}</p>}
+    {/* Decorative inner glow */}
+    <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+    
+    <div className="relative z-10 w-full">
+      <div className="flex items-start justify-between mb-5">
+        <div className="dash-stat-icon group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl shadow-black/5 border-white/40">
+          <Icon size={20} strokeWidth={2.5} />
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/40 border border-white/50 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+          <span className="text-[9px] font-black text-gray-900 tracking-tighter uppercase">Query</span>
+          <ArrowUpRight size={10} className="text-gray-900" />
+        </div>
       </div>
-      <div className="dash-stat-icon border-white/5">
-        <Icon size={22} strokeWidth={2.5} />
+      <div>
+        <p className="dash-stat-label font-black text-gray-400 uppercase tracking-[0.2em] mb-1 group-hover:text-gray-500 transition-colors">{title}</p>
+        <div className="flex items-baseline gap-2.5 mt-1.5">
+          <p className="dash-stat-value text-4xl font-black text-gray-900 tracking-tighter leading-none">{value}</p>
+          {subtitle && (
+            <span className="text-[9px] font-black text-emerald-600 bg-emerald-50/80 border border-emerald-100/50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              {subtitle}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   </motion.div>
@@ -53,13 +60,16 @@ const StatCard = ({ title, value, subtitle, icon: Icon, className, delay = 0, on
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="dash-tooltip">
-        <p className="dash-tooltip-label">{label}</p>
-        <div className="space-y-1.5">
+      <div className="dash-tooltip border-stone-100 shadow-2xl">
+        <p className="dash-tooltip-label border-stone-50 text-stone-400">{label}</p>
+        <div className="space-y-2">
           {payload.map((p: any) => (
-            <div key={p.name} className="flex items-center justify-between gap-6">
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{p.name}</span>
-              <span className="text-[12px] font-black" style={{ color: p.color }}>{p.value}</span>
+            <div key={p.name} className="flex items-center justify-between gap-8">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">{p.name}</span>
+              </div>
+              <span className="text-[13px] font-black text-stone-900">{p.value}</span>
             </div>
           ))}
         </div>
@@ -76,14 +86,15 @@ export default function DashboardPage() {
 
   const today = format(new Date(), 'EEEE, dd MMMM yyyy');
 
-  // Attendance status palette - Electric Solid
+  // Attendance status palette - Modern Emerald
   const ATT = {
-    present:  '#8B5CF6', // Electric Violet
-    late:     '#F59E0B', // Amber
-    overtime: '#06B6D4', // Cyan
-    leave:    '#3B82F6', // Blue
-    absent:   '#F43F5E', // Red/Coral
-    total:    '#F8FAFC',
+    present:  '#10B981', // Emerald 500
+    late:     '#F59E0B', // Amber 500
+    overtime: '#06B6D4', // Cyan 500
+    leave:    '#3B82F6', // Blue 500
+    absent:   '#EF4444', // Red 500
+    grid:     '#F5F5F4', // Stone 100
+    tick:     '#A8A29E', // Stone 400
   };
 
   const donutData = [
@@ -101,21 +112,14 @@ export default function DashboardPage() {
     ? Math.round((data.faceRegisteredCount / data.totalEmployees) * 100)
     : 0;
 
-  const recentActivities = [
-    { time: 'Hari Ini', icon: CheckCircle2, color: ATT.present, label: 'Absensi Masuk', sub: `${data?.presentToday || 0} karyawan hadir` },
-    { time: 'Hari Ini', icon: AlertTriangle, color: ATT.late,    label: 'Terlambat',     sub: `${data?.lateToday || 0} karyawan terlambat` },
-    { time: 'Menunggu', icon: FileText,     color: ATT.leave,   label: 'Permohonan Izin', sub: `${data?.pendingLeaves || 0} permohonan pending` },
-    { time: 'Status',   icon: UserMinus,   color: ATT.absent,  label: 'Tidak Hadir',   sub: `${Math.max(0, data?.absentToday || 0)} karyawan absen` },
-  ];
-
   if (error) {
     return (
       <AdminLayout title="Dashboard" subtitle="Ringkasan Operasional">
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <AlertCircle size={48} className="text-red-500" />
-          <p className="text-gray-600 text-center">{error}</p>
-          <button onClick={() => window.location.reload()} className="dash-btn-primary flex items-center gap-2">
-            <RefreshCw size={16} /> Coba Lagi
+          <p className="text-stone-600 font-bold">{error}</p>
+          <button onClick={() => window.location.reload()} className="dash-btn-primary">
+            <RefreshCw size={16} /> REKONEKSI SISTEM
           </button>
         </div>
       </AdminLayout>
@@ -123,394 +127,319 @@ export default function DashboardPage() {
   }
 
   return (
-    <AdminLayout title="Dashboard" subtitle="Ringkasan Operasional">
-      <div className="dash-root">
-
-        {/* ── Header Row ── */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="dash-header-row mb-2"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-jne-red animate-pulse" />
-              <span className="text-[10px] font-black text-jne-red uppercase tracking-[0.3em]">Live Matrix</span>
+    <AdminLayout title="Dashboard" subtitle="Unit Operasional">
+      <div className="dash-root max-w-[1400px]">
+        
+        {/* ── BENTO HEADER ── */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-8">
+          
+          {/* Main Hero Card (Personnel Pulse) - 8 Cols */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-8 glass-card bg-stone-900 border-stone-800 p-8 flex flex-col justify-between min-h-[380px] relative overflow-hidden group shadow-[0_40px_100px_rgba(0,0,0,0.2)]"
+          >
+            {/* Background Decorative Patterns */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -mr-48 -mt-48 group-hover:bg-emerald-500/20 transition-all duration-1000" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-red-600/5 rounded-full blur-[100px] -ml-40 -mb-40" />
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 backdrop-blur-md">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
+                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">Operational Status / Live</span>
+                </div>
+                <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 flex items-center gap-2.5 backdrop-blur-md">
+                   <span className="text-[10px] font-black text-stone-400 uppercase tracking-[0.3em]">Node: MTP-01</span>
+                </div>
+              </div>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-5 uppercase italic leading-[0.9]">
+                Personnel <br /><span className="text-emerald-500">Pulse.</span>
+              </h1>
+              <p className="text-stone-400 text-[15px] max-w-lg font-medium leading-relaxed mb-8 opacity-80">
+                Advanced monitoring of real-time presence, attendance trajectory, and operational integrity across the JNE Martapura logistics network.
+              </p>
             </div>
-            <h2 className="dash-page-title leading-none">Command Center</h2>
-            <p className="dash-page-sub mt-2">{today}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/reports')} className="dash-btn-secondary">
-              Review Analytics
-            </button>
-            <button onClick={() => router.push('/employees')} className="dash-btn-primary">
-              Personnel Directory
-            </button>
-          </div>
-        </motion.div>
 
-        {/* ── Stat Cards ── */}
-        <div className="dash-stats-grid">
+            <div className="relative z-10 flex flex-wrap items-end justify-between gap-8 pt-8 border-t border-white/5">
+              <div className="flex gap-16">
+                <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring' }}>
+                  <p className="text-[10px] font-black text-stone-500 uppercase tracking-[0.3em] mb-3">Live Presence</p>
+                  <p className="text-5xl font-black text-white tracking-tighter flex items-baseline gap-2">
+                    {loading ? '—' : data?.presentToday || 0}
+                    <span className="text-sm font-black text-emerald-500 uppercase tracking-widest opacity-60">Units</span>
+                  </p>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring' }}>
+                  <p className="text-[10px] font-black text-stone-500 uppercase tracking-[0.3em] mb-3">Core Efficiency</p>
+                  <p className="text-5xl font-black text-white tracking-tighter">
+                    {loading ? '—' : attendanceRate}<span className="text-2xl opacity-40">%</span>
+                  </p>
+                </motion.div>
+              </div>
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/employees')}
+                className="px-10 py-5 rounded-2xl bg-white text-stone-900 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl shadow-black/20"
+              >
+                Access Workforce
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Side Context Card (Live Context) - 4 Cols */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            whileHover={{ scale: 1.01 }}
+            className="lg:col-span-4 glass-card border-none bg-emerald-600 p-8 text-white flex flex-col justify-between shadow-[0_40px_100px_rgba(5,150,105,0.2)] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-32 -mt-32" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-10">
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                  className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/20"
+                >
+                  <Activity size={28} />
+                </motion.div>
+                <Zap size={22} className="text-white/40 animate-pulse" />
+              </div>
+              <p className="text-[11px] font-black text-emerald-100 uppercase tracking-[0.4em] mb-3">System Frequency</p>
+              <h3 className="text-3xl font-black leading-[1.1] tracking-tight mb-5 uppercase italic">
+                Operational <br />Window Open.
+              </h3>
+              <div className="flex items-center gap-3 py-2 px-4 rounded-xl bg-black/10 border border-white/10 w-fit">
+                <CalendarDays size={14} className="text-emerald-200" />
+                <p className="text-emerald-50 text-[12px] font-black uppercase tracking-widest">{today}</p>
+              </div>
+            </div>
+            
+            <div className="relative z-10 bg-black/20 p-5 rounded-3xl border border-white/10 backdrop-blur-md">
+              <div className="flex justify-between items-end mb-4">
+                <p className="text-[10px] font-black text-emerald-100 uppercase tracking-[0.3em]">Network Sync</p>
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">OK · 85%</p>
+              </div>
+              <div className="h-2.5 w-full bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <motion.div 
+                  className="h-full bg-linear-to-r from-emerald-400 to-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.5)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: '85%' }}
+                  transition={{ duration: 2, delay: 0.5, ease: 'circOut' }}
+                />
+              </div>
+            </div>
+          </motion.div>
+
+        </section>
+
+        {/* ── STATS ROW ── */}
+        <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
           <StatCard
-            title="HADIR"
-            value={loading ? '—' : ((data?.presentToday || 0) - (data?.lateToday || 0))}
-            subtitle={data ? `+${Math.round(attendanceRate/10)}% dari kemarin` : 'Loading...'}
+            title="Hadir"
+            value={loading ? '—' : (data?.presentToday || 0) - (data?.lateToday || 0)}
+            subtitle="Stable"
             icon={UserCheck}
-            className="stat-violet"
-            delay={0.05}
+            className="stat-emerald"
+            delay={0.2}
             onClick={() => router.push('/reports')}
           />
           <StatCard
-            title="TERLAMBAT"
+            title="Terlambat"
             value={loading ? '—' : (data?.lateToday || 0)}
-            subtitle="-3 dari kemarin"
+            subtitle="-2 Trend"
             icon={Clock}
             className="stat-amber"
-            delay={0.1}
-            onClick={() => router.push('/reports')}
-          />
-          <StatCard
-            title="LEMBUR"
-            value={loading ? '—' : (data?.overtimeThisMonth || 0)}
-            subtitle="+8 jam bulan ini"
-            icon={BarChart3}
-            className="stat-cyan"
-            delay={0.15}
-            onClick={() => router.push('/reports')}
-          />
-          <StatCard
-            title="IZIN/CUTI"
-            value={loading ? '—' : (data?.onLeaveToday || 0)}
-            subtitle={`${data?.pendingLeaves || 0} permohonan`}
-            icon={FileText}
-            className="stat-blue"
-            delay={0.2}
-            onClick={() => router.push('/leaves')}
-          />
-          <StatCard
-            title="ALPHA"
-            value={loading ? '—' : Math.max(0, data?.absentToday || 0)}
-            subtitle="+2 kasus baru"
-            icon={UserX}
-            className="stat-coral"
             delay={0.25}
             onClick={() => router.push('/reports')}
           />
           <StatCard
-            title="TOTAL KARYAWAN"
+            title="Lembur"
+            value={loading ? '—' : (data?.overtimeThisMonth || 0)}
+            subtitle="Total Units"
+            icon={Target}
+            className="stat-cyan"
+            delay={0.3}
+            onClick={() => router.push('/reports')}
+          />
+          <StatCard
+            title="Izin"
+            value={loading ? '—' : (data?.onLeaveToday || 0)}
+            subtitle="Registered"
+            icon={FileText}
+            className="stat-blue"
+            delay={0.35}
+            onClick={() => router.push('/leaves')}
+          />
+          <StatCard
+            title="Absen"
+            value={loading ? '—' : Math.max(0, data?.absentToday || 0)}
+            subtitle="Alert"
+            icon={UserX}
+            className="stat-coral"
+            delay={0.4}
+            onClick={() => router.push('/reports')}
+          />
+          <StatCard
+            title="Karyawan"
             value={loading ? '—' : (data?.totalEmployees || 0)}
-            subtitle="4 dept aktif"
+            subtitle="Directory"
             icon={Users}
             className="stat-slate"
-            delay={0.3}
+            delay={0.45}
             onClick={() => router.push('/employees')}
           />
-        </div>
+        </section>
 
-        {/* ── Main Content: Chart + Donut ── */}
-        <div className="dash-main-grid">
-
-          {/* Left: Area Chart */}
-          <motion.div
+        {/* ── BENTO ANALYTICS ── */}
+        <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+          
+          {/* Chart Section - 8 Cols */}
+          <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="dash-card dash-chart-card"
+            transition={{ delay: 0.5 }}
+            className="xl:col-span-8 dash-card p-8"
           >
-            <div className="dash-card-header">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
               <div>
-                <h3 className="dash-card-title">Weekly Flux</h3>
-                <p className="dash-card-sub">7-Day Attendance Trajectory</p>
+                <h3 className="text-2xl font-black text-stone-900 tracking-tighter uppercase">Weekly Trajectory</h3>
+                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">7-Day Attendance Flow</p>
               </div>
-              <div className="flex items-center gap-5 flex-wrap">
-                {[
-                  { label: 'Present', color: ATT.present },
-                  { label: 'Tardy', color: ATT.late },
-                ].map(l => (
-                  <div key={l.label} className="dash-legend-item">
-                    <span className="dash-legend-dot" style={{ background: l.color }} />
-                    <span>{l.label}</span>
-                  </div>
-                ))}
+              <div className="flex items-center gap-6 border-l border-stone-100 pl-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-black text-stone-600 uppercase tracking-tighter">On-Time</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span className="text-[10px] font-black text-stone-600 uppercase tracking-tighter">Tardy</span>
+                </div>
               </div>
             </div>
 
-            <div className="dash-chart-numbers">
-              <div>
-                <p className="dash-big-number">{(data?.presentToday ?? 0) - (data?.lateToday ?? 0)}</p>
-                <p className="dash-big-label">Nominal Present</p>
-              </div>
-              <div className="w-px h-10 bg-white/5 self-center" />
-              <div>
-                <p className="dash-big-number" style={{ color: ATT.present }}>{attendanceRate}%</p>
-                <p className="dash-big-label">Duty Ratio</p>
-              </div>
-            </div>
-
-            <div style={{ height: 260, width: '100%', padding: '0 1rem' }}>
+            <div style={{ height: 320, width: '100%' }}>
               {loading ? (
                 <div className="dash-skeleton w-full h-full rounded-2xl" />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <AreaChart data={weeklyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={ATT.present} stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor={ATT.present} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="0" vertical={false} stroke={ATT.grid} />
                     <XAxis 
                       dataKey="day" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} 
-                      dy={15} 
+                      tick={{ fill: ATT.tick, fontSize: 10, fontWeight: 900 }} 
+                      dy={15}
                     />
                     <YAxis hide domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area 
                       type="monotone" 
                       dataKey="present" 
-                      name="Active" 
                       stroke={ATT.present} 
                       strokeWidth={4} 
-                      fill={ATT.present}
-                      fillOpacity={0.15}
-                      dot={false} 
-                      activeDot={{ r: 6, fill: ATT.present, stroke: '#fff', strokeWidth: 2 }} 
+                      fillOpacity={1} 
+                      fill="url(#colorPresent)" 
+                      activeDot={{ r: 8, stroke: '#fff', strokeWidth: 3, fill: ATT.present }}
                     />
                     <Area 
                       type="monotone" 
                       dataKey="late" 
-                      name="Tardy" 
                       stroke={ATT.late} 
-                      strokeWidth={4} 
-                      fill={ATT.late}
-                      fillOpacity={0.15}
-                      dot={false} 
-                      activeDot={{ r: 6, fill: ATT.late, stroke: '#fff', strokeWidth: 2 }} 
+                      strokeWidth={3} 
+                      strokeDasharray="8 8"
+                      fill="none" 
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
             </div>
 
-            <div className="dash-mini-stats">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mt-12 pt-8 border-t border-stone-100">
               {[
-                { label: 'Present',   value: data?.presentToday  || 0,       color: ATT.present  },
-                { label: 'Tardy',     value: data?.lateToday     || 0,       color: ATT.late     },
-                { label: 'On Leave',  value: data?.onLeaveToday  || 0,       color: ATT.leave    },
-                { label: 'Absent',    value: Math.max(0, data?.absentToday || 0), color: ATT.absent   },
+                { label: 'Avg Presence', value: '94%',   icon: UserCheck, color: 'text-emerald-600' },
+                { label: 'Tardy Rate',   value: '2.4%',  icon: Clock,     color: 'text-amber-600' },
+                { label: 'Integrity',    value: '99.1%', icon: Target,    color: 'text-cyan-600' },
+                { label: 'System HP',    value: 'Stable', icon: Activity,  color: 'text-stone-900' },
               ].map(item => (
-                <div key={item.label} className="dash-mini-stat">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
-                  <div>
-                    <p className="dash-mini-value">{item.value}</p>
-                    <p className="dash-mini-label">{item.label}</p>
+                <div key={item.label}>
+                  <p className="text-[9px] font-black text-stone-400 uppercase tracking-[0.2em] mb-2">{item.label}</p>
+                  <div className="flex items-center gap-2">
+                    <item.icon size={14} className={item.color} />
+                    <span className="text-xl font-black text-stone-900 tracking-tighter">{item.value}</span>
                   </div>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Right: Donut Chart */}
-          <motion.div
+          {/* Distribution Section - 4 Cols */}
+          <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="dash-card"
+            transition={{ delay: 0.6 }}
+            className="xl:col-span-4 dash-card p-8 flex flex-col"
           >
-            <div className="dash-card-header">
-              <div>
-                <h3 className="dash-card-title">Duty Roster</h3>
-                <p className="dash-card-sub">Daily Distribution</p>
+            <div className="mb-10">
+              <h3 className="text-lg font-black text-stone-900 tracking-tighter uppercase">Distribution</h3>
+              <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">Cross-Personnel Allocation</p>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center min-h-[260px] relative">
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={donutData.length > 0 ? donutData : [{ value: 1, color: '#F5F5F4' }]}
+                    innerRadius={75}
+                    outerRadius={105}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ display: 'none' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-4xl font-black text-stone-900 tracking-tighter">{attendanceRate}%</p>
+                <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mt-1">Global Presence</p>
               </div>
             </div>
 
-            <div className="dash-donut-wrapper">
-              {loading ? (
-                <div className="dash-skeleton" style={{ width: 180, height: 180, borderRadius: '50%' }} />
-              ) : (
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={donutData.length > 0 ? donutData : [{ name: 'Belum ada data', value: 1, color: '#E2E8F0' }]}
-                      innerRadius={65}
-                      outerRadius={90}
-                      paddingAngle={4}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {(donutData.length > 0 ? donutData : [{ name: 'Belum ada data', value: 1, color: '#E2E8F0' }]).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ display: 'none' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-              <div className="dash-donut-center">
-                <p className="dash-donut-pct">{attendanceRate}%</p>
-                <p className="dash-donut-pct-label">Kehadiran</p>
-              </div>
-            </div>
-
-            <div className="dash-donut-legend">
+            <div className="space-y-3 mt-8">
               {[
-                { label: 'Hadir',      value: (data?.presentToday || 0) - (data?.lateToday || 0), color: ATT.present  },
-                { label: 'Terlambat', value: data?.lateToday     || 0,                            color: ATT.late     },
-                { label: 'Izin',      value: data?.onLeaveToday  || 0,                            color: ATT.leave    },
-                { label: 'Absen',     value: Math.max(0, data?.absentToday || 0),                 color: ATT.absent   },
+                { label: 'On-Time',  value: (data?.presentToday || 0) - (data?.lateToday || 0), color: ATT.present },
+                { label: 'Late',     value: data?.lateToday || 0, color: ATT.late },
+                { label: 'Absence',  value: Math.max(0, data?.absentToday || 0), color: ATT.absent },
               ].map(item => (
-                <div key={item.label} className="dash-legend-row">
-                  <div className="flex items-center gap-2">
-                    <span className="dash-legend-dot" style={{ background: item.color }} />
-                    <span className="dash-legend-name">{item.label}</span>
+                <div key={item.label} className="p-4 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-between group hover:bg-white transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-4 rounded-full" style={{ background: item.color }} />
+                    <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider">{item.label}</span>
                   </div>
-                  <span className="dash-legend-val">{item.value}</span>
+                  <span className="text-sm font-black text-stone-900 group-hover:scale-110 transition-transform">{item.value}</span>
                 </div>
               ))}
             </div>
-
-            {/* Face integrity */}
-            <div className="dash-integrity-box">
-              <div className="flex justify-between items-center mb-2">
-                <span className="dash-integrity-label">Wajah Terdaftar</span>
-                <span className="dash-integrity-pct">{faceIntegrity}%</span>
-              </div>
-              <div className="dash-progress-track">
-                <motion.div
-                  className="dash-progress-fill"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${faceIntegrity}%` }}
-                  transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
-                >
-                  <div className="dash-progress-glow" />
-                </motion.div>
-              </div>
-              <p className="dash-integrity-sub">
-                {data?.faceRegisteredCount || 0} dari {data?.totalEmployees || 0} karyawan
-              </p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* ── Bottom: Recent Activities + Attendance Status ── */}
-        <div className="dash-bottom-grid">
-
-          {/* Recent Activities */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="dash-card"
-          >
-            <div className="dash-card-header">
-              <div>
-                <h3 className="dash-card-title">Live Signals</h3>
-                <p className="dash-card-sub">Recent System Events</p>
-              </div>
-            </div>
-
-            <div className="dash-activity-list scrollbar-hide overflow-y-auto max-h-[400px]">
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="dash-activity-item">
-                    <div className="dash-skeleton w-11 h-11 rounded-xl" />
-                    <div className="flex-1 space-y-2">
-                      <div className="dash-skeleton h-3 w-[60%]" />
-                      <div className="dash-skeleton h-2.5 w-[40%]" />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                recentActivities.map((act, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + i * 0.05 }}
-                    className="dash-activity-item"
-                  >
-                    <div className="dash-activity-icon" style={{ background: act.color + '15', border: `1px solid ${act.color}25` }}>
-                      <act.icon size={18} style={{ color: act.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="dash-activity-title">{act.label}</p>
-                      <p className="dash-activity-sub">{act.sub}</p>
-                    </div>
-                    <span className="dash-activity-time">{act.time}</span>
-                  </motion.div>
-                ))
-              )}
-            </div>
           </motion.div>
 
-          {/* Attendance Summary Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="dash-card"
-          >
-            <div className="dash-card-header">
-              <div>
-                <h3 className="dash-card-title">Audit Matrix</h3>
-                <p className="dash-card-sub">Internal Status Log</p>
-              </div>
-              <button onClick={() => router.push('/reports')} className="dash-view-all">
-                Audit All <ChevronRight size={13} strokeWidth={3} />
-              </button>
-            </div>
-
-            <div className="dash-att-table flex-1">
-              <div className="dash-att-head">
-                <span>Domain</span>
-                <span className="text-center">Units</span>
-                <span className="text-right pr-4">Quota</span>
-              </div>
-              {[
-                { label: 'Active Duty',  val: (data?.presentToday ?? 0) - (data?.lateToday ?? 0), color: ATT.present  },
-                { label: 'Arrival Tardy', val: data?.lateToday     || 0,                   color: ATT.late     },
-                { label: 'Monthly OT',   val: data?.overtimeThisMonth || 0,                color: ATT.overtime },
-                { label: 'Leave Units',  val: data?.onLeaveToday  || 0,                color: ATT.leave    },
-                { label: 'Zero Duty',    val: Math.max(0, data?.absentToday || 0),         color: ATT.absent   },
-              ].map((row, i) => {
-                const pct = data?.totalEmployees ? Math.round((row.val / data.totalEmployees) * 100) : 0;
-                return (
-                  <motion.div
-                    key={row.label}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 + i * 0.05 }}
-                    className="dash-att-row"
-                  >
-                    <span className="dash-att-label">{row.label}</span>
-                    <span className="dash-att-val">{loading ? <div className="dash-skeleton h-4 w-8 mx-auto" /> : row.val}</span>
-                    <div className="dash-att-pct-col">
-                      <div className="dash-mini-track">
-                        <motion.div
-                          className="dash-mini-fill"
-                          style={{ background: row.color, boxShadow: `0 0 8px ${row.color}40` }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 1, delay: 0.9 + i * 0.05 }}
-                        />
-                      </div>
-                      <span className="dash-att-pct-lbl">{pct}%</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            <div className="dash-summary-bar">
-              <div className="flex items-center gap-2">
-                <CalendarDays size={14} className="text-jne-red" />
-                <span className="dash-summary-text">Operational Sync</span>
-              </div>
-              <span className="dash-summary-value text-white font-black">
-                {(data?.presentToday || 0) + (data?.onLeaveToday || 0)} <span className="text-white/20">/</span> {data?.totalEmployees || 0}
-              </span>
-            </div>
-          </motion.div>
-        </div>
+        </section>
 
       </div>
     </AdminLayout>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { subscribeToEmployees, getJamKerjas } from '@/lib/firestore';
-import type { Employee, JamKerja } from '@/types';
+import { subscribeToEmployees, getJamKerjas, subscribeToDepartments } from '@/lib/firestore';
+import type { Employee, JamKerja, DepartmentItem } from '@/types';
 
 export function useEmployeeManagement() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [jamKerjas, setJamKerjas] = useState<JamKerja[]>([]);
+  const [departmentItems, setDepartmentItems] = useState<DepartmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('all');
@@ -12,15 +13,25 @@ export function useEmployeeManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeToEmployees((data) => {
+    const unsubEmployees = subscribeToEmployees((data) => {
       setEmployees(data);
-      setLoading(false);
+      if (departmentItems.length > 0) setLoading(false);
     });
+
+    const unsubDepts = subscribeToDepartments((data) => {
+      setDepartmentItems(data);
+      if (employees.length > 0 || !loading) setLoading(false);
+    });
+
     getJamKerjas().then(setJamKerjas);
-    return unsub;
+
+    return () => {
+      unsubEmployees();
+      unsubDepts();
+    };
   }, []);
 
-  const departments = ['all', 'rider_delivery', 'driver_delivery', 'inbound_outbound', 'pick_up', 'admin_support', 'accounting', 'sales_sco'];
+  const departments = ['all', ...departmentItems.map(d => d.name)];
 
   const filteredEmployees = employees.filter(emp => {
     const matchSearch = !search ||
@@ -49,6 +60,7 @@ export function useEmployeeManagement() {
     showAddModal,
     setShowAddModal,
     departments,
+    departmentItems,
     filteredEmployees: filteredEmployees || [],
     jamKerjaMap,
   };

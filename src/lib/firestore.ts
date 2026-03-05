@@ -26,6 +26,7 @@ import type {
   SystemSettings,
   LeaveStatus,
   CalendarEvent,
+  DepartmentItem,
 } from '@/types';
 
 
@@ -40,7 +41,7 @@ export const COLLECTIONS = {
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
   EVENTS: 'events',
-  SALARIES: 'salaries',
+  DEPARTMENTS: 'departments',
 } as const;
 
 
@@ -181,6 +182,18 @@ function mapEvent(id: string, data: DocumentData): CalendarEvent {
   };
 }
 
+function mapDepartment(id: string, data: DocumentData): DepartmentItem {
+  return {
+    id,
+    name: data.name || '',
+    description: data.description || '',
+    color: data.color || '#E31E24',
+    isActive: data.isActive ?? true,
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
+  };
+}
+
 // ============================================================
 // Employees
 // ============================================================
@@ -267,51 +280,6 @@ export function subscribeToJamKerjas(callback: (jamKerjas: JamKerja[]) => void) 
   });
 }
 
-
-// ============================================================
-// Salaries
-// ============================================================
-function mapSalary(id: string, data: DocumentData): any {
-  return {
-    id,
-    ...data,
-    createdAt: toDate(data.createdAt),
-    updatedAt: toDate(data.updatedAt),
-  };
-}
-
-export async function getSalariesByMonth(month: number, year: number): Promise<any[]> {
-  const q = query(
-    collection(db, COLLECTIONS.SALARIES),
-    where('month', '==', month),
-    where('year', '==', year)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => mapSalary(d.id, d.data()));
-}
-
-export async function saveSalaryRecord(data: any): Promise<void> {
-  const q = query(
-    collection(db, COLLECTIONS.SALARIES),
-    where('userId', '==', data.userId),
-    where('month', '==', data.month),
-    where('year', '==', data.year)
-  );
-  const snap = await getDocs(q);
-  
-  if (!snap.empty) {
-    await updateDoc(doc(db, COLLECTIONS.SALARIES, snap.docs[0].id), {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
-  } else {
-    await addDoc(collection(db, COLLECTIONS.SALARIES), {
-      ...data,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  }
-}
 
 // ============================================================
 // Leaves
@@ -530,4 +498,40 @@ export async function scheduleMeetingNotifications(
       scheduledAt: new Date(thirtyMinMs).toISOString(),
     }),
   ]);
+}
+
+// ============================================================
+// Departments
+// ============================================================
+export async function getDepartments(): Promise<DepartmentItem[]> {
+  const snap = await getDocs(collection(db, COLLECTIONS.DEPARTMENTS));
+  const data = snap.docs.map((d) => mapDepartment(d.id, d.data()));
+  return data.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function addDepartment(data: Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  const ref = await addDoc(collection(db, COLLECTIONS.DEPARTMENTS), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateDepartment(id: string, data: Partial<DepartmentItem>): Promise<void> {
+  await updateDoc(doc(db, COLLECTIONS.DEPARTMENTS, id), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function deleteDepartment(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.DEPARTMENTS, id));
+}
+
+export function subscribeToDepartments(callback: (departments: DepartmentItem[]) => void) {
+  return onSnapshot(collection(db, COLLECTIONS.DEPARTMENTS), (snap) => {
+    const data = snap.docs.map((d) => mapDepartment(d.id, d.data()));
+    callback(data.sort((a, b) => a.name.localeCompare(b.name)));
+  });
 }

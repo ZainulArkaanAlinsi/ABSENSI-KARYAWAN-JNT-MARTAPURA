@@ -34,7 +34,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab, tabs }: Setti
                 onClick={() => setActiveTab(tab.key)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left"
                 style={{
-                  background: activeTab === tab.key ? '#7C3AED' : 'transparent',
+                  background: activeTab === tab.key ? '#10B981' : 'transparent',
                   color: activeTab === tab.key ? '#fff' : 'var(--pg-text-secondary)',
                 }}
               >

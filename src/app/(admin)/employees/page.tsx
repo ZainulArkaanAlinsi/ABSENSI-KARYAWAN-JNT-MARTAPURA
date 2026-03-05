@@ -39,6 +39,7 @@ export default function EmployeesPage() {
     showAddModal,
     setShowAddModal,
     departments,
+    departmentItems,
     filteredEmployees,
   } = useEmployeeManagement();
 
@@ -81,7 +82,10 @@ export default function EmployeesPage() {
 
         {/* ── Stats Row ── */}
         <div className="dash-stats-grid mb-8">
-          <div className="dash-stat-card stat-violet">
+          <motion.div 
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="dash-stat-card glass-card glass-highlight stat-emerald stagger-1"
+          >
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
                 <p className="dash-stat-label font-black mb-0.5">FORCE TOTAL</p>
@@ -92,9 +96,12 @@ export default function EmployeesPage() {
                 <Users size={20} strokeWidth={2.5} />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="dash-stat-card stat-cyan">
+          <motion.div 
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="dash-stat-card glass-card glass-highlight stat-cyan stagger-2"
+          >
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
                 <p className="dash-stat-label font-black mb-0.5">SECURE SCAN</p>
@@ -105,9 +112,12 @@ export default function EmployeesPage() {
                 <ShieldCheck size={20} strokeWidth={2.5} />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="dash-stat-card stat-coral">
+          <motion.div 
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="dash-stat-card glass-card glass-highlight stat-coral stagger-3"
+          >
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
                 <p className="dash-stat-label font-black mb-0.5">PENDING ENROLL</p>
@@ -118,9 +128,12 @@ export default function EmployeesPage() {
                 <AlertCircle size={20} strokeWidth={2.5} />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="dash-stat-card stat-slate">
+          <motion.div 
+            whileHover={{ y: -5, scale: 1.02 }}
+            className="dash-stat-card glass-card glass-highlight stat-slate stagger-4"
+          >
             <div className="relative z-10 w-full flex items-center justify-between">
               <div>
                 <p className="dash-stat-label font-black mb-0.5">MATCH YIELD</p>
@@ -131,15 +144,12 @@ export default function EmployeesPage() {
                 <Filter size={20} strokeWidth={2.5} />
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* ── Filter / Search Bar ── */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="dash-card p-4 transition-all border-white/5 bg-white/2 mb-6"
+          className="dash-card p-4 transition-all border-white/5 bg-white/2 mb-6 stagger-1"
         >
           <div className="flex flex-col xl:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
@@ -166,7 +176,7 @@ export default function EmployeesPage() {
                 Enlist Personnel
               </AnimatedButton>
               <select
-                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#7C3AED]/30 transition-all appearance-none cursor-pointer"
+                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#10B981]/30 transition-all appearance-none cursor-pointer"
                 value={filterDept}
                 onChange={(e) => setFilterDept(e.target.value)}
               >
@@ -178,7 +188,7 @@ export default function EmployeesPage() {
               </select>
 
               <select
-                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#7C3AED]/30 transition-all appearance-none cursor-pointer"
+                className="h-12 flex-1 xl:flex-none xl:w-48 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-bold text-white outline-none focus:border-[#10B981]/30 transition-all appearance-none cursor-pointer"
                 value={filterFace}
                 onChange={(e) => setFilterFace(e.target.value as any)}
               >
@@ -267,7 +277,7 @@ export default function EmployeesPage() {
                     >
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
-                          <div className="h-11 w-11 flex items-center justify-center rounded-2xl font-black text-sm border border-white/10 bg-white/3 text-white group-hover:border-[#7C3AED]/40 group-hover:bg-[#7C3AED]/5 transition-all shadow-sm">
+                          <div className="h-11 w-11 flex items-center justify-center rounded-2xl font-black text-sm border border-white/10 bg-white/3 text-white group-hover:border-[#10B981]/40 group-hover:bg-[#10B981]/5 transition-all shadow-sm">
                             {emp.name?.charAt(0)}
                           </div>
                           <div className="min-w-0">
@@ -353,6 +363,7 @@ export default function EmployeesPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         jamKerjas={jamKerjas}
+        departmentItems={departmentItems}
       />
 
     </AdminLayout>

@@ -26,7 +26,7 @@ export default function ToggleSwitch({ checked, onChange, label, description, si
       )}
       <div
         className={`${width} ${height} rounded-full relative shrink-0 ml-4 transition-colors cursor-pointer`}
-        style={{ background: checked ? '#7C3AED' : 'var(--pg-border)' }}
+        style={{ background: checked ? '#10B981' : 'var(--pg-border)' }}
         onClick={onChange}
       >
         <motion.div

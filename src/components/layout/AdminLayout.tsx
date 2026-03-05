@@ -12,7 +12,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
   return (
-    <div className="min-h-screen selection:bg-att-absent selection:text-white" style={{ background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
+    <div className="min-h-screen selection:bg-red-600 selection:text-white" style={{ background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
       <Sidebar />
       <Header title={title} subtitle={subtitle} />
       <main
@@ -23,10 +23,10 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
         }}
       >
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="p-3 sm:p-4 lg:p-6 pb-24 overflow-x-hidden"
+          initial={{ opacity: 0, y: 16, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="p-4 sm:p-6 lg:p-8 pb-24 overflow-x-hidden mx-auto max-w-(--breakpoint-2xl)"
         >
           {children}
         </motion.div>

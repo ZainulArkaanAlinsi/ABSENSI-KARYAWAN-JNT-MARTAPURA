@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.className} bg-[#1A1F2E] text-white antialiased min-h-screen`}>
+      <body className={`${inter.className} text-slate-900 antialiased min-h-screen`}>
         {/* Background dekoratif */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />

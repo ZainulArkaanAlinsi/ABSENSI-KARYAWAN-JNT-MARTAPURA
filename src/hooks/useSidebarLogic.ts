@@ -5,15 +5,16 @@ import {
   Users,
   Clock,
   FileText,
-  BarChart3,
   Settings,
   Calendar,
   ClipboardCheck,
+  Layers,
 } from 'lucide-react';
 
 export const navItems = [
   { href: '/dashboard',  label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/employees',  label: 'Karyawan',     icon: Users },
+  { href: '/departments', label: 'Departemen',    icon: Layers },
   { href: '/attendance', label: 'Absensi',      icon: ClipboardCheck },
   { href: '/calendar',   label: 'Kalender',     icon: Calendar },
   { href: '/jam-kerja',  label: 'Jam Kerja',    icon: Clock },
@@ -29,13 +30,7 @@ export const navItems = [
   { href: '/head-units/admin_support', label: 'Admin Support', icon: Users },
   { href: '/head-units/accounting', label: 'Accounting', icon: Users },
   { href: '/head-units/sales_sco', label: 'Sales SCO', icon: Users },
-  {
-    label: 'REKAP & ANALISIS',
-    isHeader: true,
-  },
-  { href: '/reports',    label: 'Laporan',      icon: BarChart3 },
-  { href: '/analytics',  label: 'Analisis',     icon: BarChart3 },
-  { href: '/salary',     label: 'Slip Gaji',    icon: FileText },
+  { href: '/reports',    label: 'Laporan',      icon: FileText },
   { href: '/settings',   label: 'Pengaturan',   icon: Settings },
 ];
 

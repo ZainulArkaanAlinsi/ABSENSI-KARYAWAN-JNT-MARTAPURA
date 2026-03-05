@@ -80,7 +80,7 @@ export default function ReportsPage() {
       key: 'overtime',
       label: 'Overflow',
       value: summary.overtime,
-      color: '#8B5CF6',
+      color: '#06B6D4',
       icon: Zap,
     },
   ];
@@ -104,8 +104,8 @@ export default function ReportsPage() {
         >
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" />
-              <span className="text-[10px] font-black text-[#7C3AED] uppercase tracking-[0.3em]">Data Aggregator</span>
+              <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black text-[#10B981] uppercase tracking-[0.3em]">Data Aggregator</span>
             </div>
             <h2 className="dash-page-title leading-none">Intelligence Hub</h2>
             <p className="dash-page-sub mt-2 text-slate-500">Multidimensional attendance analytics & audit logs</p>
@@ -136,7 +136,7 @@ export default function ReportsPage() {
               </label>
               <input
                 type="date"
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#10B981]/30 transition-all cursor-pointer"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
@@ -147,7 +147,7 @@ export default function ReportsPage() {
               </label>
               <input
                 type="date"
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#10B981]/30 transition-all cursor-pointer"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
@@ -157,7 +157,7 @@ export default function ReportsPage() {
                 <User size={10} /> Personnel
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#10B981]/30 transition-all cursor-pointer"
                 value={filterEmployee}
                 onChange={(e) => setFilterEmployee(e.target.value)}
               >
@@ -174,7 +174,7 @@ export default function ReportsPage() {
                 <Briefcase size={10} /> Unit
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#10B981]/30 transition-all cursor-pointer"
                 value={filterDept}
                 onChange={(e) => setFilterDept(e.target.value)}
               >
@@ -190,7 +190,7 @@ export default function ReportsPage() {
                 <Activity size={10} /> Status
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#7C3AED]/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-[#10B981]/30 transition-all cursor-pointer"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as AttendanceStatus | 'all')}
               >
@@ -239,7 +239,7 @@ export default function ReportsPage() {
             </div>
             <div className="flex items-center gap-3">
                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-slate-400">
-                <BarChart3 size={14} className="text-[#7C3AED]" />
+                <BarChart3 size={14} className="text-[#10B981]" />
                 <span className="text-white">{filtered.length}</span> SIGNALS DETECTED
               </div>
             </div>

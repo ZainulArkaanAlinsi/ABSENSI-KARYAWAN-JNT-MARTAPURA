@@ -63,7 +63,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="pg-form-label">Radius Geo-Fence</label>
-            <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>
+            <span className="text-sm font-semibold" style={{ color: '#10B981' }}>
               {settings.radiusMeters ?? 0}m
             </span>
           </div>
@@ -72,7 +72,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
             min={50}
             max={500}
             step={10}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-violet-600"
+            className="w-full h-2 rounded-full appearance-none cursor-pointer accent-emerald-600"
             style={{ background: 'var(--pg-bg)' }}
             value={settings.radiusMeters ?? 50}
             onChange={(e) => {
