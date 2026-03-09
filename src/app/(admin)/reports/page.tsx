@@ -107,8 +107,8 @@ export default function ReportsPage() {
               <span className="w-2 h-2 rounded-full bg-jne-success shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               <span className="text-[10px] font-black text-jne-success uppercase tracking-[0.3em]">Data Aggregator</span>
             </div>
-            <h2 className="dash-page-title leading-none">Intelligence Hub</h2>
-            <p className="dash-page-sub mt-2 text-slate-500">Multidimensional attendance analytics & audit logs</p>
+            <h2 className="dash-page-title leading-none" style={{ color: 'var(--text-primary)' }}>Intelligence Hub</h2>
+            <p className="dash-page-sub mt-2" style={{ color: 'var(--text-muted)' }}>Multidimensional attendance analytics & audit logs</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -147,7 +147,12 @@ export default function ReportsPage() {
               </label>
               <input
                 type="date"
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-jne-success/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
+                style={{ 
+                  background: 'var(--bg-input)', 
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
@@ -157,13 +162,18 @@ export default function ReportsPage() {
                 <User size={10} /> Personnel
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-jne-success/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
+                style={{ 
+                  background: 'var(--bg-input)', 
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
                 value={filterEmployee}
                 onChange={(e) => setFilterEmployee(e.target.value)}
               >
-                <option value="all" className="bg-[#0F172A]">Cross-Personnel</option>
+                <option value="all" style={{ background: 'var(--bg-card)' }}>Cross-Personnel</option>
                 {employees.map((e) => (
-                  <option key={e.id} value={e.id} className="bg-[#0F172A]">
+                  <option key={e.id} value={e.id} style={{ background: 'var(--bg-card)' }}>
                     {e.name}
                   </option>
                 ))}
@@ -174,12 +184,17 @@ export default function ReportsPage() {
                 <Briefcase size={10} /> Unit
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-jne-success/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
+                style={{ 
+                  background: 'var(--bg-input)', 
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
                 value={filterDept}
                 onChange={(e) => setFilterDept(e.target.value)}
               >
                 {departments.map((d) => (
-                  <option key={d} value={d} className="bg-[#0F172A]">
+                  <option key={d} value={d} style={{ background: 'var(--bg-card)' }}>
                     {d === 'all' ? 'Cross-Unit' : d}
                   </option>
                 ))}
@@ -190,12 +205,17 @@ export default function ReportsPage() {
                 <Activity size={10} /> Status
               </label>
               <select
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-jne-success/30 transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
+                style={{ 
+                  background: 'var(--bg-input)', 
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as AttendanceStatus | 'all')}
               >
                 {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-[#0F172A]">
+                  <option key={s.value} value={s.value} style={{ background: 'var(--bg-card)' }}>
                     {s.label}
                   </option>
                 ))}
@@ -212,14 +232,15 @@ export default function ReportsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.05 }}
-              className="dash-card p-4 relative overflow-hidden"
+              className="dash-card p-4 relative overflow-hidden border shadow-sm"
+              style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}
             >
               <div className="flex items-center justify-between mb-3">
-                <s.icon size={14} className="text-slate-500" />
-                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Aggregate</span>
+                <s.icon size={14} style={{ color: 'var(--text-muted)' }} />
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Aggregate</span>
               </div>
-              <p className="text-2xl font-black text-white tabular-nums mb-0.5">{loading ? '—' : s.value}</p>
-              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">{s.label}</p>
+              <p className="text-2xl font-black tabular-nums mb-0.5" style={{ color: 'var(--text-primary)' }}>{loading ? '—' : s.value}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
               <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: s.color, opacity: 0.4 }} />
             </motion.div>
            ))}
@@ -279,28 +300,31 @@ export default function ReportsPage() {
                 ) : (
                   <AnimatePresence mode="popLayout">
                     {filtered.map((record, idx) => (
-                      <motion.tr
-                        key={record.id}
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: idx * 0.015 }}
-                        className="hover:bg-white/1.5 transition-all group"
-                      >
+                        <motion.tr
+                          key={record.id}
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: idx * 0.015 }}
+                          className="hover:bg-[var(--bg-main)] transition-all group"
+                        >
                         <td className="px-6 py-5">
-                           <p className="text-[12px] font-black text-white/90 font-mono tracking-tight leading-none mb-1">
+                           <p className="text-[12px] font-black font-mono tracking-tight leading-none mb-1" style={{ color: 'var(--text-primary)' }}>
                              {record.date ? format(new Date(record.date), 'yyyy.MM.dd') : '????.??.??'}
                            </p>
-                           <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Temporal Log</p>
+                           <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Temporal Log</p>
                         </td>
                         <td className="px-6 py-5">
                            <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 flex items-center justify-center rounded-xl font-black text-xs border border-white/10 bg-white/3 text-white">
+                               <div 
+                                className="h-9 w-9 flex items-center justify-center rounded-xl font-black text-xs border" 
+                                style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
+                              >
                                 {record.employeeName?.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-[13px] font-black text-white group-hover:text-[#7C3AED] transition-all tracking-tight leading-none mb-1">{record.employeeName}</p>
-                                <p className="text-[10px] font-bold text-slate-600 tracking-wider uppercase">{record.employeeId}</p>
+                                <p className="text-[13px] font-black group-hover:text-jne-red transition-all tracking-tight leading-none mb-1" style={{ color: 'var(--text-primary)' }}>{record.employeeName}</p>
+                                <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>{record.employeeId}</p>
                               </div>
                            </div>
                         </td>
@@ -310,21 +334,21 @@ export default function ReportsPage() {
                         <td className="px-6 py-5">
                            <div className="flex items-center justify-center gap-4">
                               <div className="text-center">
-                                <p className="text-[11px] font-black font-mono text-emerald-500 tabular-nums leading-none mb-1">{record.checkIn?.time || '--:--'}</p>
-                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Entry</p>
+                                <p className="text-[11px] font-black font-mono tabular-nums leading-none mb-1" style={{ color: 'var(--color-success)' }}>{record.checkIn?.time || '--:--'}</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Entry</p>
                               </div>
-                              <span className="w-px h-6 bg-white/5" />
+                              <span className="w-px h-6" style={{ background: 'var(--border-primary)' }} />
                               <div className="text-center">
                                 <p className="text-[11px] font-black font-mono text-jne-red tabular-nums leading-none mb-1">{record.checkOut?.time || '--:--'}</p>
-                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Exit</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Exit</p>
                               </div>
                            </div>
                         </td>
                         <td className="px-6 py-5 text-center">
-                           <p className="text-[13px] font-black text-white/80 font-mono tabular-nums leading-none">
+                           <p className="text-[13px] font-black font-mono tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
                              {minsToHours(record.totalWorkMinutes)}
                            </p>
-                           <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-1.5">Hours</p>
+                           <p className="text-[8px] font-black uppercase tracking-widest mt-1.5" style={{ color: 'var(--text-muted)' }}>Hours</p>
                         </td>
                         <td className="px-6 py-5 text-center">
                            <div className="flex flex-col items-center gap-1.5">
@@ -361,9 +385,9 @@ export default function ReportsPage() {
             </table>
           </div>
 
-          <div className="px-6 py-4 border-t border-white/5 bg-white/1">
+          <div className="px-6 py-4 border-t" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">
+              <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>
                 <div className="flex items-center gap-1.5">
                   <Database size={10} />
                   INDEX READY

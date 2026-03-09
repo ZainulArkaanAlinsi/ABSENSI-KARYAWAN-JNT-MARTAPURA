@@ -80,7 +80,7 @@ export default function LeavesPage() {
           transition={{ delay: 0.1 }}
           className="mb-8 flex items-center justify-between"
         >
-          <div className="flex bg-white/3 border border-white/5 p-1 rounded-2xl backdrop-blur-xl">
+          <div className="flex p-1 rounded-2xl backdrop-blur-xl border" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
@@ -89,14 +89,15 @@ export default function LeavesPage() {
                   onClick={() => setActiveTab(tab.key)}
                   className="relative rounded-xl px-6 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all"
                   style={{
-                    background: isActive ? '#7C3AED' : 'transparent',
-                    color: isActive ? '#fff' : '#64748b',
+                    background: isActive ? 'var(--jne-red)' : 'transparent',
+                    color: isActive ? '#fff' : 'var(--text-muted)',
                   }}
                 >
                   {isActive && (
                     <motion.div 
                       layoutId="tab-active"
-                      className="absolute inset-0 bg-[#7C3AED] rounded-xl -z-10 shadow-[0_4px_12px_rgba(124,58,237,0.35)]"
+                      className="absolute inset-0 rounded-xl -z-10 shadow-[0_4px_12px_rgba(227,30,36,0.35)]"
+                      style={{ background: 'var(--jne-red)' }}
                     />
                   )}
                   {tab.label}

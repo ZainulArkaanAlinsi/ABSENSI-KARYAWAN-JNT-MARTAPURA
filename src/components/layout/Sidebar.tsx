@@ -30,7 +30,12 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="sidebar-stable flex flex-col bg-(--lector-sidebar-brand) border-r border-(--lector-border) shadow-2xl relative z-50 overflow-hidden"
+      className="sidebar-stable flex flex-col border-r shadow-2xl relative z-50 overflow-hidden"
+      style={{ 
+        width: 'var(--sidebar-width)',
+        background: 'var(--bg-sidebar)',
+        borderColor: 'var(--border-primary)'
+      }}
     >
       {/* Decorative Blur BG */}
       <div className="absolute inset-0 pointer-events-none opacity-10">
@@ -39,9 +44,12 @@ export default function Sidebar() {
       </div>
 
       {/* Brand Header (JNE Style) */}
-      <div className="lector-sidebar-header shrink-0 shadow-lg relative z-10 bg-[#E31E24]!">
+      <div 
+        className="shrink-0 shadow-lg relative z-10 flex items-center px-6"
+        style={{ height: 'var(--header-height)', background: 'var(--jne-red)' }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-white/20 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-white/20 shadow-sm shrink-0">
             <Image src="/logo-jne.svg" alt="JNE" width={32} height={32} className="object-contain" />
           </div>
           <span className="text-white font-black italic tracking-tighter text-xl uppercase">EXPRESS</span>
@@ -49,7 +57,7 @@ export default function Sidebar() {
       </div>
 
       {/* Menu Navigation */}
-      <nav ref={navRef} className="flex-1 px-3 py-6 space-y-0.5 overflow-y-auto relative z-10 custom-scrollbar scrollbar-none">
+      <nav ref={navRef} className="flex-1 px-3 py-6 space-y-1 overflow-y-auto relative z-10 custom-scrollbar scrollbar-none">
         {navItems.map((item: any, idx: number) => {
           if (item.isHeader) {
             return (
@@ -75,14 +83,14 @@ export default function Sidebar() {
                   : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <div className={`${active ? 'text-white' : 'opacity-70 group-hover:opacity-100'}`}>
+              <div className={`shrink-0 ${active ? 'text-white' : 'opacity-70 group-hover:opacity-100'}`}>
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} />
               </div>
-              <span className="text-[13px] font-bold tracking-tight">{item.label}</span>
+              <span className="text-[13px] font-bold tracking-tight truncate">{item.label}</span>
               {active && (
                 <motion.div 
                   layoutId="active-indicator"
-                  className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" 
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] shrink-0" 
                 />
               )}
             </Link>
@@ -91,12 +99,12 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer Nav */}
-      <div className="px-4 py-6 border-t border-white/10 relative z-10">
+      <div className="px-4 py-6 border-t relative z-10" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
         <button
           onClick={signOut}
           className="flex w-full items-center gap-4 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group"
         >
-          <LogOut size={18} className="opacity-70 group-hover:opacity-100" />
+          <LogOut size={18} className="opacity-70 group-hover:opacity-100 shrink-0" />
           <span className="text-[13px] font-bold tracking-tight">Sign Out</span>
         </button>
       </div>

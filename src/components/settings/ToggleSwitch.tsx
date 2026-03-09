@@ -19,14 +19,17 @@ export default function ToggleSwitch({ checked, onChange, label, description, si
   return (
     <div className="flex items-center justify-between w-full">
       {(label || description) && (
-        <div>
-          {label && <p className="text-sm font-medium" style={{ color: 'var(--pg-text-primary)' }}>{label}</p>}
-          {description && <p className="text-xs mt-0.5" style={{ color: 'var(--pg-text-muted)' }}>{description}</p>}
+        <div className="shrink-0 mr-4">
+          {label && <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{label}</p>}
+          {description && <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{description}</p>}
         </div>
       )}
       <div
-        className={`${width} ${height} rounded-full relative shrink-0 ml-4 transition-colors cursor-pointer`}
-        style={{ background: checked ? '#10B981' : 'var(--pg-border)' }}
+        className={`${width} ${height} rounded-full relative shrink-0 transition-all cursor-pointer border`}
+        style={{ 
+          background: checked ? 'var(--color-success)' : 'var(--bg-input)',
+          borderColor: checked ? 'var(--color-success)' : 'var(--border-primary)'
+        }}
         onClick={onChange}
       >
         <motion.div

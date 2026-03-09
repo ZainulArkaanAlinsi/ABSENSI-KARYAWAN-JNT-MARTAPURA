@@ -90,18 +90,21 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-500 bg-(--lector-surface) border-(--lector-border) shadow-xs"
+      className="sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-500 shadow-xs"
       style={{
-        height: '64px', // Standard Lector height
+        height: 'var(--header-height)',
+        background: 'var(--bg-header)',
+        borderColor: 'var(--border-primary)',
+        backdropFilter: 'blur(12px)',
       }}
     >
 
       {/* ── LEFT: Breadcrumb ── */}
       <div className="flex items-center gap-4 px-6 min-w-0 flex-1 relative z-10">
-        <div className="flex items-center gap-2 text-(--lector-text-muted)">
+        <div className="flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
           <span className="text-[12px] font-medium tracking-tight">Dashboard</span>
           <ChevronRight size={14} className="opacity-40" />
-          <h1 className="text-[14px] font-extrabold text-(--lector-text-main) tracking-tight">
+          <h1 className="text-[14px] font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
             {title}
           </h1>
         </div>
@@ -125,7 +128,12 @@ export default function Header({ title, subtitle }: HeaderProps) {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             onChange={e => setSearchValue(e.target.value)}
-            className="w-full bg-(--lector-bg) border border-(--lector-border) rounded-full py-1.5 pl-10 pr-10 text-[12px] text-(--lector-text-main) placeholder:text-(--lector-text-muted) focus:outline-none focus:border-[#E31E24]/50 transition-all"
+            className="w-full border rounded-full py-1.5 pl-10 pr-10 text-[12px] transition-all focus:outline-none focus:border-[#E31E24]/50"
+            style={{ 
+              background: 'var(--bg-input)', 
+              borderColor: 'var(--border-primary)',
+              color: 'var(--text-primary)'
+            }}
           />
           <AnimatePresence>
             {searchValue && (
@@ -150,7 +158,12 @@ export default function Header({ title, subtitle }: HeaderProps) {
           whileHover={{ scale: 1.1, y: -2 }}
           whileTap={{ scale: 0.9 }}
           onClick={toggleTheme}
-          className="relative w-9 h-9 rounded-xl bg-white border border-stone-100 flex items-center justify-center text-gray-500 hover:text-[#E31E24] hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500"
+          className="relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 shadow-sm"
+          style={{ 
+            background: 'var(--bg-card)', 
+            borderColor: 'var(--border-primary)',
+            color: 'var(--text-muted)'
+          }}
         >
           <AnimatePresence mode="wait">
             {theme === 'dark' ? (
@@ -185,7 +198,12 @@ export default function Header({ title, subtitle }: HeaderProps) {
             ref={bellRef}
             onClick={toggleNotifications}
             aria-label="Notifications"
-            className="relative w-8 h-8 rounded-full flex items-center justify-center transition-all text-(--lector-text-muted) hover:bg-(--lector-bg)"
+            className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all border shadow-sm"
+            style={{ 
+              background: 'var(--bg-card)', 
+              borderColor: 'var(--border-primary)',
+              color: 'var(--text-muted)'
+            }}
           >
             <Bell size={16} strokeWidth={2} />
             {unreadCount > 0 && (
@@ -220,7 +238,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
             aria-label="User menu"
             className="flex items-center gap-2 transition-all"
           >
-            <div className="relative w-8 h-8 rounded-full bg-[#E31E24] text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
+            <div className="relative w-9 h-9 rounded-xl bg-[#E31E24] text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
               <span className="text-[13px] relative z-10 leading-none">
                 {user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </span>
@@ -236,7 +254,11 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 16, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute right-0 top-full mt-4 w-72 bg-white/90 backdrop-blur-3xl rounded-3xl overflow-hidden border border-stone-100 shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
+                className="absolute right-0 top-full mt-4 w-72 backdrop-blur-3xl rounded-3xl overflow-hidden border shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
+                style={{ 
+                  background: 'var(--glass-bg)', 
+                  borderColor: 'var(--border-primary)'
+                }}
               >
                 {/* Profile Header */}
                 <div className="px-6 py-7 bg-stone-50/50 border-b border-stone-100">

@@ -155,7 +155,7 @@ export default function EventModal({
           <form onSubmit={handleSubmit} className="space-y-5 p-6">
             {/* Title */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
+              <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                 Judul *
               </label>
               <input
@@ -163,7 +163,12 @@ export default function EventModal({
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Contoh: Rapat bulanan SCO"
-                className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-all focus:border-jne-success/60 focus:ring-2 focus:ring-jne-success/20"
+                className="w-full rounded-xl border px-4 py-2.5 text-sm transition-all focus:border-jne-success/60 focus:ring-2 focus:ring-jne-success/20 outline-none"
+                style={{ 
+                  background: 'var(--bg-input)', 
+                  borderColor: 'var(--border-primary)',
+                  color: 'var(--text-primary)'
+                }}
                 required
               />
             </div>
@@ -174,21 +179,24 @@ export default function EventModal({
                 Kategori
               </label>
               <div className="flex flex-wrap gap-2">
-                {CATEGORY_OPTIONS.map(({ value, label, icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setForm((p) => ({ ...p, category: value }))}
-                    className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all"
-                    style={
-                      form.category === value
-                        ? { background: '#059669', borderColor: '#059669', color: '#fff' }
-                        : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }
-                    }
-                  >
-                    {icon} {label}
-                  </button>
-                ))}
+                {CATEGORY_OPTIONS.map(({ value, label, icon }) => {
+                  const isActive = form.category === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setForm((p) => ({ ...p, category: value }))}
+                      className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all"
+                      style={{
+                        background: isActive ? 'var(--color-success)' : 'var(--bg-input)',
+                        borderColor: isActive ? 'var(--color-success)' : 'var(--border-primary)',
+                        color: isActive ? '#fff' : 'var(--text-muted)'
+                      }}
+                    >
+                      {icon} {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -212,7 +220,12 @@ export default function EventModal({
                     placeholder="Cari nama karyawan..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2 text-xs text-white placeholder-white/20 outline-none"
+                    className="w-full rounded-xl border px-4 py-2 text-xs outline-none"
+                    style={{ 
+                      background: 'var(--bg-input)', 
+                      borderColor: 'var(--border-primary)',
+                      color: 'var(--text-primary)'
+                    }}
                   />
                   <div className="max-h-[120px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                     {employees
@@ -227,8 +240,8 @@ export default function EventModal({
                             className="w-full flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-[11px] font-medium transition-all"
                             style={
                               active
-                                ? { background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.5)', color: '#6ee7b7' }
-                                : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)', color: '#9BA4B4' }
+                                ? { background: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)', color: 'var(--color-success)' }
+                                : { background: 'var(--bg-input)', borderColor: 'var(--border-primary)', color: 'var(--text-muted)' }
                             }
                           >
                             <span className="truncate">{emp.name} ({emp.department})</span>
@@ -240,9 +253,12 @@ export default function EventModal({
                 </div>
 
                 {(form.departments.length > 0 || form.attendees.length > 0) && (
-                  <div className="flex items-start gap-2 rounded-xl border border-jne-success/20 bg-jne-success/8 p-3 mt-2">
-                    <Bell size={12} className="mt-0.5 shrink-0" style={{ color: '#34d399' }} />
-                    <p className="text-[11px] leading-relaxed" style={{ color: '#34d399' }}>
+                  <div 
+                    className="flex items-start gap-2 rounded-xl border p-3 mt-2"
+                    style={{ background: 'var(--color-success)15', borderColor: 'var(--color-success)30' }}
+                  >
+                    <Bell size={12} className="mt-0.5 shrink-0" style={{ color: 'var(--color-success)' }} />
+                    <p className="text-[11px] leading-relaxed" style={{ color: 'var(--color-success)' }}>
                       Notifikasi push otomatis akan dikirim ke {form.departments.length} departemen dan {form.attendees.length} karyawan —
                       <strong> 1 hari sebelum</strong> dan <strong>30 menit sebelum</strong> meeting dimulai.
                     </p>
