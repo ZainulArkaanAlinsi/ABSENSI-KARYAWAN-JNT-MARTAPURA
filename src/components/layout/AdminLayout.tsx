@@ -14,23 +14,23 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
   return (
     <div className="min-h-screen selection:bg-red-600 selection:text-white" style={{ background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
       <Sidebar />
-      <Header title={title} subtitle={subtitle} />
-      <main
-        style={{
-          marginLeft: 'var(--sidebar-width)',
-          paddingTop: 'var(--header-height)',
-          minHeight: 'calc(100vh - var(--header-height))',
-        }}
+      
+      <div 
+        className="flex flex-col min-w-0 min-h-screen transition-all duration-500"
+        style={{ marginLeft: 'var(--sidebar-width)' }}
       >
-        <motion.div 
-          initial={{ opacity: 0, y: 16, scale: 0.99 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="p-4 sm:p-6 lg:p-8 pb-24 overflow-x-hidden mx-auto max-w-(--breakpoint-2xl)"
-        >
-          {children}
-        </motion.div>
-      </main>
+        <Header title={title} subtitle={subtitle} />
+        
+        <main className="flex-1 overflow-x-hidden p-4 lg:px-8 pb-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 16, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {children}
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }

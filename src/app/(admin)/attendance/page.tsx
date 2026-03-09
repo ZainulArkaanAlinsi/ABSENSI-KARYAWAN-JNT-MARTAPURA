@@ -24,7 +24,7 @@ function DeptIcon({ rule }: { rule: typeof DEPARTMENT_RULES[0] }) {
 
 function RuleBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-white/10 bg-black/10 px-3 py-2 transition-all hover:bg-black/20 group/badge">
+    <div className="flex flex-col gap-1 rounded-lg border border-white/10 bg-black/10 px-3 py-2 transition-all hover:bg-black/20 group/badge">
       <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 leading-none group-hover/badge:text-white/50 transition-colors">
         {label}
       </span>
@@ -44,16 +44,16 @@ export default function AttendancePage() {
           initial={{ opacity: 0, y: 16, scale: 0.985 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-2xl border border-red-500/20 bg-red-950/20 p-6 backdrop-blur-3xl mb-8 group"
+          className="relative overflow-hidden rounded-xl border border-[#E31E24]/20 bg-red-50 p-6 backdrop-blur-3xl mb-8 group"
         >
           <div className="absolute inset-0 bg-linear-to-r from-red-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <div className="flex items-start gap-5 relative z-10">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-600/20 border border-red-500/30 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-              <ShieldCheck size={22} className="text-red-500" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E31E24]/10 border border-[#E31E24]/20 shadow-sm">
+              <ShieldCheck size={22} className="text-[#E31E24]" />
             </div>
             <div>
-              <p className="text-[15px] font-black text-white uppercase tracking-widest italic leading-none mb-1.5">Dynamic Rule Engine Active</p>
-              <p className="text-[13px] leading-relaxed text-stone-400 font-medium max-w-2xl">
+              <p className="text-[15px] font-black text-slate-900 uppercase tracking-widest italic leading-none mb-1.5">Dynamic Rule Engine Active</p>
+              <p className="text-[13px] leading-relaxed text-slate-600 font-medium max-w-2xl">
                 Precision-engineered schedules for logistics and field operations. Each department 
                 is governed by unique entry thresholds, late-tolerances, and geofencing paradigms.
               </p>
@@ -76,10 +76,10 @@ export default function AttendancePage() {
                 `stagger-${(idx % 6) + 1}`
               }`}
               style={{ 
-                borderRadius: '2rem',
-                background: `linear-gradient(135deg, ${rule.color}20 0%, ${rule.color}10 100%)`, 
-                borderColor: `${rule.color}30`,
-                boxShadow: `0 20px 60px -10px ${rule.color}15`
+                borderRadius: '0.75rem',
+                background: `linear-gradient(135deg, ${rule.color}15 0%, ${rule.color}05 100%)`, 
+                borderColor: `${rule.color}20`,
+                boxShadow: `0 8px 30px -10px ${rule.color}10`
               }}
             >
               {/* Decorative Glow */}
@@ -92,11 +92,7 @@ export default function AttendancePage() {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div
-                    className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-xl border border-white/20"
-                    style={{ 
-                      background: 'rgba(255,255,255,0.15)', 
-                      backdropFilter: 'blur(10px)'
-                    }}
+                    className="flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-sm border border-slate-100 bg-white"
                   >
                     <span style={{ color: rule.color }} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
                       <DeptIcon rule={rule} />
@@ -111,10 +107,9 @@ export default function AttendancePage() {
                   </div>
                 </div>
 
-                {/* Body */}
                 <div className="mb-6 flex-1">
-                  <h3 className="text-[18px] font-black text-white leading-tight uppercase tracking-tighter italic mb-2 group-hover:translate-x-1 transition-transform">{rule.name}</h3>
-                  <p className="text-[12px] leading-relaxed text-stone-500 font-bold line-clamp-2">
+                  <h3 className="text-[18px] font-black text-slate-900 leading-tight uppercase tracking-tighter italic mb-2 group-hover:translate-x-1 transition-transform">{rule.name}</h3>
+                  <p className="text-[12px] leading-relaxed text-slate-500 font-bold line-clamp-2">
                     {rule.description}
                   </p>
                 </div>
@@ -134,9 +129,9 @@ export default function AttendancePage() {
                 </div>
 
                 {/* Footer Action */}
-                <div className="flex items-center justify-between pt-5 border-t border-white/5 mt-auto">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Ops Deployment</span>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-white group-hover:text-white transition-all">
+                <div className="flex items-center justify-between pt-5 border-t border-slate-100 mt-auto">
+                  <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Ops Deployment</span>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-slate-900 group-hover:text-[#E31E24] transition-all">
                     LOGS <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1.5 transition-transform" />
                   </div>
                 </div>

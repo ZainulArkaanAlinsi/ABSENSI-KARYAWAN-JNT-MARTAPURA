@@ -151,10 +151,10 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
                             {notif.title}
                           </h4>
                           <span className="text-[8px] font-mono text-white/20 whitespace-nowrap pt-0.5">
-                            {formatDistanceToNow(new Date(notif.createdAt), {
+                            {notif.createdAt && !isNaN(new Date(notif.createdAt).getTime()) ? formatDistanceToNow(new Date(notif.createdAt), {
                               addSuffix: true,
                               locale: localeId,
-                            })}
+                            }) : 'Baru saja'}
                           </span>
                         </div>
                         <p className={`mt-1 text-[11px] font-medium leading-relaxed line-clamp-2 ${

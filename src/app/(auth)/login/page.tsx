@@ -9,6 +9,8 @@ import {
   Lock,
   ArrowRight,
   Shield,
+  Activity,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoginLogic } from "@/hooks/useLoginLogic";
@@ -19,6 +21,9 @@ import { useState } from "react";
 // Direct asset paths from /public
 const logoJne = '/logo-jne.svg';
 const jneBg   = '/JNE-logo-orang-paket.svg';
+
+// Pre-computed deterministic trail heights to avoid SSR hydration mismatch
+const TRAIL_HEIGHTS = Array.from({ length: 6 }, (_, i) => 150 + (i * 17) % 100);
 
 export default function LoginPage() {
   const {
@@ -37,297 +42,190 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
-    /* fixed inset-0 prevents ANY scrolling; the page is always exactly the viewport */
-    <div className="fixed inset-0 flex overflow-hidden" style={{ background: "#CC0000" }}>
-
-      {/* ===== LEFT PANEL – Branding ===== */}
-      <div
-        className="hidden lg:flex w-[52%] flex-col justify-between relative overflow-hidden"
-        style={{ background: "#B30000" }}
-      >
-        {/* Subtle dot pattern */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-
-        {/* Top header */}
-        <div className="relative z-10 px-12 pt-12 flex items-center gap-4">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg p-1.5">
-            <Image
-              src={logoJne}
-              alt="JNE Logo"
-              width={52}
-              height={52}
-              className="object-contain"
-            />
-          </div>
-          <div>
-            <p className="text-white/70 text-xs font-bold uppercase tracking-widest">
-              JNE Martapura
-            </p>
-            <h2 className="text-white text-xl font-bold leading-tight">
-              Attendance System
-            </h2>
-          </div>
-        </div>
-
-        {/* Center hero */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-10 text-center">
-          <Image
-            src={jneBg}
-            alt="JNE Illustration"
-            width={380}
-            height={380}
-            className="object-contain drop-shadow-2xl mb-8"
-            priority
+    <div className="fixed inset-0 overflow-hidden bg-slate-950 flex items-center justify-center p-4">
+      
+      {/* ── Ambient Background ── */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(224,75,58,0.1),transparent_50%)]" />
+        <div className="absolute top-0 left-[20%] w-px h-full bg-linear-to-b from-transparent via-white/5 to-transparent opacity-20" />
+        <div className="absolute top-0 left-[80%] w-px h-full bg-linear-to-b from-transparent via-white/5 to-transparent opacity-20" />
+        
+        {/* Light Trails */}
+        {TRAIL_HEIGHTS.map((height, i) => (
+          <div 
+            key={i} 
+            className="light-trail" 
+            style={{ 
+              left: `${15 + i * 15}%`, 
+              animationDelay: `${i * 1.5}s`,
+              height: `${height}px` 
+            }} 
           />
-          <h1 className="text-white text-4xl font-black leading-tight mb-3">
-            Welcome Back!
-          </h1>
-          <p className="text-white/70 text-base leading-relaxed max-w-xs">
-            Sistem absensi karyawan JNE Martapura yang aman, cepat, dan terpercaya.
-          </p>
-        </div>
-
-        {/* Bottom status */}
-        <div className="relative z-10 px-12 pb-10">
-          <div className="flex items-center gap-6 text-white/60 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400" />
-              </span>
-              System Online
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Shield size={13} />
-              AES-256 Encrypted
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* ===== RIGHT PANEL – Login Form (white) ===== */}
-      <div className="flex-1 bg-white flex flex-col justify-center items-center overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="w-full max-w-md px-8 relative"
-        >
-          {/* Success overlay */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-xl"
+      >
+        <div className="glass-portal noisy-glass rounded-[2.5rem] p-8 md:p-12 overflow-hidden relative">
+          
+          {/* Success Overlay */}
           <AnimatePresence>
             {isSuccess && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white"
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-xl"
               >
                 <motion.div
-                  initial={{ scale: 0.7 }}
-                  animate={{ scale: 1 }}
-                  className="flex flex-col items-center gap-4"
+                  initial={{ scale: 0.7, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="flex flex-col items-center gap-6"
                 >
-                  <div className="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <CheckCircle2 size={40} className="text-white" />
+                  <div className="w-24 h-24 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/20">
+                    <CheckCircle2 size={48} className="text-white" />
                   </div>
-                  <p className="text-gray-900 text-2xl font-bold">Access Granted</p>
-                  <p className="text-gray-500 text-sm">Redirecting to dashboard...</p>
+                  <div className="text-center">
+                    <h2 className="text-white text-3xl font-black uppercase tracking-tighter italic">Access Granted.</h2>
+                    <p className="text-slate-400 text-sm mt-2 font-medium uppercase tracking-widest">Initialising Node MTP-01...</p>
+                  </div>
                 </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Mobile logo (shows on small screens) */}
-          <div className="flex lg:hidden items-center gap-3 mb-8 pb-6 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow p-1.5 bg-white border border-gray-100">
-              <Image src={logoJne} alt="JNE" width={40} height={40} className="object-contain" />
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">JNE Martapura</p>
-              <h2 className="text-gray-900 text-lg font-bold">Attendance System</h2>
+          {/* Header */}
+          <div className="flex flex-col items-center text-center mb-10">
+            <motion.div 
+              whileHover={{ rotate: 5, scale: 1.05 }}
+              className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-2xl p-2 mb-6"
+            >
+              <Image src={logoJne} alt="JNE Logo" width={60} height={60} className="object-contain" />
+            </motion.div>
+            
+            <div className="space-y-1">
+              <p className="text-[#E04B3A] text-[10px] font-black uppercase tracking-[0.4em] mb-2">Systems Protocol v4.0</p>
+              <h1 className="text-4xl md:text-5xl mixed-weight-heading text-white leading-none uppercase italic">
+                Nexus <b>Portal.</b>
+              </h1>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-[0.2em] pt-2">Admin Authentication Required</p>
             </div>
           </div>
-
-          {/* Heading */}
-          <div className="mb-8">
-            <p className="text-[#CC0000] text-xs font-bold uppercase tracking-widest mb-1">
-              Admin Portal
-            </p>
-            <h3 className="text-gray-900 text-3xl font-black">Sign In</h3>
-            <p className="text-gray-500 text-sm mt-1.5">
-              Masukkan kredensial Anda untuk masuk ke dashboard.
-            </p>
-            <div className="mt-3 h-1 w-12 rounded-full" style={{ background: "#CC0000" }} />
-          </div>
-
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="mb-5 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3"
-              >
-                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
-                  !
-                </div>
-                <p className="text-sm text-red-700">{error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Email */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-1.5">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="relative group">
+                <label htmlFor="login-email" className="sr-only">Email Address</label>
+                <Mail size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#E04B3A]" />
                 <input
                   id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl py-3.5 pl-11 pr-4 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-                  style={{ "--tw-ring-color": "#CC0000" } as React.CSSProperties}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#CC0000")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
-                  placeholder="admin@jne.mtp"
+                  placeholder="IDENTIFIER (EMAIL)"
                   required
                   autoComplete="email"
+                  className="w-full nexus-input rounded-2xl py-4.5 pl-14 pr-6 text-sm font-black tracking-widest uppercase placeholder:text-slate-600 focus:outline-none"
                 />
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
+              <div className="relative group">
+                <label htmlFor="login-password" className="sr-only">Password</label>
+                <Lock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#E04B3A]" />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl py-3.5 pl-11 pr-12 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#CC0000")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
-                  placeholder="••••••••"
+                  placeholder="SECURITY_CODE"
                   required
                   autoComplete="current-password"
+                  className="w-full nexus-input rounded-2xl py-4.5 pl-14 pr-14 text-sm font-black tracking-widest focus:outline-none"
                 />
                 <button
-                  type="button"
                   id="toggle-password"
+                  type="button"
                   onClick={togglePassword}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
                   aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Remember me + Forgot password */}
-            <div className="flex items-center justify-between pt-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none group">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-center gap-3"
+              >
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <p className="text-red-400 text-[11px] font-black uppercase tracking-widest">{error}</p>
+              </motion.div>
+            )}
+
+            <div className="flex items-center justify-between px-2">
+              <label className="flex items-center gap-3 cursor-pointer group">
                 <button
-                  type="button"
                   id="remember-me"
+                  type="button"
                   role="checkbox"
                   aria-checked={rememberMe}
                   onClick={() => setRememberMe(!rememberMe)}
-                  className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#CC0000]/30 ${
-                    rememberMe
-                      ? "border-[#CC0000]"
-                      : "border-gray-300 bg-white group-hover:border-red-300"
-                  }`}
-                  style={{ background: rememberMe ? "#CC0000" : undefined }}
+                  className={`w-5 h-5 rounded-md border transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#E04B3A]/40 ${rememberMe ? 'bg-[#E04B3A] border-[#E04B3A]' : 'bg-slate-900 border-slate-800'}`}
                 >
-                  {rememberMe && (
-                    <motion.svg
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      width="10"
-                      height="8"
-                      viewBox="0 0 10 8"
-                      fill="none"
-                    >
-                      <path
-                        d="M1 4L3.5 6.5L9 1"
-                        stroke="white"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </motion.svg>
-                  )}
+                  {rememberMe && <CheckCircle2 size={12} className="text-white" />}
                 </button>
-                <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">
-                  Ingat saya
-                </span>
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest group-hover:text-slate-200">Remember Station</span>
               </label>
-              <Link
-                href="/forgot-password"
-                id="forgot-password-link"
-                className="text-sm font-semibold hover:underline transition-colors"
-                style={{ color: "#CC0000" }}
-              >
-                Lupa password?
-              </Link>
+              <Link href="/forgot-password" className="text-[#E04B3A] text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">Recover Code</Link>
             </div>
 
-            {/* Submit */}
             <motion.button
               type="submit"
-              id="login-submit"
               disabled={loading || isSuccess}
-              whileHover={{ scale: loading || isSuccess ? 1 : 1.015 }}
-              whileTap={{ scale: loading || isSuccess ? 1 : 0.985 }}
-              className="w-full text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-base disabled:opacity-60 transition-colors mt-1 shadow-lg"
-              style={{ background: "#CC0000" }}
-              onMouseEnter={(e) => !loading && !isSuccess && (e.currentTarget.style.background = "#aa0000")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#CC0000")}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-[#E04B3A] text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-[#E04B3A]/20 transition-all hover:bg-[#aa0000] disabled:opacity-50"
             >
               {loading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>Mengautentikasi...</span>
-                </>
+                <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  <span>Masuk</span>
+                  <span className="uppercase tracking-[0.3em] text-sm">Synchronize Access</span>
                   <ArrowRight size={18} />
                 </>
               )}
             </motion.button>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-gray-400 text-xs mt-8 pt-6 border-t border-gray-100 flex items-center justify-center gap-1.5">
-            <Shield size={11} />
-            © 2025 JNE Martapura · Secure Connection · AES-256
-          </p>
-        </motion.div>
-      </div>
+          {/* Footer Card Info */}
+          <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between">
+            <div className="flex gap-4">
+              {[Shield, Activity, Zap].map((Icon, i) => (
+                <div key={i} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 hover:text-[#E04B3A] transition-colors border border-transparent hover:border-white/5">
+                  <Icon size={16} />
+                </div>
+              ))}
+            </div>
+            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] text-right">
+              MTP-HQ NETWORK · CORE v4.2<br />
+              <span className="text-[#E04B3A]/40">SECURED_LINE_MTP_01</span>
+            </p>
+          </div>
+        </div>
+        
+        {/* Floating Decorative Label (Asymmetrical touch) */}
+        <div className="absolute -bottom-6 -right-6 px-6 py-2 rounded-full bg-white text-slate-950 text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl rotate-3">
+          JNE Martapura
+        </div>
+      </motion.div>
     </div>
   );
 }

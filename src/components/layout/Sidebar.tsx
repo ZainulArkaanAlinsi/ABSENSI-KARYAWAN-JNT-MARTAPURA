@@ -2,180 +2,103 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut } from 'lucide-react';
+import { LogOut, Activity, LayoutDashboard } from 'lucide-react';
 const logo = '/logo-jne.svg';
 import { useSidebarLogic } from '@/hooks/useSidebarLogic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef } from 'react';
-import { animate } from 'animejs';
+import * as animePkg from 'animejs';
+const safeAnimate = (animePkg as any).animate || (animePkg as any).default || animePkg;
 
 export default function Sidebar() {
-  const { signOut, isActive, navItems } = useSidebarLogic();
+  const { signOut, isActive, navItems, pathname } = useSidebarLogic();
   const navRef = useRef<HTMLElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
 
   // Staggered Entry Animation for Nav Items
   useEffect(() => {
     if (navRef.current) {
       const items = navRef.current.querySelectorAll('.nav-item-animate');
-      animate(items, {
+      safeAnimate(items, {
         opacity: [0, 1],
         translateX: [-20, 0],
         duration: 800,
-        delay: (el, i) => i * 100, // Manual stagger for v4 or checking utils
+        delay: (el: any, i: number) => i * 100,
         easing: 'easeOutExpo'
-      });
-    }
-  }, []);
-
-  // Magnetic/Floated Logo Animation
-  useEffect(() => {
-    if (logoRef.current) {
-      animate(logoRef.current, {
-        translateY: [-2, 2],
-        duration: 2000,
-        loop: true,
-        direction: 'alternate',
-        easing: 'easeInOutSine'
       });
     }
   }, []);
 
   return (
     <aside
-      className="fixed left-0 top-0 bottom-0 z-50 flex flex-col border-r transition-all duration-700 backdrop-blur-3xl"
-      style={{
-        width: 'var(--sidebar-width)',
-        background: 'var(--glass-bg, rgba(255, 255, 255, 0.8))',
-        borderColor: 'var(--glass-border, rgba(0, 0, 0, 0.05))',
-      }}
+      className="sidebar-stable flex flex-col bg-(--lector-sidebar-brand) border-r border-(--lector-border) shadow-2xl relative z-50 overflow-hidden"
     >
-      {/* Brand node */}
-      <div className="flex items-center gap-3 px-6 py-10">
-        <motion.div
-          ref={logoRef}
-          whileHover={{ scale: 1.05, rotate: 5 }}
-          className="flex shrink-0 items-center justify-center rounded-2xl bg-white shadow-xl shadow-red-500/10"
-          style={{
-            width: 48,
-            height: 48,
-            padding: '6px',
-            border: '1px solid rgba(255,255,255,0.8)'
-          }}
-        >
-          <Image 
-            src={logo} 
-            alt="JNE Logo"
-            width={32}
-            height={32}
-            className="object-contain"
-          />
-        </motion.div>
-        <div>
-          <p className="text-[15px] font-black uppercase tracking-tighter text-gray-900 leading-none">
-            JNE <span className="text-red-600">Admin</span>
-          </p>
-          <p className="mt-1.5 text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">
-            Smart Logistics
-          </p>
+      {/* Decorative Blur BG */}
+      <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+        <div className="absolute bottom-20 -right-10 w-32 h-32 bg-pink-400 rounded-full blur-3xl" />
+      </div>
+
+      {/* Brand Header (JNE Style) */}
+      <div className="lector-sidebar-header shrink-0 shadow-lg relative z-10 bg-[#E31E24]!">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-white/20 shadow-sm">
+            <Image src="/logo-jne.svg" alt="JNE" width={32} height={32} className="object-contain" />
+          </div>
+          <span className="text-white font-black italic tracking-tighter text-xl uppercase">EXPRESS</span>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav ref={navRef} className="flex-1 space-y-1.5 overflow-y-auto px-4 pb-6 scrollbar-none">
+      {/* Menu Navigation */}
+      <nav ref={navRef} className="flex-1 px-3 py-6 space-y-0.5 overflow-y-auto relative z-10 custom-scrollbar scrollbar-none">
         {navItems.map((item: any, idx: number) => {
           if (item.isHeader) {
             return (
               <p
                 key={`header-${idx}`}
-                className="mb-3 mt-8 px-4 text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 opacity-60 first:mt-0"
+                className="mb-2 mt-6 px-4 text-[9px] font-black uppercase tracking-[0.25em] text-white/40 first:mt-0"
               >
                 {item.label}
               </p>
             );
           }
 
-          const { href, label, icon: Icon } = item;
-          const active = isActive(href);
+          const active = isActive(item.href);
+          const Icon = item.icon || LayoutDashboard;
+          
           return (
-            <Link 
-              key={href} 
-              href={href} 
-              className="block outline-none nav-item-animate opacity-0"
+            <Link
+              key={`${item.href}-${idx}`}
+              href={item.href}
+              className={`flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-300 group nav-item-animate ${
+                active 
+                  ? 'bg-white/10 text-white shadow-md border border-white/10 font-black' 
+                  : 'text-white/70 hover:text-white hover:bg-white/5'
+              }`}
             >
-              <motion.div
-                whileHover={{ x: 6 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                className={`relative flex items-center gap-4 rounded-2xl px-4 py-3.5 transition-all duration-500 ${
-                  active ? 'text-red-600 shadow-lg shadow-red-500/5' : 'text-gray-500 hover:text-gray-900'
-                }`}
-                style={
-                  active
-                    ? {
-                        background: 'rgba(255, 245, 245, 0.6)',
-                        border: '1px solid rgba(227, 30, 36, 0.08)',
-                      }
-                    : {
-                        background: 'transparent',
-                        border: '1px solid transparent',
-                      }
-                }
-              >
-                {/* Active marker (Dynamic Glow) */}
-                <AnimatePresence>
-                  {active && (
-                    <motion.div
-                      layoutId="sidebar-active-marker"
-                      className="absolute left-0 w-1.5 rounded-r-full bg-red-600 shadow-[2px_0_12px_rgba(220,38,38,0.4)]"
-                      style={{ height: 28 }}
-                      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                    />
-                  )}
-                </AnimatePresence>
-
-                {/* Icon wrapper */}
-                <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
-                    active 
-                      ? 'bg-red-600 text-white shadow-xl shadow-red-600/20' 
-                      : 'bg-white/40 text-gray-400 group-hover:bg-white group-hover:shadow-sm border border-transparent'
-                  }`}
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={active ? 2.5 : 2}
-                  />
-                </div>
-
-                {/* Label */}
-                <span
-                  className="truncate text-[13px] font-black uppercase tracking-tight"
-                >
-                  {label}
-                </span>
-              </motion.div>
+              <div className={`${active ? 'text-white' : 'opacity-70 group-hover:opacity-100'}`}>
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+              </div>
+              <span className="text-[13px] font-bold tracking-tight">{item.label}</span>
+              {active && (
+                <motion.div 
+                  layoutId="active-indicator"
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" 
+                />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer / Sign-out */}
-      <div className="px-4 border-t border-gray-100/50 py-8">
-        <motion.button
-          whileHover={{ x: 4 }}
-          whileTap={{ scale: 0.97 }}
+      {/* Footer Nav */}
+      <div className="px-4 py-6 border-t border-white/10 relative z-10">
+        <button
           onClick={signOut}
-          className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
+          className="flex w-full items-center gap-4 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 transition-all group-hover:bg-red-100 group-hover:text-red-600">
-            <LogOut size={16} />
-          </div>
-          <span className="text-[13px] font-black uppercase tracking-tight">Keluar Portal</span>
-        </motion.button>
-        <p className="mt-6 px-3 text-[8px] font-black text-gray-300 uppercase tracking-[0.4em] text-center opacity-50">
-          © 2026 JNE MARTAPURA
-        </p>
+          <LogOut size={18} className="opacity-70 group-hover:opacity-100" />
+          <span className="text-[13px] font-bold tracking-tight">Sign Out</span>
+        </button>
       </div>
     </aside>
   );

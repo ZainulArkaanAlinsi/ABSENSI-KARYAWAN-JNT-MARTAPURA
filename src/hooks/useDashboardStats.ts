@@ -14,6 +14,16 @@ import { COLLECTIONS } from '@/lib/firestore';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import type { AttendanceRecord, Employee } from '@/types';
 
+export interface RecentActivity {
+  id: string;
+  userName: string;
+  department: string;
+  status: string;
+  checkIn: string;   // "HH:mm" or "—"
+  color: string;
+  actionLabel: string;
+}
+
 interface AnalyticsStats {
   totalEmployees: number;
   faceRegisteredCount: number;
@@ -23,10 +33,17 @@ interface AnalyticsStats {
   absentToday: number;
   overtimeThisMonth: number;
   pendingLeaves: number;
+  alphaCount: number;
+  totalWorkingHours: number;
+  overtimeHours: number;
 
   // Advanced Metrics
   engagementIndex: number;
   punctualityRate: number;
+  monthlyAttendanceRecordCount: number;
+  totalAttendanceRecords: number;
+  totalDepartments: number;
+  activeDepartmentsCount: number;
   departmentDistribution: { name: string; attendance: number }[];
   weeklyTrends: {
     day: string;
@@ -34,6 +51,7 @@ interface AnalyticsStats {
     late: number;
     absent: number;
   }[];
+  recentActivities: RecentActivity[];
 }
 
 export function useDashboardStats() {
@@ -129,6 +147,31 @@ export function useDashboardStats() {
             });
           }
 
+          // Recent Activities — last 5 today's records, joined with employee name
+          const STATUS_META: Record<string, { label: string; color: string }> = {
+            present:  { label: 'Scan absensi berhasil',    color: '#10B981' },
+            late:     { label: 'Keterlambatan terdeteksi', color: '#F59E0B' },
+            overtime: { label: 'Lembur dicatat',           color: '#8B5CF6' },
+            leave:    { label: 'Izin disetujui',           color: '#3B82F6' },
+            absent:   { label: 'Tidak hadir',              color: '#EF4444' },
+          };
+          const recentActivities: RecentActivity[] = todayRecords
+            .sort((a, b) => ((b as any).checkIn || '').localeCompare((a as any).checkIn || ''))
+            .slice(0, 5)
+            .map(r => {
+              const emp = employees.find(e => e.id === r.userId || e.uid === r.userId);
+              const meta = STATUS_META[r.status] ?? { label: r.status, color: '#94A3B8' };
+              return {
+                id: r.userId,
+                userName: emp?.name ?? 'Karyawan',
+                department: emp?.department ?? '-',
+                status: r.status,
+                checkIn: (r as any).checkIn ?? '—',
+                color: meta.color,
+                actionLabel: meta.label,
+              };
+            });
+
           setData({
             totalEmployees,
             faceRegisteredCount,
@@ -140,8 +183,16 @@ export function useDashboardStats() {
             pendingLeaves,
             engagementIndex,
             punctualityRate,
+            monthlyAttendanceRecordCount: allRecords.length,
+            totalAttendanceRecords: allRecords.length,
+            totalDepartments: depts.length,
+            activeDepartmentsCount: depts.length,
+            alphaCount: allRecords.filter(r => r.status === 'absent').length,
+            totalWorkingHours: Math.round(allRecords.reduce((sum, r) => sum + (r.totalWorkMinutes || 0), 0) / 60),
+            overtimeHours: overtimeThisMonth,
             departmentDistribution,
             weeklyTrends,
+            recentActivities,
           });
           setLoading(false);
         });

@@ -87,8 +87,8 @@ export default function EmployeeDetailPage() {
           <p style={{ color: '#9BA4B4' }}>Karyawan tidak ditemukan.</p>
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-white transition-colors"
-            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-slate-700 transition-colors"
+            style={{ backgroundColor: 'white', borderColor: 'rgba(0,0,0,0.1)' }}
           >
             <ArrowLeft size={14} /> Kembali
           </button>
@@ -113,8 +113,7 @@ export default function EmployeeDetailPage() {
           style={{ color: '#9BA4B4' }}
         >
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors bg-white border-slate-200"
           >
             <ArrowLeft size={15} />
           </span>
@@ -132,26 +131,23 @@ export default function EmployeeDetailPage() {
         >
           {/* Identity card */}
           <div
-            className="rounded-2xl border p-6 text-center backdrop-blur-xl"
-            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="rounded-xl border p-6 text-center bg-white border-slate-100 shadow-sm"
           >
             <div className="relative mb-4 inline-block">
               <div
-                className="flex h-24 w-24 items-center justify-center rounded-2xl text-3xl font-bold text-white shadow-xl"
-                style={{ backgroundColor: '#0D1B35' }}
+                className="flex h-24 w-24 items-center justify-center rounded-xl text-3xl font-bold text-white shadow-lg bg-[#005596]"
               >
                 {employee.name?.charAt(0)?.toUpperCase()}
               </div>
               <div
-                className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-lg border-2 backdrop-blur-xl"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-100 bg-white shadow-sm"
               >
-                <Shield size={14} style={{ color: '#E04B3A' }} />
+                <Shield size={14} className="text-[#E31E24]" />
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-white">{employee.name}</h3>
-            <p className="mt-1 text-sm" style={{ color: '#9BA4B4' }}>
+            <h3 className="text-lg font-black text-slate-900">{employee.name}</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">
               {employee.position || '—'} • {employee.department || '—'}
             </p>
 
@@ -160,7 +156,7 @@ export default function EmployeeDetailPage() {
               <ContractBadge type={employee.contractType} />
             </div>
 
-            <div className="mt-6 space-y-4 border-t pt-6 text-left" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+            <div className="mt-6 space-y-4 border-t pt-6 text-left border-slate-100">
               {[
                 { icon: Mail, label: 'Email', value: employee.email },
                 ...(employee.phone
@@ -175,12 +171,12 @@ export default function EmployeeDetailPage() {
                 },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-                    <item.icon size={14} style={{ color: '#3863C3' }} />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 border border-slate-100">
+                    <item.icon size={14} className="text-[#005596]" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>{item.label}</p>
-                    <p className="text-sm font-medium text-white">{item.value}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</p>
+                    <p className="text-sm font-bold text-slate-900">{item.value}</p>
                   </div>
                 </div>
               ))}
@@ -189,24 +185,21 @@ export default function EmployeeDetailPage() {
 
           {/* Account actions */}
           <div
-            className="rounded-2xl border p-5 backdrop-blur-xl"
-            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
           >
-            <h4 className="mb-3 text-sm font-semibold text-white">Manajemen Akun</h4>
+            <h4 className="mb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Manajemen Akun</h4>
             <div className="space-y-2">
               <button
                 onClick={handleResetFace}
                 disabled={resetting || !employee.faceRegistered}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors disabled:opacity-40"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-[#E31E24]/5 hover:text-[#E31E24] disabled:opacity-40"
               >
                 <RotateCcw size={14} className={resetting ? 'animate-spin' : ''} />
                 {resetting ? 'Mereset...' : 'Reset Data Wajah'}
               </button>
 
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-[#005596]/5 hover:text-[#005596]"
                 onClick={() => alert('Fitur segera hadir!')}
               >
                 <Mail size={14} />
@@ -214,8 +207,7 @@ export default function EmployeeDetailPage() {
               </button>
 
               <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors"
-                style={{ backgroundColor: 'rgba(192,57,43,0.1)', borderColor: 'rgba(192,57,43,0.2)', color: '#C0392B' }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-xs font-bold text-[#E31E24] transition-all hover:bg-red-100"
                 onClick={() => alert('Konfirmasi nonaktifkan karyawan.')}
               >
                 <Trash2 size={14} />
@@ -234,31 +226,29 @@ export default function EmployeeDetailPage() {
         >
           {/* Device info */}
           <div
-            className="rounded-2xl border p-5 backdrop-blur-xl"
-            style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
           >
             <div className="mb-4 flex items-center gap-3">
               <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-                style={{ backgroundColor: '#0D1B35' }}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#005596]/10 text-[#005596]"
               >
                 <Smartphone size={18} />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-white">Perangkat Terdaftar</h4>
-                <p className="text-xs" style={{ color: '#9BA4B4' }}>Perangkat untuk presensi wajah</p>
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Perangkat Terdaftar</h4>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Perangkat untuk presensi wajah</p>
               </div>
             </div>
 
             {employee.deviceModel ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="rounded-xl border p-3" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Model Perangkat</p>
-                  <p className="mt-1 text-sm text-white">{employee.deviceModel}</p>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Model Perangkat</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">{employee.deviceModel}</p>
                 </div>
-                <div className="rounded-xl border p-3" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Device ID</p>
-                  <p className="mt-1 break-all font-mono text-xs text-white">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Device ID</p>
+                  <p className="mt-1 break-all font-mono text-[10px] font-bold text-slate-900">
                     {employee.deviceId || '—'}
                   </p>
                 </div>
@@ -277,57 +267,52 @@ export default function EmployeeDetailPage() {
           {/* Jam Kerja info */}
           {jamKerja && (
             <div
-              className="rounded-2xl border p-5 backdrop-blur-xl"
-              style={{ backgroundColor: '#1B2A4A', borderColor: 'rgba(255,255,255,0.1)' }}
+              className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-                  style={{ backgroundColor: '#E04B3A' }}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E31E24]/10 text-[#E31E24]"
                 >
                   <Clock size={18} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Jadwal Jam Kerja</h4>
-                  <p className="text-xs" style={{ color: '#9BA4B4' }}>Detail jadwal kerja dan toleransi</p>
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Jadwal Jam Kerja</h4>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detail jadwal kerja dan toleransi</p>
                 </div>
               </div>
 
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Nama</p>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: '#E04B3A' }}>{jamKerja.name}</p>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit</p>
+                  <p className="mt-1 text-sm font-black text-[#E31E24]">{jamKerja.name}</p>
                 </div>
-                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Masuk</p>
-                  <p className="mt-1 text-sm text-white">{jamKerja.checkInTime}</p>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam Masuk</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">{jamKerja.checkInTime}</p>
                 </div>
-                <div className="rounded-xl border p-3 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <p className="text-[10px] font-medium" style={{ color: '#9BA4B4' }}>Jam Pulang</p>
-                  <p className="mt-1 text-sm text-white">{jamKerja.checkOutTime}</p>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam Pulang</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">{jamKerja.checkOutTime}</p>
                 </div>
               </div>
 
 
               <div
-                className="mt-4 flex items-center justify-between rounded-xl px-4 py-3"
-                style={{ backgroundColor: 'rgba(224,75,58,0.1)', border: '1px solid rgba(224,75,58,0.2)' }}
+                className="mt-4 flex items-center justify-between rounded-xl px-4 py-3 bg-[#E31E24]/5 border border-[#E31E24]/10"
               >
-                <span className="text-xs font-medium" style={{ color: '#E04B3A' }}>Toleransi Keterlambatan</span>
-                <span className="text-sm font-semibold text-white">{jamKerja.toleranceMinutes} menit</span>
+                <span className="text-xs font-black text-[#E31E24] uppercase tracking-tight">Toleransi Keterlambatan</span>
+                <span className="text-sm font-black text-slate-900">{jamKerja.toleranceMinutes} menit</span>
               </div>
 
             </div>
           )}
 
-          {/* Future section */}
           <div
-            className="flex flex-col items-center gap-3 rounded-2xl border border-dashed p-10 text-center backdrop-blur-xl"
-            style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.1)' }}
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-slate-200 p-10 text-center bg-slate-50/50"
           >
-            <Briefcase size={36} style={{ color: '#9BA4B4', opacity: 0.5 }} />
-            <p className="text-sm font-medium" style={{ color: '#9BA4B4' }}>Riwayat Absensi</p>
+            <Briefcase size={36} className="text-slate-200" />
+            <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Riwayat Absensi</p>
             <p className="max-w-sm text-xs" style={{ color: '#9BA4B4', opacity: 0.7 }}>
               Fitur riwayat absensi detail akan segera hadir.
             </p>

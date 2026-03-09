@@ -39,7 +39,10 @@ export function useSidebarLogic() {
   const pathname = usePathname();
   const { signOut } = useAuth();
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
+  const isActive = (href: string) => {
+    if (!pathname || !href) return false;
+    return pathname === href || pathname.startsWith(href + '/');
+  };
 
   return {
     pathname,

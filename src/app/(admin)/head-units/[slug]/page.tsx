@@ -56,9 +56,9 @@ export default function HeadUnitPage() {
     return (
       <AdminLayout title="Error" subtitle="Head unit tidak ditemukan">
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <AlertCircle size={48} className="text-red-500 mb-4" />
-          <h2 className="text-xl font-bold text-white">Head Unit Tidak Ditemukan</h2>
-          <p className="text-white/60">Slug "{slug}" tidak terdaftar dalam sistem.</p>
+          <AlertCircle size={48} className="text-[#E31E24] mb-4" />
+          <h2 className="text-xl font-bold text-slate-900">Head Unit Tidak Ditemukan</h2>
+          <p className="text-slate-500">Slug "{slug}" tidak terdaftar dalam sistem.</p>
         </div>
       </AdminLayout>
     );
@@ -89,56 +89,56 @@ export default function HeadUnitPage() {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-white/5 bg-white/3 p-4"
+              className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Total Personel</span>
-                <Users size={14} className="text-white/20" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Personel</span>
+                <Users size={14} className="text-[#005596]" />
               </div>
-              <p className="text-2xl font-black text-white">{totalEmp}</p>
-              <p className="text-[9px] text-white/20 mt-1 uppercase">Unit Force Count</p>
+              <p className="text-2xl font-black text-slate-900">{totalEmp}</p>
+              <p className="text-[9px] text-slate-400 mt-1 uppercase">Unit Force Count</p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="rounded-2xl border border-white/5 bg-white/3 p-4"
+              className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-emerald-500/50 uppercase tracking-widest">Hadir Hari Ini</span>
-                <ShieldCheck size={14} className="text-emerald-500/30" />
+                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Hadir Hari Ini</span>
+                <ShieldCheck size={14} className="text-emerald-500" />
               </div>
-              <p className="text-2xl font-black text-emerald-500">{presentCount}</p>
-              <p className="text-[9px] text-emerald-500/40 mt-1 uppercase">Checked-in Today</p>
+              <p className="text-2xl font-black text-emerald-600">{presentCount}</p>
+              <p className="text-[9px] text-emerald-500/60 mt-1 uppercase">Checked-in Today</p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="rounded-2xl border border-white/5 bg-white/3 p-4"
+              className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-amber-500/50 uppercase tracking-widest">Terlambat</span>
-                <Clock size={14} className="text-amber-500/30" />
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Terlambat</span>
+                <Clock size={14} className="text-amber-500" />
               </div>
-              <p className="text-2xl font-black text-amber-500">{lateCount}</p>
-              <p className="text-[9px] text-amber-500/40 mt-1 uppercase">Outside Tolerance</p>
+              <p className="text-2xl font-black text-amber-600">{lateCount}</p>
+              <p className="text-[9px] text-amber-500/60 mt-1 uppercase">Outside Tolerance</p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-2xl border border-white/5 bg-white/3 p-4"
+              className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-red-500/50 uppercase tracking-widest">Belum Absen</span>
-                <UserX size={14} className="text-red-500/30" />
+                <span className="text-[10px] font-bold text-[#E31E24] uppercase tracking-widest">Belum Absen</span>
+                <UserX size={14} className="text-[#E31E24]" />
               </div>
-              <p className="text-2xl font-black text-red-500">{absentCount}</p>
-              <p className="text-[9px] text-red-500/40 mt-1 uppercase">No Signal Detected</p>
+              <p className="text-2xl font-black text-[#E31E24]">{absentCount}</p>
+              <p className="text-[9px] text-red-500/60 mt-1 uppercase">No Signal Detected</p>
             </motion.div>
           </div>
 
@@ -147,48 +147,48 @@ export default function HeadUnitPage() {
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-2 rounded-3xl border border-white/5 bg-white/3 p-6 backdrop-blur-sm"
+              className="lg:col-span-2 rounded-xl border border-slate-100 bg-white p-6 shadow-sm"
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E31E24]/10 text-[#E31E24]">
                   <Target size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Aturan & Target Unit</h3>
-                  <p className="text-[11px] text-white/40">Sistem validasi otomatis</p>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Aturan & Target Unit</h3>
+                  <p className="text-[11px] text-slate-400">Sistem validasi otomatis</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-white/5 p-4 border border-white/5">
+                <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
-                    <MapPin size={16} className="text-primary" />
-                    <span className="text-xs font-semibold text-white/80">Validasi Geofencing</span>
+                    <MapPin size={16} className="text-[#005596]" />
+                    <span className="text-xs font-semibold text-slate-700">Validasi Geofencing</span>
                   </div>
-                  <p className="text-[11px] text-white/50 leading-relaxed">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
                     {rule.gpsRequired 
                       ? `Radius ${rule.radiusMeters}m dari koordinat. Karyawan harus berada di dalam zona untuk absen.`
                       : 'Bebas lokasi untuk unit admin/support.'}
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-white/5 p-4 border border-white/5">
+                <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
-                    <History size={16} className="text-primary" />
-                    <span className="text-xs font-semibold text-white/80">Threshold Waktu</span>
+                    <History size={16} className="text-[#005596]" />
+                    <span className="text-xs font-semibold text-slate-700">Threshold Waktu</span>
                   </div>
-                  <p className="text-[11px] text-white/50 leading-relaxed">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
                     Toleransi: {rule.toleranceMinutes} menit. Terlambat akan tercatat otomatis di sistem.
                   </p>
                 </div>
 
                 {rule.target && (
-                  <div className="md:col-span-2 rounded-2xl bg-[#E04B3A]/10 p-4 border border-[#E04B3A]/20">
+                  <div className="md:col-span-2 rounded-xl bg-[#E31E24]/5 p-4 border border-[#E31E24]/10">
                     <div className="flex items-center gap-3 mb-2">
-                      <TrendingUp size={16} className="text-[#E04B3A]" />
-                      <span className="text-xs font-bold text-[#E04B3A] uppercase">Mission Target</span>
+                      <TrendingUp size={16} className="text-[#E31E24]" />
+                      <span className="text-xs font-bold text-[#E31E24] uppercase">Mission Target</span>
                     </div>
-                    <p className="text-xs font-medium text-white italic">
+                    <p className="text-xs font-medium text-slate-600 italic">
                       "{rule.target}"
                     </p>
                   </div>
@@ -202,31 +202,31 @@ export default function HeadUnitPage() {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
-              <div className="rounded-3xl border border-white/5 bg-white/3 p-6">
+              <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Face ID Compliance</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Face ID Compliance</span>
                   <Activity size={16} className="text-emerald-500" />
                 </div>
                 <div className="flex items-end gap-2">
-                  <p className="text-4xl font-black text-white">{faceRegistered}</p>
-                  <p className="text-sm font-bold text-white/30 mb-1.5">/ {totalEmp}</p>
+                  <p className="text-4xl font-black text-slate-900">{faceRegistered}</p>
+                  <p className="text-sm font-bold text-slate-400 mb-1.5">/ {totalEmp}</p>
                 </div>
-                <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-white/5">
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${(faceRegistered/totalEmp || 0) * 100}%` }}
                     className="h-full bg-emerald-500"
                   />
                 </div>
-                <p className="mt-2 text-[10px] text-white/20 uppercase font-black">Biometric Readiness</p>
+                <p className="mt-2 text-[10px] text-slate-400 uppercase font-black">Biometric Readiness</p>
               </div>
 
-              <div className="rounded-3xl border border-white/5 bg-[#1B2A4A]/20 p-6">
+              <div className="rounded-xl border border-slate-100 bg-[#005596]/5 p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <CalendarDays size={16} className="text-[#E04B3A]" />
-                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Shift Protocol</span>
+                  <CalendarDays size={16} className="text-[#005596]" />
+                  <span className="text-[10px] font-bold text-[#005596]/60 uppercase tracking-widest">Shift Protocol</span>
                 </div>
-                <p className="text-xs text-white/70 font-medium leading-relaxed">
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Semua personel wajib mengikuti jam kerja yang telah ditentukan oleh Central Admin.
                 </p>
               </div>
@@ -237,15 +237,15 @@ export default function HeadUnitPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl border border-white/5 bg-white/3 overflow-hidden"
+            className="rounded-xl border border-slate-100 bg-white shadow-sm overflow-hidden"
           >
-            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/2">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider leading-none">Status Personel Hari Ini</h3>
-                <p className="text-[10px] text-white/30 mt-1 uppercase font-bold tracking-widest">Live Monitoring Unit</p>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider leading-none">Status Personel Hari Ini</h3>
+                <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">Live Monitoring Unit</p>
               </div>
               <div className="flex gap-2">
-                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary uppercase">
+                <div className="px-3 py-1 rounded-lg bg-[#005596]/10 border border-[#005596]/20 text-[10px] font-bold text-[#005596] uppercase">
                   {unitEmployees.length} Personnel
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function HeadUnitPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/2 text-[10px] font-black uppercase tracking-widest text-white/20">
+                  <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <th className="px-6 py-4 text-center">No</th>
                     <th className="px-6 py-4">Nama Personel</th>
                     <th className="px-6 py-4">Jam Kerja</th>
@@ -267,24 +267,24 @@ export default function HeadUnitPage() {
                     const record = attendance.find(r => r.userId === emp.id);
                     return (
                       <tr key={emp.id} className="hover:bg-white/1 transition-colors group">
-                        <td className="px-6 py-4 text-center text-[10px] font-black text-white/10 group-hover:text-white/30">
+                        <td className="px-6 py-4 text-center text-[10px] font-black text-slate-300 group-hover:text-slate-500">
                           {String(i + 1).padStart(2, '0')}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-2xl bg-linear-to-br from-[#E04B3A]/20 to-transparent border border-white/10 flex items-center justify-center text-[11px] font-black text-white group-hover:border-[#E04B3A]/40 transition-colors shadow-sm">
+                            <div className="h-9 w-9 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-center text-[11px] font-black text-slate-900 group-hover:border-[#E31E24]/40 transition-colors shadow-sm">
                               {emp.name.charAt(0)}
                             </div>
                             <div>
-                              <p className="text-xs font-black text-white leading-tight group-hover:text-primary transition-colors">{emp.name}</p>
-                              <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">{emp.employeeId}</p>
+                              <p className="text-xs font-black text-slate-900 leading-tight group-hover:text-[#E31E24] transition-colors">{emp.name}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{emp.employeeId}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <Clock size={12} className="text-white/20" />
-                            <span className="text-[10px] font-bold text-white/60">
+                            <Clock size={12} className="text-slate-300" />
+                            <span className="text-[10px] font-bold text-slate-600">
                               {jamKerjaMap[emp.jamKerjaId] || 'Not Set'}
                             </span>
                           </div>
@@ -292,36 +292,35 @@ export default function HeadUnitPage() {
                         <td className="px-6 py-4">
                           {record?.checkIn?.time ? (
                             <div className="flex flex-col">
-                              <span className="text-[11px] font-black text-emerald-500 font-mono">
-                                {format(new Date(record.checkIn.time), 'HH:mm:ss')}
-                              </span>
-                              <span className="text-[8px] text-white/20 font-black uppercase tracking-tighter">
-                                Signal Captured
-                              </span>
+                                <span className="text-[11px] font-black text-emerald-600 font-mono">
+                                  {format(new Date(record.checkIn.time), 'HH:mm:ss')}
+                                </span>
+                                <span className="text-[8px] text-slate-400 font-black uppercase tracking-tighter">
+                                  Signal Captured
+                                </span>
                             </div>
-                          ) : (
-                            <span className="text-[10px] font-black text-white/10 uppercase tracking-widest">
-                              No Signal
-                            </span>
-                          )}
+                          ) :                              <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest">
+                                No Signal
+                              </span>
+                          }
                         </td>
                         <td className="px-6 py-4">
                           {record ? (
-                             <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${
+                             <div className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest border ${
                                 record.status === 'present' 
-                                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
                                   : record.status === 'late'
-                                  ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                  : 'bg-white/5 text-white/40 border-white/10'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                  : 'bg-slate-50 text-slate-400 border-slate-100'
                              }`}>
                               <ShieldCheck size={10} strokeWidth={3} />
                               {record.status === 'present' ? 'Verified' : record.status.toUpperCase()}
                              </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500 border border-red-500/20">
-                              <AlertCircle size={10} strokeWidth={3} />
-                              MISSING
-                            </div>
+                             <div className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-[#E31E24] border border-red-100">
+                               <AlertCircle size={10} strokeWidth={3} />
+                               MISSING
+                             </div>
                           )}
                         </td>
                       </tr>

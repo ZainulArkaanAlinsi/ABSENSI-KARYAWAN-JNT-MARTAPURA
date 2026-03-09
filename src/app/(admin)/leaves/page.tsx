@@ -56,8 +56,8 @@ export default function LeavesPage() {
         >
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-              <span className="text-[10px] font-black text-[#10B981] uppercase tracking-[0.3em]">Personnel Governance</span>
+              <span className="w-2 h-2 rounded-full bg-jne-success shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black text-jne-success uppercase tracking-[0.3em]">Personnel Governance</span>
             </div>
             <h2 className="dash-page-title leading-none">Authorization Queue</h2>
             <p className="dash-page-sub mt-2 text-slate-500">Processing leave requests and operational status override</p>
@@ -240,7 +240,7 @@ export default function LeavesPage() {
                               <div className="text-right">
                                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Resolved by</p>
                                 <p className="text-[12px] font-black text-white flex items-center justify-end gap-2 uppercase tracking-wide">
-                                  <UserCheck size={12} className="text-[#10B981]" />
+                                  <UserCheck size={12} className="text-jne-success" />
                                   {leave.reviewedBy || 'System Controller'}
                                 </p>
                               </div>

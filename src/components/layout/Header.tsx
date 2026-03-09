@@ -5,7 +5,8 @@ import NotificationPanel from '@/components/notifications/NotificationPanel';
 import { useHeaderLogic } from '@/hooks/useHeaderLogic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
-import { animate } from 'animejs';
+import * as animePkg from 'animejs';
+const safeAnimate = (animePkg as any).animate || (animePkg as any).default || animePkg;
 
 interface HeaderProps {
   title: string;
@@ -41,14 +42,14 @@ export default function Header({ title, subtitle }: HeaderProps) {
     if (!target) return;
 
     if (searchFocused) {
-      animate(target, {
+      safeAnimate(target, {
         scale: 1.02,
         boxShadow: '0 0 20px rgba(124, 58, 237, 0.1)',
         duration: 400,
         easing: 'easeOutElastic(1, .8)'
       });
     } else {
-      animate(target, {
+      safeAnimate(target, {
         scale: 1,
         boxShadow: '0 0 0px rgba(124, 58, 237, 0)',
         duration: 300,
@@ -62,7 +63,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
     const target = cpuRef.current;
     if (!target) return;
 
-    const animation = animate(target, {
+    const animation = safeAnimate(target, {
       rotate: '+=15',
       duration: 3000,
       loop: true,
@@ -78,7 +79,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
   useEffect(() => {
     const target = bellRef.current;
     if (target && unreadCount > 0) {
-      animate(target, {
+      safeAnimate(target, {
         translateX: [0, -3, 3, -3, 3, 0],
         duration: 500,
         easing: 'easeInOutSine',
@@ -89,48 +90,24 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 right-0 z-40 flex items-center justify-between border-b transition-all duration-500 backdrop-blur-3xl"
+      className="sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-500 bg-(--lector-surface) border-(--lector-border) shadow-xs"
       style={{
-        left: 'var(--sidebar-width)',
-        height: 'var(--header-height)',
-        background: 'var(--glass-bg, rgba(255, 255, 255, 0.8))',
-        borderColor: 'var(--glass-border, rgba(0, 0, 0, 0.05))',
+        height: '64px', // Standard Lector height
       }}
     >
-      {/* ── Ambient Glow Background ── */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-        <div className="absolute -top-[150%] -right-[20%] w-[600px] h-[600px] rounded-full blur-[120px]" 
-          style={{ background: 'radial-gradient(circle, rgba(227, 30, 36, 0.08) 0%, transparent 70%)' }} />
-      </div>
 
-      {/* ── LEFT: Page Title Block ── */}
-      <div className="flex items-center gap-5 px-8 min-w-0 flex-1 relative z-10">
-        <motion.div
-          whileHover={{ rotate: 15, scale: 1.15 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-          ref={cpuRef}
-          className="relative shrink-0 w-11 h-11 rounded-2xl bg-white border border-stone-100 flex items-center justify-center shadow-xl shadow-red-500/5 group"
-        >
-          <Cpu size={20} className="text-red-600 group-hover:animate-pulse" />
-          <div className="absolute inset-0 rounded-2xl bg-red-600/5 transition-opacity opacity-0 group-hover:opacity-100" />
-        </motion.div>
-
-        <div className="min-w-0">
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="text-[10px] font-black text-stone-400 uppercase tracking-[0.4em] opacity-60">Control Center</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-red-600/20" />
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50/50 border border-red-100/50">
-               <span className="text-[9px] font-black text-red-600 uppercase tracking-widest leading-none">JNE Cloud</span>
-            </div>
-          </div>
-          <h1 className="text-[18px] font-black text-gray-900 tracking-tighter uppercase leading-none truncate italic">
+      {/* ── LEFT: Breadcrumb ── */}
+      <div className="flex items-center gap-4 px-6 min-w-0 flex-1 relative z-10">
+        <div className="flex items-center gap-2 text-(--lector-text-muted)">
+          <span className="text-[12px] font-medium tracking-tight">Dashboard</span>
+          <ChevronRight size={14} className="opacity-40" />
+          <h1 className="text-[14px] font-extrabold text-(--lector-text-main) tracking-tight">
             {title}
           </h1>
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 justify-center px-4 max-w-xl mx-auto relative z-10">
+      <div className="hidden lg:flex flex-1 justify-center px-4 max-w-sm mx-auto relative z-10">
         <div
           ref={searchRef}
           className="relative w-full group"
@@ -138,17 +115,17 @@ export default function Header({ title, subtitle }: HeaderProps) {
           <Search
             size={14}
             className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-500 ${
-              searchFocused ? 'text-red-600' : 'text-gray-400'
+              searchFocused ? 'text-[#E31E24]' : 'text-gray-300'
             }`}
           />
           <input
             type="text"
-            placeholder="Cari data, laporan..."
+            placeholder="Search..."
             value={searchValue}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             onChange={e => setSearchValue(e.target.value)}
-            className="w-full bg-white/40 border border-stone-100/50 rounded-2xl py-3 pl-10 pr-10 text-[13px] font-bold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-red-600/30 focus:bg-white focus:ring-8 focus:ring-red-600/5 transition-all duration-500 shadow-sm group-hover:border-stone-200"
+            className="w-full bg-(--lector-bg) border border-(--lector-border) rounded-full py-1.5 pl-10 pr-10 text-[12px] text-(--lector-text-main) placeholder:text-(--lector-text-muted) focus:outline-none focus:border-[#E31E24]/50 transition-all"
           />
           <AnimatePresence>
             {searchValue && (
@@ -167,13 +144,13 @@ export default function Header({ title, subtitle }: HeaderProps) {
       </div>
 
       {/* ── RIGHT: Action Cluster ── */}
-      <div className="flex items-center gap-5 px-8 flex-1 justify-end relative z-10">
+      <div className="flex items-center gap-4 px-6 flex-1 justify-end relative z-10">
         {/* Theme Toggle */}
         <motion.button
           whileHover={{ scale: 1.1, y: -2 }}
           whileTap={{ scale: 0.9 }}
           onClick={toggleTheme}
-          className="relative w-10 h-10 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-gray-500 hover:text-red-600 hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500"
+          className="relative w-9 h-9 rounded-xl bg-white border border-stone-100 flex items-center justify-center text-gray-500 hover:text-[#E31E24] hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500"
         >
           <AnimatePresence mode="wait">
             {theme === 'dark' ? (
@@ -207,17 +184,14 @@ export default function Header({ title, subtitle }: HeaderProps) {
             whileTap={{ scale: 0.9 }}
             ref={bellRef}
             onClick={toggleNotifications}
-            className={`relative w-10 h-10 rounded-2xl border flex items-center justify-center transition-all duration-500 shadow-sm ${
-              showNotifications
-                ? 'bg-red-600 border-red-600 text-white shadow-xl shadow-red-200'
-                : 'bg-white border-stone-100 text-gray-400 hover:text-red-600 hover:shadow-xl hover:shadow-red-500/5'
-            }`}
+            aria-label="Notifications"
+            className="relative w-8 h-8 rounded-full flex items-center justify-center transition-all text-(--lector-text-muted) hover:bg-(--lector-bg)"
           >
-            <Bell size={16} strokeWidth={2.5} />
+            <Bell size={16} strokeWidth={2} />
             {unreadCount > 0 && (
               <span className="absolute top-2 right-2 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 border-2 border-white shadow-sm" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#E31E24] border-2 border-white shadow-sm" />
               </span>
             )}
           </motion.button>
@@ -243,26 +217,10 @@ export default function Header({ title, subtitle }: HeaderProps) {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={toggleUserMenu}
-            className="flex items-center gap-4 py-2 px-4 rounded-[1.25rem] bg-white border border-stone-100 hover:border-red-100/50 hover:shadow-2xl hover:shadow-red-500/10 transition-all duration-500 shadow-sm group"
+            aria-label="User menu"
+            className="flex items-center gap-2 transition-all"
           >
-            {/* Text info */}
-            <div className="hidden lg:flex flex-col items-end">
-              <p className="text-[13px] font-black text-gray-900 leading-none uppercase tracking-tighter group-hover:text-red-600 transition-colors">
-                {user?.name || 'CENTRAL'}
-              </p>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                </span>
-                <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">
-                  {user?.role || 'SYSTEM'}
-                </p>
-              </div>
-            </div>
-
-            {/* Avatar */}
-            <div className="relative w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-xl shadow-red-600/30 overflow-hidden shrink-0 group-hover:rotate-6 transition-transform">
+            <div className="relative w-8 h-8 rounded-full bg-[#E31E24] text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
               <span className="text-[13px] relative z-10 leading-none">
                 {user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </span>
@@ -283,7 +241,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 {/* Profile Header */}
                 <div className="px-6 py-7 bg-stone-50/50 border-b border-stone-100">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-red-600 flex items-center justify-center text-white font-black text-lg shadow-xl shadow-red-600/30 group-hover:rotate-3 transition-transform">
+                    <div className="w-12 h-12 rounded-xl bg-[#E31E24] flex items-center justify-center text-white font-black text-lg shadow-xl shadow-red-600/30 group-hover:rotate-3 transition-transform">
                       {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                     <div className="min-w-0">

@@ -36,33 +36,33 @@ export function StatusBadge({ status, size = 'md' }: BadgeProps) {
   const label = labelMap[status] || status;
   const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-[10px]';
   
-  // Map internal status to Kalcer badge class
+  // Map internal status to JNE badge class
   const badgeClassMap: Record<string, string> = {
-    present: 'att-badge-present',
-    late: 'att-badge-late',
-    absent: 'att-badge-absent',
-    leave: 'att-badge-leave',
-    overtime: 'att-badge-overtime',
-    pending: 'att-badge-late',
-    approved: 'att-badge-present',
-    rejected: 'att-badge-absent',
+    present: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+    late: 'bg-amber-50 text-amber-700 border border-amber-100',
+    absent: 'bg-red-50 text-[#E31E24] border border-red-100',
+    leave: 'bg-blue-50 text-[#005596] border border-blue-100',
+    overtime: 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+    pending: 'bg-amber-50 text-amber-700 border border-amber-100',
+    approved: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+    rejected: 'bg-red-50 text-[#E31E24] border border-red-100',
   };
 
   const badgeClass = badgeClassMap[status] || 'bg-white/5 text-white/40 border border-white/10';
 
   return (
-    <span className={`att-badge ${badgeClass} ${sizeClass} font-black`}>
+    <span className={`inline-flex items-center gap-1.5 ${badgeClass} ${sizeClass} rounded-lg font-bold uppercase tracking-wider`}>
       {label}
     </span>
   );
 }
 
 export function FaceBadge({ registered }: { registered: boolean }) {
-  const badgeClass = registered ? 'att-badge-overtime' : 'att-badge-absent';
+  const badgeClass = registered ? 'bg-blue-50 text-[#005596] border border-blue-100' : 'bg-red-50 text-[#E31E24] border border-red-100';
 
   return (
-    <span className={`att-badge ${badgeClass} px-3 py-1 text-[9px] font-black`}>
-      {registered ? <ShieldCheck size={12} strokeWidth={3} /> : <ShieldAlert size={12} strokeWidth={3} />}
+    <span className={`inline-flex items-center gap-1.5 ${badgeClass} px-2.5 py-1 text-[9px] font-bold rounded-lg uppercase tracking-wider`}>
+      {registered ? <ShieldCheck size={11} strokeWidth={3} /> : <ShieldAlert size={11} strokeWidth={3} />}
       {registered ? 'TERDAFTAR' : 'BELUM DAFTAR'}
     </span>
   );
@@ -70,17 +70,17 @@ export function FaceBadge({ registered }: { registered: boolean }) {
 
 export function ContractBadge({ type }: { type: string }) {
   const configMap: Record<string, { label: string; class: string; icon: any }> = {
-    permanent: { label: 'TETAP', class: 'att-badge-present', icon: UserCheck },
-    contract: { label: 'KONTRAK', class: 'att-badge-leave', icon: Clock },
-    intern: { label: 'MAGANG', class: 'att-badge-overtime', icon: Zap },
+    permanent: { label: 'TETAP', class: 'bg-emerald-50 text-emerald-700 border border-emerald-100', icon: UserCheck },
+    contract: { label: 'KONTRAK', class: 'bg-blue-50 text-[#005596] border border-blue-100', icon: Clock },
+    intern: { label: 'MAGANG', class: 'bg-indigo-50 text-indigo-700 border border-indigo-100', icon: Zap },
   };
 
   const config = configMap[type] || { label: type, class: 'bg-white/5 text-white/40', icon: null };
   const Icon = config.icon;
 
   return (
-    <span className={`att-badge ${config.class} px-3 py-1 text-[9px] font-black`}>
-      {Icon && <Icon size={12} strokeWidth={3} />}
+    <span className={`inline-flex items-center gap-1.5 ${config.class} px-2.5 py-1 text-[9px] font-bold rounded-lg uppercase tracking-wider`}>
+      {Icon && <Icon size={11} strokeWidth={3} />}
       {config.label}
     </span>
   );
