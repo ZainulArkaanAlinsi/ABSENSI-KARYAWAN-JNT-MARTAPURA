@@ -82,11 +82,11 @@ function AnimatedCounter({ target, duration = 1.2 }: { target: number; duration?
 // ─── Greeting ─────────────────────────────────────────────────────────────────
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 5)  return { text: 'Selamat Malam',  Icon: Moon,    color: '#7C3AED' };
-  if (h < 12) return { text: 'Selamat Pagi',   Icon: Sun,     color: '#F59E0B' };
-  if (h < 15) return { text: 'Selamat Siang',  Icon: Coffee,  color: '#D2145A' };
-  if (h < 19) return { text: 'Selamat Sore',   Icon: Sunset,  color: '#F97316' };
-  return               { text: 'Selamat Malam', Icon: Moon,    color: '#7C3AED' };
+  if (h < 5)  return { text: 'Selamat Malam',  Icon: Moon,    color: 'var(--color-info)' };
+  if (h < 12) return { text: 'Selamat Pagi',   Icon: Sun,     color: 'var(--color-warning)' };
+  if (h < 15) return { text: 'Selamat Siang',  Icon: Coffee,  color: 'var(--jne-red)' };
+  if (h < 19) return { text: 'Selamat Sore',   Icon: Sunset,  color: 'var(--color-warning)' };
+  return               { text: 'Selamat Malam', Icon: Moon,    color: 'var(--color-info)' };
 }
 
 // ─── Stat Card V2 ─────────────────────────────────────────────────────────────
@@ -96,31 +96,32 @@ function StatCardV2({ title, value, unit, icon: Icon, accentColor, progress, cha
       variants={scaleInVariant}
       whileHover={{ y: -4, boxShadow: `0 16px 32px ${accentColor}22` }}
       whileTap={{ scale: 0.98 }}
-      className="stat-card-v2 p-4"
+      className="stat-card-v2 p-4 border"
+      style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}
     >
-      <div className="accent-bar" style={{ background: accentColor }} />
+      <div className="accent-bar" style={{ background: accentColor, width: '4px', height: '100%', position: 'absolute', left: 0, top: 0 }} />
       <div className="pl-2">
         <div className="flex justify-between items-start">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-(--lector-text-muted)">{title}</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{title}</p>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${accentColor}18` }}>
             {Icon && <Icon size={16} style={{ color: accentColor }} />}
           </div>
         </div>
-        <p className="text-xl font-black text-(--lector-text-main) mt-1 tracking-tight">
+        <p className="text-xl font-black mt-1 tracking-tight" style={{ color: 'var(--text-primary)' }}>
           <AnimatedCounter target={value || 0} />
-          {unit && <span className="text-[10px] font-bold text-(--lector-text-muted) ml-1 uppercase">{unit}</span>}
+          {unit && <span className="text-[10px] font-bold ml-1 uppercase" style={{ color: 'var(--text-muted)' }}>{unit}</span>}
         </p>
         {changeLabel && (
           <div className="flex items-center gap-1 mt-1">
-            <ArrowUpRight size={11} className="text-emerald-500" />
-            <span className="text-[10px] font-bold text-emerald-500">{changeLabel}</span>
+            <ArrowUpRight size={11} style={{ color: 'var(--color-success)' }} />
+            <span className="text-[10px] font-bold" style={{ color: 'var(--color-success)' }}>{changeLabel}</span>
           </div>
         )}
         {progress !== undefined && (
-          <div className="progress-track">
+          <div className="progress-track" style={{ background: 'var(--bg-input)', height: '4px', borderRadius: '2px', marginTop: '12px', overflow: 'hidden' }}>
             <motion.div
               className="progress-fill"
-              style={{ background: accentColor }}
+              style={{ background: accentColor, height: '100%' }}
               initial={{ width: '0%' }}
               animate={{ width: `${Math.min(100, progress)}%` }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + 0.3 }}
@@ -136,12 +137,12 @@ function StatCardV2({ title, value, unit, icon: Icon, accentColor, progress, cha
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-white rounded-xl shadow-xl border border-(--lector-border) p-3 text-[11px] font-bold">
-        <p className="text-(--lector-text-muted) mb-2 uppercase tracking-widest">{label}</p>
+      <div className="rounded-xl shadow-xl border p-3 text-[11px] font-bold" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+        <p className="mb-2 uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</p>
         {payload.map((p: any) => (
           <div key={p.name} className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full inline-block" style={{ background: p.color }} />
-            <span className="text-(--lector-text-main)">{p.name}: {p.value}</span>
+            <span style={{ color: 'var(--text-primary)' }}>{p.name}: {p.value}</span>
           </div>
         ))}
       </div>
@@ -210,13 +211,13 @@ export default function DashboardPage() {
     return (
       <AdminLayout title="Dashboard" subtitle="Overview">
         <div className="max-w-[1600px] mx-auto space-y-8">
-          <div className="h-36 rounded-2xl bg-(--lector-border) animate-pulse" />
+          <div className="h-36 rounded-2xl animate-pulse" style={{ background: 'var(--bg-input)' }} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {[1,2,3,4].map(i => (
-              <div key={i} className="h-32 rounded-2xl bg-(--lector-border) animate-pulse" style={{ animationDelay: `${i*0.1}s` }} />
+              <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: 'var(--bg-input)', animationDelay: `${i*0.1}s` }} />
             ))}
           </div>
-          <div className="h-80 rounded-2xl bg-(--lector-border) animate-pulse" />
+          <div className="h-80 rounded-2xl animate-pulse" style={{ background: 'var(--bg-input)' }} />
         </div>
       </AdminLayout>
     );
@@ -224,8 +225,7 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout title="Dashboard" subtitle="System Overview">
-      {/* ── Lector V2 Root — Premium Depth BG ── */}
-      <div className="min-h-screen bg-(--lector-bg) -m-6 p-4 lg:p-6 pb-12">
+      <div className="min-h-screen -m-6 p-4 lg:p-6 pb-12" style={{ background: 'var(--bg-main)' }}>
         <motion.div
            className="max-w-[1440px] mx-auto space-y-6"
            variants={containerVariants}
@@ -240,7 +240,7 @@ export default function DashboardPage() {
               title="Hadir (Presence)"
               value={data?.presentToday || 0}
               icon={UserCheck}
-              accentColor="var(--lector-card-purple)"
+              accentColor="var(--color-info)"
               progress={data ? (data.presentToday / Math.max(1, data.totalEmployees)) * 100 : 0}
               changeLabel="Live Today"
               delay={0}
@@ -249,7 +249,7 @@ export default function DashboardPage() {
               title="Terlambat (Late)"
               value={data?.lateToday || 0}
               icon={Clock}
-              accentColor="var(--lector-card-yellow)"
+              accentColor="var(--color-warning)"
               progress={data ? (data.lateToday / Math.max(1, data.totalEmployees)) * 100 : 0}
               changeLabel="Requires Attention"
               delay={0.05}
@@ -259,7 +259,7 @@ export default function DashboardPage() {
               value={data?.overtimeHours || 0}
               unit="Jam"
               icon={Zap}
-              accentColor="var(--lector-card-teal)"
+              accentColor="var(--color-success)"
               changeLabel="Accumulated Month"
               delay={0.1}
             />
@@ -286,7 +286,7 @@ export default function DashboardPage() {
               value={data?.totalEmployees || 0}
               unit="Staff"
               icon={Users}
-              accentColor="var(--lector-card-orange)"
+              accentColor="var(--jne-blue)"
               changeLabel="Active Matrix"
               delay={0.25}
             />
@@ -299,25 +299,27 @@ export default function DashboardPage() {
             {/* Trend Analysis Card */}
             <motion.div
               variants={slideLeftVariant}
-              className="lg:col-span-8 lector-card p-6 flex flex-col justify-between lector-mesh-purple min-h-[420px]"
+              className="lg:col-span-8 p-6 flex flex-col justify-between mesh-gradient-jne min-h-[420px] rounded-2xl border"
+              style={{ borderColor: 'var(--border-primary)' }}
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                  <p className="lector-metric-title">Performance Index</p>
-                  <h2 className="text-3xl font-black text-(--lector-text-main) tracking-tighter">
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Performance Index</p>
+                  <h2 className="text-3xl font-black tracking-tighter" style={{ color: 'var(--text-primary)' }}>
                     {attendanceRate}%
-                    <span className="text-[9px] font-black text-emerald-600 ml-3 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-widest ">Verified Stability</span>
+                    <span className="text-[9px] font-black ml-3 px-2 py-0.5 rounded-lg border uppercase tracking-widest shadow-sm" style={{ color: 'var(--color-success)', background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>Verified Stability</span>
                   </h2>
-                  <p className="text-[10px] font-bold text-(--lector-text-muted) opacity-60 uppercase tracking-widest mt-1 flex items-center gap-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest mt-1 flex items-center gap-2" style={{ color: 'var(--text-muted)', opacity: 0.8 }}>
                     <Activity size={10} /> Attendance Analytics — {format(new Date(), 'MMMM yyyy')}
                   </p>
                 </div>
                 {/* Refined Toggle */}
-                <div className="flex bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200 shadow-inner backdrop-blur-sm">
+                <div className="flex p-1.5 rounded-2xl border shadow-inner backdrop-blur-sm" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
                   {['DAILY', 'WEEKLY', 'MONTHLY'].map(t => (
                     <button 
                       key={t}
-                      className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${t === 'WEEKLY' ? 'bg-white text-[#E31E24] shadow-sm' : 'text-(--lector-text-muted) hover:text-(--lector-text-main)'}`}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${t === 'WEEKLY' ? 'bg-(--jne-red) text-white shadow-sm' : ''}`}
+                      style={{ color: t === 'WEEKLY' ? '#fff' : 'var(--text-muted)' }}
                     >
                       {t}
                     </button>
@@ -347,11 +349,12 @@ export default function DashboardPage() {
             {/* Distribution Pie (Parallel to Trend) */}
             <motion.div
               variants={slideRightVariant}
-              className="lg:col-span-4 lector-card p-6 flex flex-col justify-between bg-zinc-900 text-white min-h-[420px]"
+              className="lg:col-span-4 p-6 flex flex-col justify-between min-h-[420px] rounded-2xl border"
+              style={{ background: 'var(--bg-sidebar)', borderColor: 'var(--border-primary)', color: '#fff' }}
             >
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">Status Mix</p>
-                <h3 className="text-2xl font-black tracking-tight">Daily Distribution</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Status Mix</p>
+                <h3 className="text-2xl font-black tracking-tight" style={{ color: '#fff' }}>Daily Distribution</h3>
               </div>
 
               <div className="relative flex items-center justify-center py-10">
@@ -382,14 +385,14 @@ export default function DashboardPage() {
 
               <div className="space-y-4">
                 {[
-                  { name: 'Hadir',  color: '#E31E24', value: data?.presentToday || 0 },
-                  { name: 'Lembur', color: '#0d9488', value: data?.overtimeHours || 0 },
-                  { name: 'Alpha',  color: '#005596', value: data?.absentToday || 0 },
+                  { name: 'Hadir',  color: 'var(--jne-red)', value: data?.presentToday || 0 },
+                  { name: 'Lembur', color: 'var(--color-success)', value: data?.overtimeHours || 0 },
+                  { name: 'Alpha',  color: 'var(--jne-blue)', value: data?.absentToday || 0 },
                 ].map(d => (
-                  <div key={d.name} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                  <div key={d.name} className="flex items-center justify-between p-4 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="flex items-center gap-4">
                       <span className="w-3.5 h-3.5 rounded-full shadow-lg" style={{ background: d.color, boxShadow: `0 0 12px ${d.color}66` }} />
-                      <span className="text-xs font-black uppercase tracking-widest text-white/70">{d.name}</span>
+                      <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.7)' }}>{d.name}</span>
                     </div>
                     <span className="text-lg font-black">{d.value}</span>
                   </div>
@@ -404,14 +407,14 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             
             {/* Activities — Styled as a Live Feed */}
-            <motion.div variants={fadeUpVariant} className="lg:col-span-5 lector-card p-6 flex flex-col">
+            <motion.div variants={fadeUpVariant} className="lg:col-span-12 xl:col-span-5 p-6 flex flex-col rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <p className="lector-metric-title">Real-time Feed</p>
-                  <h3 className="text-xl font-black text-(--lector-text-main) tracking-tight">System Signals</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Real-time Feed</p>
+                  <h3 className="text-xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>System Signals</h3>
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 shadow-inner">
-                  <Zap size={18} className="text-(--lector-sidebar-brand)" />
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center border shadow-inner" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
+                  <Zap size={18} style={{ color: 'var(--jne-red)' }} />
                 </div>
               </div>
 
@@ -422,20 +425,20 @@ export default function DashboardPage() {
                       <div className={`w-14 h-14 rounded-3xl flex items-center justify-center font-black text-white shadow-xl shrink-0 transition-transform group-hover:scale-110 duration-500`} style={{ background: act.color }}>
                         {act.userName.charAt(0).toUpperCase()}
                       </div>
-                        <div className="min-w-0 flex-1 border-b border-slate-50 pb-5 last:border-0 group-hover:bg-slate-50/50 p-2 rounded-xl transition-all">
+                        <div className="min-w-0 flex-1 border-b pb-5 last:border-0 group-hover:bg-(--bg-input) p-2 rounded-xl transition-all" style={{ borderColor: 'var(--border-primary)' }}>
                         <div className="flex items-center justify-between">
                           <Link href={`/employees/${act.id || ''}`}>
-                            <p className="text-[14px] font-black text-(--lector-text-main) truncate hover:text-[#E31E24] transition-colors cursor-pointer">{act.userName}</p>
+                            <p className="text-[14px] font-black truncate transition-colors cursor-pointer" style={{ color: 'var(--text-primary)' }}>{act.userName}</p>
                           </Link>
-                          <span className="text-[10px] font-black text-(--lector-text-muted) px-2 py-1 bg-white rounded-lg shadow-sm border border-slate-100">{act.checkIn}</span>
+                          <span className="text-[10px] font-black px-2 py-1 rounded-lg shadow-sm border" style={{ color: 'var(--text-muted)', background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>{act.checkIn}</span>
                         </div>
-                        <p className="text-[11px] font-bold text-(--lector-text-muted) opacity-70 mt-0.5">{act.actionLabel}</p>
+                        <p className="text-[11px] font-bold opacity-70 mt-0.5" style={{ color: 'var(--text-muted)' }}>{act.actionLabel}</p>
                         <div className="mt-3 flex items-center gap-2">
                           <div className="flex -space-x-2">
-                            <div className="w-4 h-4 rounded-full bg-slate-200 border border-white" />
-                            <div className="w-4 h-4 rounded-full bg-slate-300 border border-white" />
+                            <div className="w-4 h-4 rounded-full border border-white" style={{ background: 'var(--text-dim)' }} />
+                            <div className="w-4 h-4 rounded-full border border-white" style={{ background: 'var(--text-muted)' }} />
                           </div>
-                          <span className="text-[9px] font-black text-(--lector-text-muted) uppercase tracking-widest">{act.department} Unit</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{act.department} Unit</span>
                         </div>
                       </div>
                     </div>
@@ -450,46 +453,46 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Operational Logs — Parallel Table */}
-            <motion.div variants={fadeUpVariant} className="lg:col-span-7 lector-card p-0 flex flex-col">
+            <motion.div variants={fadeUpVariant} className="lg:col-span-12 xl:col-span-7 p-0 flex flex-col rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
               <div className="p-8 pb-4">
-                <p className="lector-metric-title">Audit Matrix</p>
-                <h3 className="text-2xl font-black text-(--lector-text-main) tracking-tight">Internal Status Log</h3>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Audit Matrix</p>
+                <h3 className="text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Internal Status Log</h3>
               </div>
-
+    
               <div className="flex-1 overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50/80 backdrop-blur-sm border-y border-slate-100">
-                    <tr className="text-(--lector-text-muted) text-[9px] font-black uppercase tracking-[0.25em]">
+                  <thead className="backdrop-blur-sm border-y" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
+                    <tr className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: 'var(--text-muted)' }}>
                       <th className="px-6 py-4">Domain Status</th>
                       <th className="px-6 py-4 text-center">Units</th>
                       <th className="px-6 py-4 text-right">Progress/Quota</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y" style={{ borderColor: 'var(--border-primary)' }}>
                     {(data?.recentActivities?.length ?? 0) > 0 ? (
                       data?.recentActivities.slice(0, 5).map((row, i) => {
-                        const statusColor = row.status === 'late' ? '#f59e0b' : row.status === 'absent' ? '#ef4444' : '#10b981';
+                        const statusColor = row.status === 'late' ? 'var(--color-warning)' : row.status === 'absent' ? 'var(--jne-red)' : 'var(--color-success)';
                         const statusLabel = row.status === 'late' ? 'Delay Matrix' : row.status === 'absent' ? 'System Fail' : 'Operational Sync';
                         const progress = row.status === 'late' ? 65 : row.status === 'absent' ? 20 : 100;
-
+    
                         return (
-                          <tr key={i} className="group hover:bg-indigo-50/30 transition-all duration-500">
+                          <tr key={i} className="group hover:bg-(--bg-input) transition-all duration-500">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: statusColor }} />
                                 <div>
-                                  <p className="text-[13px] font-black text-(--lector-text-main)">{statusLabel}</p>
-                                  <p className="text-[9px] font-bold text-(--lector-text-muted) opacity-50 uppercase tracking-widest">{row.department}</p>
+                                  <p className="text-[13px] font-black" style={{ color: 'var(--text-primary)' }}>{statusLabel}</p>
+                                  <p className="text-[9px] font-bold opacity-50 uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{row.department}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <span className="text-xs font-black text-(--lector-text-main)">{row.status === 'present' ? '01' : '00'}</span>
+                              <span className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{row.status === 'present' ? '01' : '00'}</span>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col items-end gap-1.5">
                                 <span className={`text-[9px] font-black uppercase tracking-widest`} style={{ color: statusColor }}>{progress}%</span>
-                                <div className="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
                                   <motion.div 
                                     className="h-full rounded-full" 
                                     style={{ background: statusColor }}
@@ -505,18 +508,18 @@ export default function DashboardPage() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={3} className="px-8 py-24 text-center opacity-20 italic font-black uppercase tracking-widest">Null Dataset</td>
+                        <td colSpan={3} className="px-8 py-24 text-center opacity-20 italic font-black uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>Null Dataset</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
               
-              <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Operational Sync Status</p>
+              <div className="p-6 border-t flex items-center justify-between" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
+                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Operational Sync Status</p>
                 <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                   <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Neural Link Online</span>
+                   <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-success)' }} />
+                   <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--color-success)' }}>Neural Link Online</span>
                 </div>
               </div>
             </motion.div>

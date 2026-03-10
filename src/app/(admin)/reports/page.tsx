@@ -306,7 +306,7 @@ export default function ReportsPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: idx * 0.015 }}
-                          className="hover:bg-[var(--bg-main)] transition-all group"
+                          className="hover:bg-(--bg-main) transition-all group"
                         >
                         <td className="px-6 py-5">
                            <p className="text-[12px] font-black font-mono tracking-tight leading-none mb-1" style={{ color: 'var(--text-primary)' }}>
