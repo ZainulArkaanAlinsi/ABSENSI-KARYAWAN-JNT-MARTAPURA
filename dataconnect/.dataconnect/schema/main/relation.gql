@@ -97,7 +97,7 @@ extend type AttendanceRecord {
   """
   A generated field that is used for caching results in SDKs.
   """
-  _id: ID! @fdc_generated(from: "AttendanceRecord.id", purpose: GLOBAL_ID)
+  _id: ID! @fdc_generated(from: "AttendanceRecord.id", purpose: ENTITY_ID)
 }
 extend type Department {
   """
@@ -189,7 +189,7 @@ extend type Department {
   """
   A generated field that is used for caching results in SDKs.
   """
-  _id: ID! @fdc_generated(from: "Department.id", purpose: GLOBAL_ID)
+  _id: ID! @fdc_generated(from: "Department.id", purpose: ENTITY_ID)
 }
 extend type Employee {
   """
@@ -411,7 +411,7 @@ extend type Employee {
   """
   A generated field that is used for caching results in SDKs.
   """
-  _id: ID! @fdc_generated(from: "Employee.id", purpose: GLOBAL_ID)
+  _id: ID! @fdc_generated(from: "Employee.id", purpose: ENTITY_ID)
 }
 extend type LeaveRequest {
   """
@@ -530,5 +530,5 @@ extend type LeaveRequest {
   """
   A generated field that is used for caching results in SDKs.
   """
-  _id: ID! @fdc_generated(from: "LeaveRequest.id", purpose: GLOBAL_ID)
+  _id: ID! @fdc_generated(from: "LeaveRequest.id", purpose: ENTITY_ID)
 }
