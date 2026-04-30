@@ -16,13 +16,18 @@ export default function CompanySettings({ settings, update }: CompanySettingsPro
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {fields.map((field) => (
-        <div key={field.key} className="space-y-2">
-          <label className="pg-form-label">{field.label}</label>
+        <div key={field.key} className="space-y-3">
+          <label className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{field.label}</label>
           <input
             type={field.type}
-            className="pg-form-input"
+            className="w-full bg-black/5 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-(--jne-red) transition-colors"
+            style={{ 
+              borderColor: 'var(--border-primary)', 
+              color: 'var(--text-primary)',
+              boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.5)'
+            }}
             placeholder={field.placeholder}
             value={(settings as any)[field.key] ?? ''}
             onChange={(e) => update('company', field.key, e.target.value)}

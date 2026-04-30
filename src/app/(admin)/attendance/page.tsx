@@ -24,11 +24,18 @@ function DeptIcon({ rule }: { rule: typeof DEPARTMENT_RULES[0] }) {
 
 function RuleBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-white/10 bg-black/10 px-3 py-2 transition-all hover:bg-black/20 group/badge">
-      <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 leading-none group-hover/badge:text-white/50 transition-colors">
+    <div 
+      className="flex flex-col gap-1.5 rounded-2xl border px-4 py-3.5 transition-all group/badge"
+      style={{ 
+        background: 'var(--bg-input)', 
+        borderColor: 'var(--border-primary)',
+        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+      }}
+    >
+      <span className="text-[10px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-muted)' }}>
         {label}
       </span>
-      <span className="text-[11px] font-black text-white/90 leading-tight tracking-tight">{value}</span>
+      <span className="text-[13px] font-black leading-tight tracking-tight" style={{ color: 'var(--text-primary)' }}>{value}</span>
     </div>
   );
 }
@@ -69,53 +76,52 @@ export default function AttendancePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ y: -4, scale: 1.01 }}
+              whileTap={{ y: 2, scale: 0.99 }}
               onClick={() => router.push(`/head-units/${rule.id}`)}
-              className={`group glass-card glass-highlight p-0 overflow-hidden text-left transition-all relative ${
-                `stagger-${(idx % 6) + 1}`
-              }`}
+              className={`group p-0 overflow-hidden text-left transition-all relative border`}
               style={{ 
-                borderRadius: '0.75rem',
-                background: `linear-gradient(135deg, ${rule.color}15 0%, ${rule.color}05 100%)`, 
-                borderColor: `${rule.color}20`,
-                boxShadow: `0 8px 30px -10px ${rule.color}10`
+                borderRadius: '1.5rem',
+                background: 'var(--bg-card)', 
+                borderColor: 'var(--border-primary)',
+                boxShadow: `0 15px 35px -10px ${rule.color}20, inset 0 2px 0 rgba(255, 255, 255, 0.4)`
               }}
             >
               {/* Decorative Glow */}
               <div 
-                className="absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-20 transition-opacity group-hover:opacity-40" 
+                className="absolute top-0 right-0 w-40 h-40 blur-[70px] opacity-10 transition-opacity group-hover:opacity-20" 
                 style={{ background: rule.color }}
               />
               
-              <div className="p-6 flex flex-col h-full relative z-10">
+              <div className="p-7 flex flex-col h-full relative z-10">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-8">
                   <div
-                    className="flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-sm border border-slate-100 bg-white"
+                    className="flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-md border"
+                    style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}
                   >
-                    <span style={{ color: rule.color }} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                    <span style={{ color: rule.color, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
                       <DeptIcon rule={rule} />
                     </span>
                   </div>
                   <div 
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-white/10 backdrop-blur-md border border-white/10"
-                    style={{ color: rule.color }}
+                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border"
+                    style={{ color: rule.color, background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}
                   >
-                    <div className="w-1 h-1 rounded-full animate-pulse" style={{ background: rule.color }} />
+                    <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: rule.color, boxShadow: `0 0 8px ${rule.color}` }} />
                     Active Node
                   </div>
                 </div>
 
-                <div className="mb-6 flex-1">
-                  <h3 className="text-[18px] font-black text-slate-900 leading-tight uppercase tracking-tighter italic mb-2 group-hover:translate-x-1 transition-transform">{rule.name}</h3>
-                  <p className="text-[12px] leading-relaxed text-slate-500 font-bold line-clamp-2">
+                <div className="mb-8 flex-1">
+                  <h3 className="text-[20px] font-black leading-tight uppercase tracking-tighter italic mb-2 group-hover:translate-x-1 transition-transform" style={{ color: 'var(--text-primary)' }}>{rule.name}</h3>
+                  <p className="text-[13px] leading-relaxed font-bold line-clamp-2" style={{ color: 'var(--text-muted)' }}>
                     {rule.description}
                   </p>
                 </div>
 
                 {/* Rule Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-8">
                   <RuleBadge label="Shift Start" value={rule.checkInTime} />
                   <RuleBadge
                     label="End Window"
@@ -129,10 +135,11 @@ export default function AttendancePage() {
                 </div>
 
                 {/* Footer Action */}
-                <div className="flex items-center justify-between pt-5 border-t border-slate-100 mt-auto">
-                  <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Ops Deployment</span>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-slate-900 group-hover:text-[#E31E24] transition-all">
-                    LOGS <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1.5 transition-transform" />
+                <div className="flex items-center justify-between pt-5 border-t mt-auto" style={{ borderColor: 'var(--border-primary)' }}>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--text-muted)' }}>Ops Deployment</span>
+                  <div className="flex items-center gap-2 text-[11px] font-black transition-all" style={{ color: 'var(--text-primary)' }}>
+                    <span className="group-hover:text-[#E31E24] transition-colors">LOGS</span> 
+                    <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1.5 group-hover:text-[#E31E24] transition-all" />
                   </div>
                 </div>
               </div>

@@ -95,7 +95,6 @@ export default function Header({ title, subtitle }: HeaderProps) {
         height: 'var(--header-height)',
         background: 'var(--bg-header)',
         borderColor: 'var(--border-primary)',
-        backdropFilter: 'blur(12px)',
       }}
     >
 
@@ -117,8 +116,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
         >
           <Search
             size={14}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-500 ${
-              searchFocused ? 'text-[#E31E24]' : 'text-gray-300'
+            className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-500 z-10 ${
+              searchFocused ? 'text-[#E31E24]' : 'text-gray-400'
             }`}
           />
           <input
@@ -128,11 +127,14 @@ export default function Header({ title, subtitle }: HeaderProps) {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             onChange={e => setSearchValue(e.target.value)}
-            className="w-full border rounded-full py-1.5 pl-10 pr-10 text-[12px] transition-all focus:outline-none focus:border-[#E31E24]/50"
+            className="w-full rounded-2xl py-2.5 pl-10 pr-10 text-[12px] font-bold transition-all focus:outline-none"
             style={{ 
               background: 'var(--bg-input)', 
-              borderColor: 'var(--border-primary)',
-              color: 'var(--text-primary)'
+              color: 'var(--text-primary)',
+              border: 'none',
+              boxShadow: searchFocused 
+                ? 'inset 0 4px 6px rgba(0,0,0,0.1), 0 0 0 2px var(--jne-red)' 
+                : 'inset 0 3px 6px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
             }}
           />
           <AnimatePresence>
@@ -142,7 +144,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={() => setSearchValue('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-900 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors z-10"
               >
                 <X size={14} />
               </motion.button>
@@ -155,14 +157,15 @@ export default function Header({ title, subtitle }: HeaderProps) {
       <div className="flex items-center gap-4 px-6 flex-1 justify-end relative z-10">
         {/* Theme Toggle */}
         <motion.button
-          whileHover={{ scale: 1.1, y: -2 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ y: -2 }}
+          whileTap={{ y: 2, boxShadow: '0 0px 0 var(--border-primary), 0 2px 4px rgba(0,0,0,0.1)' }}
           onClick={toggleTheme}
-          className="relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 shadow-sm"
+          className="relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border-none"
           style={{ 
             background: 'var(--bg-card)', 
-            borderColor: 'var(--border-primary)',
-            color: 'var(--text-muted)'
+            color: 'var(--text-muted)',
+            boxShadow: '0 4px 0 var(--border-primary), 0 6px 15px rgba(0,0,0,0.05), inset 0 2px 0 rgba(255,255,255,0.6)',
+            marginBottom: '4px'
           }}
         >
           <AnimatePresence mode="wait">
@@ -173,8 +176,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, rotate: 0, scale: 1 }}
                 exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' }}
               >
-                <Moon size={16} strokeWidth={2.5} />
+                <Moon size={18} strokeWidth={2.5} />
               </motion.div>
             ) : (
               <motion.div
@@ -183,8 +187,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, rotate: 0, scale: 1 }}
                 exit={{ opacity: 0, rotate: 45, scale: 0.5 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.2))' }}
               >
-                <Sun size={16} className="text-orange-500" strokeWidth={2.5} />
+                <Sun size={18} className="text-orange-500" strokeWidth={2.5} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -193,23 +198,24 @@ export default function Header({ title, subtitle }: HeaderProps) {
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>
           <motion.button
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ y: -2 }}
+            whileTap={{ y: 2, boxShadow: '0 0px 0 var(--border-primary), 0 2px 4px rgba(0,0,0,0.1)' }}
             ref={bellRef}
             onClick={toggleNotifications}
             aria-label="Notifications"
-            className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all border shadow-sm"
+            className="relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all border-none"
             style={{ 
               background: 'var(--bg-card)', 
-              borderColor: 'var(--border-primary)',
-              color: 'var(--text-muted)'
+              color: 'var(--text-muted)',
+              boxShadow: '0 4px 0 var(--border-primary), 0 6px 15px rgba(0,0,0,0.05), inset 0 2px 0 rgba(255,255,255,0.6)',
+              marginBottom: '4px'
             }}
           >
-            <Bell size={16} strokeWidth={2} />
+            <Bell size={18} strokeWidth={2.5} style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.2))' }} />
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 flex h-3 w-3">
+              <span className="absolute top-2 right-2 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#E31E24] border-2 border-white shadow-sm" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#E31E24] shadow-sm border border-white/20" style={{ boxShadow: '0 2px 4px rgba(227,30,36,0.5)' }} />
               </span>
             )}
           </motion.button>
@@ -232,18 +238,19 @@ export default function Header({ title, subtitle }: HeaderProps) {
         {/* User Profile */}
         <div className="relative" ref={userRef}>
           <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ y: -2 }}
+            whileTap={{ y: 2, boxShadow: '0 0px 0 #b31217, 0 2px 4px rgba(227,30,36,0.3)' }}
             onClick={toggleUserMenu}
             aria-label="User menu"
-            className="flex items-center gap-2 transition-all"
+            className="relative w-10 h-10 rounded-2xl bg-[#E31E24] text-white flex items-center justify-center font-black overflow-hidden shrink-0 border-none transition-all duration-300"
+            style={{ 
+              boxShadow: '0 4px 0 #b31217, 0 6px 15px rgba(227,30,36,0.4), inset 0 2px 0 rgba(255,255,255,0.3)',
+              marginBottom: '4px'
+            }}
           >
-            <div className="relative w-9 h-9 rounded-xl bg-[#E31E24] text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
-              <span className="text-[13px] relative z-10 leading-none">
-                {user?.name?.charAt(0)?.toUpperCase() || 'A'}
-              </span>
-              <div className="absolute inset-0 bg-linear-to-tr from-black/20 to-transparent" />
-            </div>
+            <span className="text-[14px] relative z-10 leading-none" style={{ textShadow: '0 2px 2px rgba(0,0,0,0.3)' }}>
+              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+            </span>
           </motion.button>
 
           {/* User Menu Dropdown */}
@@ -254,7 +261,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 16, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute right-0 top-full mt-4 w-72 backdrop-blur-3xl rounded-3xl overflow-hidden border shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
+                className="absolute right-0 top-full mt-4 w-72 rounded-3xl overflow-hidden border shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
                 style={{ 
                   background: 'var(--glass-bg)', 
                   borderColor: 'var(--border-primary)'

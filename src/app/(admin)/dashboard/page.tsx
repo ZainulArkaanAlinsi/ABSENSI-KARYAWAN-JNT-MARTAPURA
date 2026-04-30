@@ -314,7 +314,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 {/* Refined Toggle */}
-                <div className="flex p-1.5 rounded-2xl border shadow-inner backdrop-blur-sm" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
+                <div className="flex p-1.5 rounded-2xl border bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)' }}>
                   {['DAILY', 'WEEKLY', 'MONTHLY'].map(t => (
                     <button 
                       key={t}
@@ -357,13 +357,13 @@ export default function DashboardPage() {
                 <h3 className="text-2xl font-black tracking-tight" style={{ color: '#fff' }}>Daily Distribution</h3>
               </div>
 
-              <div className="relative flex items-center justify-center py-10">
-                <ResponsiveContainer width="100%" height={280}>
+              <div className="relative flex items-center justify-center py-6">
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
                       data={donutData.length > 0 ? donutData : [{ name: 'No Data', value: 1, color: '#333' }]}
-                      innerRadius={85}
-                      outerRadius={115}
+                      innerRadius="65%"
+                      outerRadius="85%"
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
@@ -375,7 +375,7 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
                   <p className="text-3xl font-black leading-none drop-shadow-lg">
                     {attendanceRate}%
                   </p>
@@ -389,7 +389,7 @@ export default function DashboardPage() {
                   { name: 'Lembur', color: 'var(--color-success)', value: data?.overtimeHours || 0 },
                   { name: 'Alpha',  color: 'var(--jne-blue)', value: data?.absentToday || 0 },
                 ].map(d => (
-                  <div key={d.name} className="flex items-center justify-between p-4 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <div key={d.name} className="flex items-center justify-between p-4 rounded-2xl border" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="flex items-center gap-4">
                       <span className="w-3.5 h-3.5 rounded-full shadow-lg" style={{ background: d.color, boxShadow: `0 0 12px ${d.color}66` }} />
                       <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.7)' }}>{d.name}</span>
@@ -461,7 +461,7 @@ export default function DashboardPage() {
     
               <div className="flex-1 overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="backdrop-blur-sm border-y" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
+                  <thead className="border-y bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)' }}>
                     <tr className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: 'var(--text-muted)' }}>
                       <th className="px-6 py-4">Domain Status</th>
                       <th className="px-6 py-4 text-center">Units</th>

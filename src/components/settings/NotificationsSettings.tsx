@@ -11,8 +11,8 @@ interface NotificationsSettingsProps {
 
 export default function NotificationsSettings({ settings, update }: NotificationsSettingsProps) {
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {[
           {
             key: 'notifyOnLeaveRequest',
@@ -35,7 +35,7 @@ export default function NotificationsSettings({ settings, update }: Notification
             desc: 'Notifikasi login awal karyawan baru',
           },
         ].map((item) => (
-          <div key={item.key} className="p-4 rounded-xl" style={{ border: '1px solid var(--pg-border)', background: 'var(--pg-bg)' }}>
+          <div key={item.key} className="p-5 rounded-2xl border transition-all hover:bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-card)' }}>
             <ToggleSwitch
               checked={Boolean((settings as any)[item.key])}
               onChange={() => update('notifications', item.key, !(settings as any)[item.key])}
@@ -46,8 +46,8 @@ export default function NotificationsSettings({ settings, update }: Notification
         ))}
       </div>
 
-      <div className="pt-2" style={{ borderTop: '1px solid var(--pg-border)' }}>
-        <div className="p-4 rounded-xl" style={{ border: '1px solid var(--pg-border)', background: 'var(--pg-bg)' }}>
+      <div className="pt-6 border-t" style={{ borderColor: 'var(--border-primary)' }}>
+        <div className="p-5 rounded-2xl border transition-all hover:bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-card)' }}>
           <ToggleSwitch
             checked={settings.emailNotifications}
             onChange={() => update('notifications', 'emailNotifications', !settings.emailNotifications)}
@@ -59,15 +59,20 @@ export default function NotificationsSettings({ settings, update }: Notification
         <AnimatePresence>
           {settings.emailNotifications && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mt-4 space-y-2"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="overflow-hidden mt-6 space-y-3"
             >
-              <label className="pg-form-label">Email Penerima Notifikasi</label>
+              <label className="text-[11px] font-black uppercase tracking-widest block" style={{ color: 'var(--text-muted)' }}>Email Penerima Notifikasi</label>
               <input
                 type="email"
-                className="pg-form-input"
+                className="w-full bg-black/5 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-(--jne-red) transition-colors"
+                style={{ 
+                  borderColor: 'var(--border-primary)', 
+                  color: 'var(--text-primary)',
+                  boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.5)'
+                }}
                 placeholder="admin@perusahaan.com"
                 value={settings.adminEmail ?? ''}
                 onChange={(e) => update('notifications', 'adminEmail', e.target.value)}

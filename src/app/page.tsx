@@ -79,7 +79,7 @@ export default function LandingPage() {
           initial={{ y: -60, opacity: 0, scale: 0.9 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease }}
-          className="flex items-center justify-between px-6 h-18 rounded-[2.5rem] border border-white/40 shadow-2xl backdrop-blur-3xl noisy-glass"
+          className="flex items-center justify-between px-6 h-18 rounded-[2.5rem] border border-slate-200 shadow-md bg-white"
           style={{ maxWidth: '1000px', width: '100%' }}
         >
           {/* Brand Nexus */}
@@ -136,8 +136,8 @@ export default function LandingPage() {
         <div className="nexus-mesh" />
         
         {/* Floating Decorative Elements */}
-        <div className="absolute top-1/4 left-10 w-64 h-64 bg-red-500/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-10 w-64 h-64 bg-red-500/5 rounded-full" />
+        <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-emerald-500/5 rounded-full" />
 
         <div className="max-w-7xl mx-auto relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -147,9 +147,9 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease }}
-              className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/40 backdrop-blur-md border border-white/20 shadow-sm mb-8"
+              className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm mb-8"
             >
-              <span className="flex h-2 w-2 rounded-full bg-red-600 animate-ping" />
+              <span className="flex h-2 w-2 rounded-full bg-red-600" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600">NexGen Logistics System</span>
             </motion.div>
 
@@ -186,7 +186,7 @@ export default function LandingPage() {
                 MULAI SEKARANG
               </Link>
               <a href="#layanan"
-                className="px-10 py-5 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/40 text-slate-900 font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-slate-200/50"
+                className="px-10 py-5 rounded-3xl bg-white border border-slate-200 text-slate-900 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all shadow-md"
               >
                 EKSPLORASI LAYANAN
               </a>
@@ -263,7 +263,7 @@ export default function LandingPage() {
       {/* ════════ LIQUID BENTO CORE ════════ */}
       <section className="py-32 px-4 relative overflow-hidden" style={{ background: BG_SOFT }}>
         {/* Subtle mesh for the section */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-red-500/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-red-500/5 rounded-full pointer-events-none" />
         
         <div className="max-w-7xl mx-auto">
           

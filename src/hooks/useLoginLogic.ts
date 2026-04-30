@@ -25,10 +25,12 @@ export function useLoginLogic() {
 
     setLoading(true);
     try {
-      await signIn(email, password);
-      setIsSuccess(true);
-    } catch {
-      // error handled in AuthContext
+      const success = await signIn(email.trim(), password);
+      if (success) {
+        setIsSuccess(true);
+      }
+    } catch (err) {
+      console.error("Login unexpected error:", err);
     } finally {
       setLoading(false);
     }

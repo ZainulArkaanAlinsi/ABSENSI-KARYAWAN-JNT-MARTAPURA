@@ -22,7 +22,7 @@ interface AuthContextType {
   firebaseUser: User | null;
   loading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -80,9 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err: unknown) {
+      return true;
+    } catch (err: any) {
       const msg = err instanceof Error ? err.message : 'Login gagal';
-      if (msg.includes('invalid-credential') || msg.includes('wrong-password')) {
+      if (msg.includes('invalid-credential') || msg.includes('wrong-password') || msg.includes('user-not-found')) {
         setError('Email atau password salah.');
       } else if (msg.includes('too-many-requests')) {
         setError('Terlalu banyak percobaan. Coba lagi nanti.');
@@ -90,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError('Login gagal. Periksa koneksi internet Anda.');
       }
       setLoading(false);
-      throw err;
+      return false;
     }
   };
 
