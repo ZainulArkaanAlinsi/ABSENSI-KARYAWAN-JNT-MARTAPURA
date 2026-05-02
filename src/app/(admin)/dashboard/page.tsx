@@ -427,7 +427,7 @@ export default function DashboardPage() {
                       </div>
                         <div className="min-w-0 flex-1 border-b pb-5 last:border-0 group-hover:bg-(--bg-input) p-2 rounded-xl transition-all" style={{ borderColor: 'var(--border-primary)' }}>
                         <div className="flex items-center justify-between">
-                          <Link href={`/employees/${act.id || ''}`}>
+                          <Link href={`/employees/detail?id=${act.id || ''}`}>
                             <p className="text-[14px] font-black truncate transition-colors cursor-pointer" style={{ color: 'var(--text-primary)' }}>{act.userName}</p>
                           </Link>
                           <span className="text-[10px] font-black px-2 py-1 rounded-lg shadow-sm border" style={{ color: 'var(--text-muted)', background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>{act.checkIn}</span>

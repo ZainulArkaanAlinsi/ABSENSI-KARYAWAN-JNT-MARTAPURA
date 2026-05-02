@@ -124,10 +124,10 @@ export default function LoginPage() {
                 <Mail size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#E04B3A]" />
                 <input
                   id="login-email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="IDENTIFIER (EMAIL)"
+                  placeholder="ID USER ATAU EMAIL"
                   required
                   autoComplete="email"
                   className="w-full nexus-input rounded-2xl py-4.5 pl-14 pr-6 text-sm font-black tracking-widest uppercase placeholder:text-slate-600 focus:outline-none"

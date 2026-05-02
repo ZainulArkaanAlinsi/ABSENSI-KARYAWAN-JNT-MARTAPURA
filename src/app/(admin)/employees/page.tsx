@@ -325,7 +325,7 @@ export default function EmployeesPage() {
                       </td>
                       <td className="px-6 py-5 text-right">
                         <Link
-                          href={`/employees/${emp.id}`}
+                          href={`/employees/detail?id=${emp.id}`}
                           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-100 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all hover:bg-slate-50 hover:text-[#E31E24] shadow-sm"
                         >
                           Details

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "functions/**",
+    "attendance_jne_martapura_backend/**",
   ]),
 ]);
 
