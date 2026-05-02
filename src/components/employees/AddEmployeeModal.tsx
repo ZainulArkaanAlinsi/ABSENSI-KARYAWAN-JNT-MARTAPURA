@@ -148,7 +148,7 @@ export default function AddEmployeeModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="animate-field space-y-1.5">
                   <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
                     Email
@@ -157,9 +157,24 @@ export default function AddEmployeeModal({
                     type="email"
                     className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
                     style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="nama@jne.co.id"
+                    placeholder="nama"
                     value={form.email}
                     onChange={(e) => handleChange('email', e.target.value)}
+                    required
+                  />
+                  <p className="ml-1 text-[9px] text-white/40">Otomatis @jne.mtp.com</p>
+                </div>
+                <div className="animate-field space-y-1.5">
+                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                    placeholder="Min. 6 karakter"
+                    value={form.password}
+                    onChange={(e) => handleChange('password', e.target.value)}
                     required
                   />
                 </div>

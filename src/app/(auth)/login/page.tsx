@@ -42,10 +42,10 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-slate-950 flex items-center justify-center p-4">
+    <div className="fixed inset-0 overflow-y-auto bg-slate-950 flex items-center justify-center p-4">
       
       {/* ── Ambient Background ── */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(224,75,58,0.1),transparent_50%)]" />
         <div className="absolute top-0 left-[20%] w-px h-full bg-linear-to-b from-transparent via-white/5 to-transparent opacity-20" />
         <div className="absolute top-0 left-[80%] w-px h-full bg-linear-to-b from-transparent via-white/5 to-transparent opacity-20" />

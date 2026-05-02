@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addEmployee } from '@/lib/firestore';
+import { registerEmployee } from '@/lib/firestore';
 import type { JamKerja, Department } from '@/types';
 
 export function useAddEmployeeLogic(onClose: () => void) {
@@ -8,6 +8,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    password: '', // Password wajib untuk Admin
     phone: '',
     employeeId: '',
     department: '' as Department,
@@ -46,26 +47,38 @@ export function useAddEmployeeLogic(onClose: () => void) {
     e.preventDefault();
 
     // Validasi lebih ketat
-    if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
-      alert('Semua field wajib harus diisi!');
+    if (!form.name || !form.email || !form.password || !form.employeeId || !form.department || !form.jamKerjaId) {
+      alert('Semua field wajib harus diisi (termasuk Password)!');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      alert('Password minimal 6 karakter!');
       return;
     }
 
     setLoading(true);
     try {
-      await addEmployee({
-        ...form,
-        uid: '',
-        role: 'employee',
-        faceRegistered: false,
-        isActive: true,
-      });
+      // Kita panggil registerEmployee yang baru (Auth + Firestore)
+      const { password, ...employeeData } = form;
+      
+      await registerEmployee(
+        {
+          ...employeeData,
+          role: 'employee',
+          faceRegistered: false,
+          isActive: true,
+        },
+        password
+      );
+
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
         setForm({
           name: '',
           email: '',
+          password: '',
           phone: '',
           employeeId: '',
           department: '' as any,
@@ -78,9 +91,9 @@ export function useAddEmployeeLogic(onClose: () => void) {
         onClose();
       }, 2000);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Gagal menambah karyawan:', err);
-      alert('Terjadi kesalahan. Silakan coba lagi.');
+      alert(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }

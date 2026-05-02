@@ -17,6 +17,8 @@ import {
   DocumentData, 
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { initializeApp, getApps, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import type {
   Employee,
   JamKerja,
@@ -222,6 +224,70 @@ export async function addEmployee(data: Omit<Employee, 'id' | 'createdAt' | 'upd
     updatedAt: serverTimestamp(),
   });
   return ref.id;
+}
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyD8_xQ095GsDSOr_nhONflsPa0qtMnWfkY',
+  authDomain: 'admin-absensi-jne-mtp.firebaseapp.com',
+  projectId: 'admin-absensi-jne-mtp',
+  storageBucket: 'admin-absensi-jne-mtp.firebasestorage.app',
+  messagingSenderId: '586449872388',
+  appId: '1:586449872388:web:e72ef8330d71be35ce3751',
+};
+
+export async function registerEmployee(
+  employeeData: Omit<Employee, 'id' | 'uid' | 'createdAt' | 'updatedAt'>,
+  password: string
+): Promise<string> {
+  let secondaryApp;
+  try {
+    // 1. Pastikan domain email benar
+    let finalEmail = employeeData.email;
+    if (!finalEmail.includes('@')) {
+      finalEmail = `${finalEmail}@jne.mtp.com`;
+    }
+
+    // 2. Buat Secondary Auth agar Admin tidak ter-logout
+    secondaryApp = initializeApp(firebaseConfig, 'SecondaryAuth');
+    const secondaryAuth = getAuth(secondaryApp);
+
+    // 3. Buat User di Firebase Auth
+    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, password);
+    const uid = userCred.user.uid;
+
+    // 4. Buat Profil di Firestore dengan ID = UID
+    await updateDoc(doc(db, COLLECTIONS.USERS, uid), {
+      ...employeeData,
+      uid: uid,
+      email: finalEmail,
+      faceRegistered: false,
+      isActive: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    
+    // Jika updateDoc gagal karena doc belum ada, kita pakai setDoc
+    // Tapi biasanya doc(db, col, id) + setDoc lebih aman
+    const { setDoc } = await import('firebase/firestore');
+    await setDoc(doc(db, COLLECTIONS.USERS, uid), {
+      ...employeeData,
+      uid: uid,
+      email: finalEmail,
+      faceRegistered: false,
+      isActive: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return uid;
+  } catch (error) {
+    console.error('Error registering employee:', error);
+    throw error;
+  } finally {
+    if (secondaryApp) {
+      await deleteApp(secondaryApp);
+    }
+  }
 }
 
 export async function updateEmployee(id: string, data: Partial<Employee>): Promise<void> {

@@ -79,14 +79,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
+      // NORMALISASI EMAIL (Kecilkan semua)
+      const normalizedEmail = email.trim().toLowerCase();
+
       // STICK DOMAIN CHECK
-      if (!email.endsWith('@jnemtp.com')) {
+      if (!normalizedEmail.endsWith('@jnemtp.com')) {
         setError('Akses ditolak. Gunakan email resmi @jnemtp.com');
         setLoading(false);
         return false;
       }
 
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, normalizedEmail, password);
       return true;
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : 'Login gagal';
