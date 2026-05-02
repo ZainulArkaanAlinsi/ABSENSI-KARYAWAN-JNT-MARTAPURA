@@ -27,7 +27,7 @@ export function useLoginLogic() {
     try {
       let finalEmail = email.trim();
       if (finalEmail && !finalEmail.includes('@')) {
-        finalEmail = `${finalEmail}@jne.mtp.com`;
+        finalEmail = `${finalEmail}@jnemtp.com`;
       }
       
       const success = await signIn(finalEmail, password);

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -74,58 +74,52 @@
 
 :root {
   /* ── Brand Colors ── */
-  --jne-red: #E31E24;
+  --jne-red: #CC0000;
   --jne-blue: #005596;
-  --jne-blue-dark: #00447a;
   
-  /* ── Light Theme Variables ── */
-  --bg-main: #f8fafc;
-  --bg-sidebar: #005596;
-  --bg-header: #ffffff;
-  --bg-card: #ffffff;
-  --bg-input: #f1f5f9;
+  /* ── Light Theme (Zen Premium) ── */
+  --bg-main: #F8FAFC;
+  --bg-sidebar: #0F172A;
+  --bg-header: rgba(255, 255, 255, 0.8);
+  --bg-card: #FFFFFF;
+  --bg-input: #F1F5F9;
   
-  --text-primary: #0f172a;
+  --text-primary: #0F172A;
   --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
   
-  --border-primary: rgba(0, 0, 0, 0.06);
-  --border-glass: rgba(255, 255, 255, 0.2);
+  --border-primary: rgba(15, 23, 42, 0.06);
+  --border-glass: rgba(255, 255, 255, 0.4);
   
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-border: rgba(15, 23, 42, 0.05);
 
-  /* ── Status Colors ── */
-  --color-success: #10B981;
-  --color-danger: #E31E24;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
-
-  /* ── Layout ── */
-  --sidebar-width: 260px;
-  --header-height: 64px;
-  --radius-jne: 0.75rem;
+  --shadow-premium: 0 20px 40px -10px rgba(15, 23, 42, 0.05);
+  --radius-jne: 1.25rem;
 }
 
 [data-theme="dark"] {
-  /* ── Dark Theme Variables ── */
+  /* ── Dark Theme (Midnight Elite) ── */
   --bg-main: #020617;
-  --bg-sidebar: #0f172a;
-  --bg-header: rgba(15, 23, 42, 0.8);
-  --bg-card: #1e293b;
-  --bg-input: #334155;
+  --bg-sidebar: #0B0F1A;
+  --bg-header: rgba(2, 6, 23, 0.8);
+  --bg-card: #0F172A;
+  --bg-input: #1E293B;
   
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
   
-  --border-primary: rgba(255, 255, 255, 0.08);
-  --border-glass: rgba(255, 255, 255, 0.05);
+  --border-primary: rgba(255, 255, 255, 0.05);
+  --border-glass: rgba(255, 255, 255, 0.03);
   
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --jne-red: #FF4D4D;
+  --shadow-premium: 0 40px 100px -20px rgba(0, 0, 0, 0.4);
 }
 
 .lector-card {
@@ -177,8 +171,7 @@ html {
 body {
   /* 🔤 Distinctive font — Sora: geometric, techy, fresh */
   font-family:
-    "Sora",
-    "DM Sans",
+    "Inter",
     system-ui,
     -apple-system,
     sans-serif;
@@ -360,14 +353,14 @@ body::before {
 }
 
 .mixed-weight-heading {
-  font-weight: 300;
-  letter-spacing: -0.04em;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 .mixed-weight-heading b, 
 .mixed-weight-heading strong {
-  font-weight: 900;
-  letter-spacing: -0.05em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 /* ============================================================

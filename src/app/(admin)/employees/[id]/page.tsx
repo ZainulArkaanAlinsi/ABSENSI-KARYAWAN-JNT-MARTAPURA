@@ -1,11 +1,11 @@
-// This page has been moved to /employees/detail?id=...
-// To fully fix the build error, please DELETE this entire folder:
-// admin/src/app/(admin)/employees/[id]
+// File ini "dinetralkan" agar tidak menghambat proses build.
+// Tetap sangat disarankan untuk MENGHAPUS folder ini: admin/src/app/(admin)/employees/[id]
 
 export function generateStaticParams() {
-  return [];
+  // Kita kasih dummy ID supaya Next.js tidak error saat 'npm run build'
+  return [{ id: 'dummy-static-path' }];
 }
 
-export default function RedirectPage() {
+export default function NeutralPage() {
   return null;
 }

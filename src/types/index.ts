@@ -191,6 +191,25 @@ export interface AdminNotification {
 }
 
 // ============================================================
+// Edit Request
+// ============================================================
+export interface EditRequest {
+  id: string;
+  attendanceId: string;
+  userId: string;
+  userName: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedChanges: {
+    checkIn?: string;
+    checkOut?: string;
+    status?: AttendanceStatus;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
 // System Settings
 // ============================================================
 export interface OfficeSettings {

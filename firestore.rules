@@ -11,8 +11,8 @@ service cloud.firestore {
     // Employees can read their own profile
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      // Allow profile update (e.g. FCM token)
-      allow update: if request.auth != null && request.auth.uid == userId;
+      // Allow profile creation & update (e.g. for first login or FCM token)
+      allow create, update: if request.auth != null && request.auth.uid == userId;
     }
 
     // Employees can read/create their own attendance records

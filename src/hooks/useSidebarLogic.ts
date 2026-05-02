@@ -16,6 +16,7 @@ export const navItems = [
   { href: '/employees',  label: 'Karyawan',     icon: Users },
   { href: '/departments', label: 'Departemen',    icon: Layers },
   { href: '/attendance', label: 'Absensi',      icon: ClipboardCheck },
+  { href: '/attendance/requests', label: 'Koreksi Absensi', icon: FileText },
   { href: '/calendar',   label: 'Kalender',     icon: Calendar },
   { href: '/jam-kerja',  label: 'Jam Kerja',    icon: Clock },
   { href: '/leaves',     label: 'Izin & Cuti',  icon: FileText },

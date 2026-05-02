@@ -90,8 +90,8 @@ export default function LoginPage() {
                     <CheckCircle2 size={48} className="text-white" />
                   </div>
                   <div className="text-center">
-                    <h2 className="text-white text-3xl font-black uppercase tracking-tighter italic">Access Granted.</h2>
-                    <p className="text-slate-400 text-sm mt-2 font-medium uppercase tracking-widest">Initialising Node MTP-01...</p>
+                    <h2 className="text-white text-3xl font-black uppercase tracking-tight italic">Access Granted.</h2>
+                    <p className="text-slate-400 text-sm mt-2 font-medium uppercase tracking-wide">Initialising Node MTP-01...</p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -108,11 +108,11 @@ export default function LoginPage() {
             </motion.div>
             
             <div className="space-y-1">
-              <p className="text-[#E04B3A] text-[10px] font-black uppercase tracking-[0.4em] mb-2">Systems Protocol v4.0</p>
+              <p className="text-[#E04B3A] text-[10px] font-black uppercase tracking-wide mb-2">Systems Protocol v4.0</p>
               <h1 className="text-4xl md:text-5xl mixed-weight-heading text-white leading-none uppercase italic">
                 Nexus <b>Portal.</b>
               </h1>
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-[0.2em] pt-2">Admin Authentication Required</p>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wide pt-2">Admin Authentication Required</p>
             </div>
           </div>
 
@@ -127,11 +127,17 @@ export default function LoginPage() {
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ID USER ATAU EMAIL"
+                  placeholder="MASUKKAN ID USER"
                   required
                   autoComplete="email"
-                  className="w-full nexus-input rounded-2xl py-4.5 pl-14 pr-6 text-sm font-black tracking-widest uppercase placeholder:text-slate-600 focus:outline-none"
+                  className="w-full nexus-input rounded-2xl py-4.5 pl-14 pr-6 text-sm font-black tracking-wide uppercase placeholder:text-slate-600 focus:outline-none"
                 />
+                <div className="mt-2 flex items-center gap-2 px-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-600/40 animate-pulse" />
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-wide italic">
+                    Cukup masukkan ID (otomatis @jnemtp.com)
+                  </p>
+                </div>
               </div>
 
               <div className="relative group">
@@ -166,7 +172,7 @@ export default function LoginPage() {
                 className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-center gap-3"
               >
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <p className="text-red-400 text-[11px] font-black uppercase tracking-widest">{error}</p>
+                <p className="text-red-400 text-[11px] font-black uppercase tracking-wide">{error}</p>
               </motion.div>
             )}
 
@@ -182,9 +188,9 @@ export default function LoginPage() {
                 >
                   {rememberMe && <CheckCircle2 size={12} className="text-white" />}
                 </button>
-                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest group-hover:text-slate-200">Remember Station</span>
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-wide group-hover:text-slate-200">Remember Station</span>
               </label>
-              <Link href="/forgot-password" className="text-[#E04B3A] text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">Recover Code</Link>
+              <Link href="/forgot-password" className="text-[#E04B3A] text-[10px] font-black uppercase tracking-wide hover:text-white transition-colors">Recover Code</Link>
             </div>
 
             <motion.button
@@ -198,7 +204,7 @@ export default function LoginPage() {
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  <span className="uppercase tracking-[0.3em] text-sm">Synchronize Access</span>
+                  <span className="uppercase tracking-widest text-sm">Synchronize Access</span>
                   <ArrowRight size={18} />
                 </>
               )}
@@ -214,7 +220,7 @@ export default function LoginPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] text-right">
+            <p className="text-[9px] font-black text-slate-600 uppercase tracking-wide text-right">
               MTP-HQ NETWORK · CORE v4.2<br />
               <span className="text-[#E04B3A]/40">SECURED_LINE_MTP_01</span>
             </p>

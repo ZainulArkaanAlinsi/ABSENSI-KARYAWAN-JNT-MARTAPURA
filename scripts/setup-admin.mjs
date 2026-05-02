@@ -35,7 +35,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const adminEmail = 'admin@jnemtp.com';
-const adminPassword = '1234567890';
+const adminPassword = 'JNE.martapura';
 
 async function setupAdmin() {
   if (fs.existsSync(logFile)) fs.unlinkSync(logFile);

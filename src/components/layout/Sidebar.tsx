@@ -37,32 +37,25 @@ export default function Sidebar() {
         borderColor: 'var(--border-primary)'
       }}
     >
-      {/* Decorative Blur BG */}
-      <div className="absolute inset-0 pointer-events-none opacity-10">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-        <div className="absolute bottom-20 -right-10 w-32 h-32 bg-pink-400 rounded-full blur-3xl" />
-      </div>
-
       <div 
         className="shrink-0 relative z-10 flex items-center px-6"
         style={{ 
-          height: 'var(--header-height)', 
+          height: '90px', 
           background: 'var(--bg-sidebar)',
-          boxShadow: '0 4px 20px -5px rgba(0,0,0,0.2)'
+          borderBottom: '1px solid rgba(255,255,255,0.05)'
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-4">
           <div 
-            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ 
               background: 'var(--jne-red)', 
-              boxShadow: '0 4px 0 #b31217, 0 6px 15px rgba(227,30,36,0.4), inset 0 2px 0 rgba(255,255,255,0.3)',
-              marginBottom: '4px'
+              boxShadow: '0 4px 12px rgba(204,0,0,0.3)'
             }}
           >
-            <Image src="/logo-jne.svg" alt="JNE" width={32} height={32} className="object-contain" style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5)) brightness(0) invert(1)' }} />
+            <Image src="/logo-jne.svg" alt="JNE" width={22} height={22} className="object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
           </div>
-          <span className="text-white font-black italic tracking-tighter text-2xl uppercase" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>ATTENDANCE</span>
+          <span className="text-white font-black italic tracking-tighter text-xl uppercase leading-none">ATTENDANCE</span>
         </div>
       </div>
 
@@ -73,7 +66,7 @@ export default function Sidebar() {
             return (
               <p
                 key={`header-${idx}`}
-                className="mb-3 mt-6 px-4 text-[10px] font-black uppercase tracking-[0.25em] text-white/50 first:mt-0"
+                className="mb-3 mt-6 px-4 text-[10px] font-black uppercase tracking-wide text-white/40 first:mt-0"
               >
                 {item.label}
               </p>
@@ -87,29 +80,23 @@ export default function Sidebar() {
             <Link
               key={`${item.href}-${idx}`}
               href={item.href}
-              className="block mb-2"
+              className="block mb-1.5"
             >
               <motion.div
-                whileHover={{ y: active ? 0 : -2, backgroundColor: active ? undefined : 'var(--bg-input)' }}
-                whileTap={{ y: 2, boxShadow: active ? '0 0px 0 #b31217, 0 2px 4px rgba(227,30,36,0.3)' : 'inset 0 3px 5px rgba(0,0,0,0.1)' }}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group nav-item-animate`}
+                whileHover={{ x: active ? 0 : 4, backgroundColor: active ? undefined : 'rgba(255,255,255,0.03)' }}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group nav-item-animate`}
                 style={{
                   background: active ? 'var(--jne-red)' : 'transparent',
-                  color: active ? '#fff' : 'var(--text-secondary)',
-                  boxShadow: active ? '0 4px 0 #b31217, 0 6px 15px rgba(227,30,36,0.3), inset 0 2px 0 rgba(255,255,255,0.2)' : 'none',
-                  marginBottom: active ? '4px' : '0'
+                  color: active ? '#fff' : 'rgba(255,255,255,0.5)',
+                  boxShadow: active ? '0 8px 20px -5px rgba(204,0,0,0.4)' : 'none'
                 }}
               >
-                <div className={`shrink-0 transition-all ${active ? 'text-white' : 'opacity-70 group-hover:opacity-100'}`}>
-                  <Icon size={20} strokeWidth={active ? 2.5 : 2} style={{ filter: active ? 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' : 'none' }} />
+                <div className={`shrink-0 transition-all ${active ? 'text-white' : 'group-hover:text-white'}`}>
+                  <Icon size={18} strokeWidth={active ? 2.5 : 2} />
                 </div>
-                <span className="text-[14px] font-bold tracking-wide truncate" style={{ textShadow: active ? '0 2px 2px rgba(0,0,0,0.2)' : 'none' }}>{item.label}</span>
+                <span className="text-[13px] font-bold tracking-normal truncate">{item.label}</span>
                 {active && (
-                  <motion.div 
-                    layoutId="active-indicator"
-                    className="ml-auto w-1.5 h-1.5 rounded-full bg-white shrink-0" 
-                    style={{ boxShadow: '0 0 10px rgba(255,255,255,1), 0 2px 2px rgba(0,0,0,0.5)' }}
-                  />
+                  <div className="ml-auto w-1 h-4 rounded-full bg-white/40 shrink-0" />
                 )}
               </motion.div>
             </Link>
@@ -119,20 +106,13 @@ export default function Sidebar() {
 
       {/* Footer Nav */}
       <div className="px-4 py-6 border-t relative z-10" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <motion.button
+        <button
           onClick={signOut}
-          whileHover={{ y: -2 }}
-          whileTap={{ y: 2, boxShadow: 'inset 0 3px 5px rgba(0,0,0,0.2)' }}
-          className="flex w-full items-center gap-4 px-4 py-3.5 rounded-2xl text-white/70 hover:text-white transition-all group"
-          style={{ 
-            background: 'rgba(255,255,255,0.05)',
-            boxShadow: '0 4px 0 rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.1)',
-            marginBottom: '4px'
-          }}
+          className="flex w-full items-center gap-4 px-4 py-3 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-all group"
         >
-          <LogOut size={20} className="shrink-0" style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' }} />
-          <span className="text-[14px] font-black tracking-widest uppercase">Sign Out</span>
-        </motion.button>
+          <LogOut size={18} className="shrink-0" />
+          <span className="text-[13px] font-bold tracking-normal">Sign Out</span>
+        </button>
       </div>
     </aside>
   );

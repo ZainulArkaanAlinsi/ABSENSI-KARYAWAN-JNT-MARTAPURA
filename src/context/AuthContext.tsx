@@ -79,6 +79,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
+      // STICK DOMAIN CHECK
+      if (!email.endsWith('@jnemtp.com')) {
+        setError('Akses ditolak. Gunakan email resmi @jnemtp.com');
+        setLoading(false);
+        return false;
+      }
+
       await signInWithEmailAndPassword(auth, email, password);
       return true;
     } catch (err: any) {
