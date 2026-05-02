@@ -64,30 +64,50 @@ export default function AddEmployeeModal({
             initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            className="flex flex-col items-center justify-center px-6 py-12 text-center"
+            className="flex flex-col items-center justify-center px-6 py-8 text-center"
           >
             <div
               ref={checkmarkRef}
-              className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl ring-1 ring-green-500/30"
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ring-1 ring-green-500/30"
               style={{ backgroundColor: 'rgba(22,163,74,0.1)' }}
             >
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-lg"
-                style={{ backgroundColor: '#16A34A' }}
-              >
-                <CheckCircle size={20} />
+              <CheckCircle size={32} className="text-green-500" />
+            </div>
+            <h3 className="text-lg font-black text-white uppercase tracking-tight">
+              Pendaftaran Berhasil!
+            </h3>
+            <p className="mt-2 text-xs text-white/60">
+              Silakan berikan data berikut kepada karyawan:
+            </p>
+
+            {/* Credential Card */}
+            <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 p-5 text-left">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email/Login</span>
+                  <span className="text-xs font-bold text-white">{form.email.includes('@') ? form.email : `${form.email}@jne.mtp.com`}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Password</span>
+                  <span className="text-xs font-bold text-[#E31E24]">{form.password}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ID Karyawan</span>
+                  <span className="text-xs font-bold text-white">{form.employeeId}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Unit Kerja</span>
+                  <span className="text-xs font-bold text-blue-400 uppercase">{form.department}</span>
+                </div>
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-white">
-              Karyawan berhasil ditambahkan
-            </h3>
-            <p className="mt-2 text-xs text-white/60 max-w-sm">
-              Data karyawan baru dengan email{' '}
-              <span className="font-medium" style={{ color: '#16A34A' }}>
-                {form.email}
-              </span>{' '}
-              sudah tersimpan di sistem.
-            </p>
+
+            <button
+              onClick={onClose}
+              className="mt-8 w-full rounded-xl bg-white/10 py-3 text-xs font-black text-white uppercase tracking-widest hover:bg-white/20 transition-all"
+            >
+              Selesai & Tutup
+            </button>
           </motion.div>
         ) : (
           <motion.form
@@ -148,7 +168,7 @@ export default function AddEmployeeModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="animate-field space-y-1.5">
                   <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
                     Email
@@ -157,9 +177,24 @@ export default function AddEmployeeModal({
                     type="email"
                     className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
                     style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="nama@jne.co.id"
+                    placeholder="nama"
                     value={form.email}
                     onChange={(e) => handleChange('email', e.target.value)}
+                    required
+                  />
+                  <p className="ml-1 text-[9px] text-white/40">Otomatis @jne.mtp.com</p>
+                </div>
+                <div className="animate-field space-y-1.5">
+                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                    placeholder="Min. 6 karakter"
+                    value={form.password}
+                    onChange={(e) => handleChange('password', e.target.value)}
                     required
                   />
                 </div>
@@ -192,7 +227,7 @@ export default function AddEmployeeModal({
                       required
                     >
                       <option value="" disabled style={{ backgroundColor: '#1B2A4A' }}>Pilih unit kerja</option>
-                      {departmentItems.map((d) => (
+                      {(departmentItems || []).map((d) => (
                         <option key={d.id} value={d.name} style={{ backgroundColor: '#1B2A4A' }}>
                           {d.name}
                         </option>
@@ -233,7 +268,7 @@ export default function AddEmployeeModal({
                       required
                     >
                       <option value="" disabled style={{ backgroundColor: '#1B2A4A' }}>Pilih jam kerja</option>
-                      {jamKerjas.map((s) => (
+                      {(jamKerjas || []).map((s) => (
                         <option key={s.id} value={s.id} style={{ backgroundColor: '#1B2A4A' }}>
                           {s.name} [{s.checkInTime}-{s.checkOutTime}]
                         </option>
@@ -294,7 +329,7 @@ export default function AddEmployeeModal({
                           </tr>
                         ))}
 
-                        {jamKerjas.length === 0 && (
+                        {(jamKerjas || []).length === 0 && (
                           <tr>
                             <td colSpan={3} className="px-3 py-4 text-center" style={{ color: '#9BA4B4' }}>
                               Tidak ada data jam kerja

@@ -1,201 +1,214 @@
 'use client';
 
-import {
-  Users, UserCheck, Clock, Activity, Zap,
-  ArrowRight, Calendar, AlertCircle, RefreshCw,
-  Search, MessageCircle
-} from 'lucide-react';
-import AdminLayout from '@/components/layout/AdminLayout';
-import { motion, Variants } from 'framer-motion';
-import { format } from 'date-fns';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useTheme } from '@/context/ThemeContext';
+import { 
+  Users, 
+  Clock, 
+  UserCheck, 
+  UserX, 
+  Calendar as CalendarIcon,
+  FileText,
+  Settings,
+  Layers,
+  ArrowUpRight
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-
-// ─── Minimalist Variants ──────────────────────────────────────────────────────
-const EASE_PREMIUM = [0.16, 1, 0.3, 1] as [number, number, number, number];
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: EASE_PREMIUM } 
-  }
-};
-
-// ─── Simple Stat Card ──────────────────────────────────────────────────────────
-function SimpleStatCard({ title, value, icon: Icon, color, subtitle }: any) {
-  return (
-    <motion.div
-      variants={itemVariants}
-      className="p-5 md:p-8 bg-(--bg-card) rounded-3xl border border-(--border-primary) shadow-sm hover:shadow-2xl transition-all group"
-    >
-      <div className="flex items-center justify-between mb-4 md:mb-8">
-        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center`} style={{ backgroundColor: `${color}15`, color: color }}>
-          <Icon size={20} className="md:w-6 md:h-6" />
-        </div>
-        <span className="text-[8px] md:text-[10px] font-black text-(--text-dim) uppercase tracking-wide">{subtitle}</span>
-      </div>
-      <h3 className="text-2xl md:text-4xl font-black text-(--text-primary) tracking-tighter mb-1 md:mb-2">{value}</h3>
-      <p className="text-[9px] md:text-[11px] font-bold text-(--text-secondary) uppercase tracking-wide">{title}</p>
-    </motion.div>
-  );
-}
+import { 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid
+} from 'recharts';
 
 export default function DashboardPage() {
-  const { data, loading, error } = useDashboardStats();
-  const today = format(new Date(), 'EEEE, dd MMMM yyyy');
+  const { data, loading } = useDashboardStats();
+  const { theme } = useTheme();
 
-  if (error) {
-    return (
-      <AdminLayout title="Dashboard" subtitle="Error">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-          <AlertCircle size={48} className="text-red-500 mb-4" />
-          <p className="text-sm font-bold text-(--text-secondary) mb-6">{error}</p>
-          <button onClick={() => window.location.reload()} className="px-8 py-3 bg-red-600 text-white rounded-xl font-black uppercase text-[10px] tracking-wide">Coba Lagi</button>
-        </div>
-      </AdminLayout>
-    );
-  }
+  const stats = {
+    totalEmployees: data?.totalEmployees ?? 0,
+    todayPresent: data?.presentToday ?? 0,
+    todayLate: data?.lateToday ?? 0,
+    todayAbsent: data?.absentToday ?? 0,
+  };
 
-  if (loading) {
-    return (
-      <AdminLayout title="Dashboard" subtitle="Memuat...">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 p-4 md:p-0">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 md:h-44 bg-(--bg-input) opacity-30 rounded-3xl animate-pulse" />)}
-        </div>
-      </AdminLayout>
-    );
-  }
+  const chartData = data?.weeklyTrends.map(t => ({
+    name: t.day,
+    hadir: t.present,
+    alfa: t.absent
+  })) ?? [];
+
+  const recentAttendance = data?.recentActivities.map(r => ({
+    userName: r.userName,
+    department: r.department,
+    checkInTime: typeof r.checkIn === 'string' ? r.checkIn : '—',
+    status: r.status,
+  })) ?? [];
+
+  const statCards = [
+    { label: 'Total Personel', value: stats.totalEmployees, icon: Users, color: '#005596', trend: 'Karyawan Aktif' },
+    { label: 'Hadir Hari Ini', value: stats.todayPresent, icon: UserCheck, color: '#10B981', trend: 'Absensi Masuk' },
+    { label: 'Terlambat', value: stats.todayLate, icon: Clock, color: '#F59E0B', trend: 'Perlu Evaluasi' },
+    { label: 'Tanpa Keterangan', value: stats.todayAbsent, icon: UserX, color: '#E31E24', trend: 'Belum Scan' },
+  ];
+
+  const quickNav = [
+    { label: 'Staff', sub: 'Manajemen Karyawan', icon: Users, href: '/employees', color: '#005596' },
+    { label: 'Reports', sub: 'Laporan Berkala', icon: FileText, href: '/reports', color: '#E31E24' },
+    { label: 'Config', sub: 'Parameter Sistem', icon: Settings, href: '/settings', color: '#64748B' },
+    { label: 'Depart', sub: 'Struktur Unit', icon: Layers, href: '/departments', color: '#005596' },
+  ];
 
   return (
-    <AdminLayout title="Dashboard" subtitle={today}>
-      <motion.div
-        className="max-w-7xl mx-auto space-y-8 md:space-y-16"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Header Minimalist */}
-        <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
-          <div>
-            <p className="text-red-600 text-[9px] md:text-[10px] font-black uppercase tracking-wide mb-2 md:mb-3">System Overview</p>
-            <h1 className="text-2xl md:text-5xl font-black text-(--text-primary) tracking-tight italic uppercase leading-tight">Ringkasan <span className="text-(--text-dim) font-normal">Hari Ini.</span></h1>
-          </div>
-          <div className="flex flex-row gap-3">
-             <button className="flex-1 md:flex-none h-11 md:h-14 px-4 md:px-8 rounded-xl md:rounded-2xl bg-(--bg-card) border border-(--border-primary) text-[9px] md:text-[11px] font-black uppercase tracking-wide text-(--text-primary) hover:bg-(--bg-input) transition-all">Report</button>
-             <Link href="/attendance" className="flex-1 md:flex-none h-11 md:h-14 px-6 md:px-10 rounded-xl md:rounded-2xl bg-red-600 text-white flex items-center justify-center gap-2 md:gap-3 text-[9px] md:text-[11px] font-black uppercase tracking-wide shadow-lg shadow-red-500/20 hover:scale-105 transition-all">Live <ArrowRight size={14} className="md:w-4 md:h-4" /></Link>
-          </div>
-        </motion.div>
+    <div className="max-w-[1400px] mx-auto space-y-8">
+      {/* ── STAT CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {statCards.map((stat, idx) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="group relative bg-(--bg-card) p-6 rounded-4xl border border-(--border-primary) shadow-sm hover:shadow-md transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div 
+                className="h-12 w-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${stat.color}15`, color: stat.color }}
+              >
+                <stat.icon size={22} strokeWidth={2.5} />
+              </div>
+              <div className="text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Status Terkini</div>
+            </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          <SimpleStatCard 
-            title="Hadir" 
-            value={data?.presentToday || 0} 
-            icon={UserCheck} 
-            color="#CC0000" 
-            subtitle="Live"
-          />
-          <SimpleStatCard 
-            title="Terlambat" 
-            value={data?.lateToday || 0} 
-            icon={Clock} 
-            color="#F59E0B" 
-            subtitle="Alert"
-          />
-          <SimpleStatCard 
-            title="Izin" 
-            value={data?.onLeaveToday || 0} 
-            icon={Calendar} 
-            color="#005596" 
-            subtitle="Permits"
-          />
-          <SimpleStatCard 
-            title="Total" 
-            value={data?.totalEmployees || 0} 
-            icon={Users} 
-            color="#64748B" 
-            subtitle="Active"
-          />
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">{stat.label}</p>
+              <h3 className="text-3xl font-black text-(--text-primary) tracking-tighter">{loading ? '...' : stat.value}</h3>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-(--border-primary)">
+              <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-wide flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> {stat.trend}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ── QUICK NAVIGATION (Zen Remake) ── */}
+      <div className="bg-(--bg-card) p-10 rounded-4xl border border-(--border-primary) shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-red-600/5 to-transparent pointer-events-none" />
+        
+        <div className="mb-8 px-2 flex items-center justify-between">
+           <div>
+              <h2 className="text-xl font-black text-(--text-primary) italic uppercase tracking-tighter">Navigasi Cepat</h2>
+              <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mt-1">Akses Langsung ke Fitur Utama</p>
+           </div>
+           <div className="h-px flex-1 mx-8 bg-(--border-primary)" />
         </div>
 
-        {/* Activity Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-          {/* Recent Attendance */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 bg-(--bg-card) rounded-3xl md:rounded-[2.5rem] border border-(--border-primary) p-6 md:p-10 shadow-sm">
-             <div className="flex items-center justify-between mb-6 md:mb-10">
-                <h3 className="text-lg md:text-xl font-black text-(--text-primary) tracking-tight italic uppercase">Aktivitas <span className="text-(--text-dim) font-normal">Terakhir.</span></h3>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-(--bg-input) flex items-center justify-center text-(--text-dim) cursor-pointer hover:text-red-600 transition-colors">
-                   <Search size={14} className="md:w-5 md:h-5" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {quickNav.map((nav, idx) => (
+            <Link key={nav.label} href={nav.href}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + (idx * 0.05) }}
+                whileHover={{ y: -5 }}
+                className="bg-white/2 border border-(--border-primary) p-6 rounded-3xl hover:bg-(--bg-main) hover:border-(--text-dim) transition-all group cursor-pointer relative overflow-hidden"
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div 
+                    className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: nav.color }}
+                  >
+                    <nav.icon size={22} />
+                  </div>
+                  <ArrowUpRight size={16} className="text-(--text-dim) group-hover:text-(--text-primary) transition-colors" />
                 </div>
-             </div>
-
-             <div className="space-y-2 md:space-y-4">
-                {(data?.recentActivities?.length ?? 0) > 0 ? (
-                  data?.recentActivities.slice(0, 5).map((act, i) => (
-                    <div key={i} className="group flex items-center justify-between p-3 md:p-6 rounded-2xl md:rounded-3xl hover:bg-(--bg-input) transition-all border border-transparent hover:border-(--border-primary)">
-                      <div className="flex items-center gap-3 md:gap-6">
-                        <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-white text-[10px] md:text-sm shadow-lg" style={{ background: act.color || '#64748B' }}>
-                          {act.userName.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs md:text-base font-black text-(--text-primary) uppercase tracking-tight truncate">{act.userName}</p>
-                          <p className="text-[8px] md:text-[10px] font-bold text-(--text-dim) uppercase tracking-wide truncate">{act.department} Unit</p>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[10px] md:text-sm font-black text-(--text-primary)">{act.checkIn}</p>
-                        <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-wide ${act.status === 'late' ? 'text-amber-500' : 'text-emerald-500'}`}>
-                          {act.status === 'late' ? 'Late' : 'On Time'}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="py-12 md:py-20 text-center opacity-20 italic font-black uppercase tracking-wide text-[10px] text-(--text-dim)">No Data Available</div>
-                )}
-             </div>
-             
-             <Link href="/attendance" className="flex items-center justify-center w-full mt-6 md:mt-10 py-4 md:py-6 border-t border-(--border-primary) text-[9px] md:text-[10px] font-black text-(--text-dim) uppercase tracking-wide hover:text-red-600 transition-colors">Lihat Semua Aktivitas</Link>
-          </motion.div>
-
-          {/* Quick Management Section */}
-          <motion.div variants={itemVariants} className="space-y-6 md:space-y-8">
-             <div className="p-6 md:p-10 bg-slate-900 rounded-3xl md:rounded-[2.5rem] text-white relative overflow-hidden group shadow-xl">
-                <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-red-600 opacity-20 rounded-full translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-1000"></div>
-                <Zap size={24} className="text-red-500 mb-4 md:mb-6 md:w-8 md:h-8" />
-                <h3 className="text-lg md:text-xl font-black mb-2 md:mb-4 italic uppercase">Sistem <span className="text-white/40 font-normal">Aktif.</span></h3>
-                <p className="text-[10px] md:text-xs text-white/60 leading-relaxed mb-6 md:mb-10">Seluruh node JNE Martapura tersinkronisasi secara real-time.</p>
-                <div className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 rounded-full bg-white/10 text-[8px] md:text-[9px] font-black uppercase tracking-wide border border-white/10">
-                   <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></div>
-                   Stable
-                </div>
-             </div>
-
-             <div className="p-6 md:p-10 bg-(--bg-card) rounded-3xl md:rounded-[2.5rem] border border-(--border-primary) shadow-sm">
-                <h3 className="text-[10px] md:text-xs font-black text-(--text-primary) uppercase tracking-wide mb-6 md:mb-8">Navigasi Cepat</h3>
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                   {[
-                      { label: 'Staff', href: '/employees' },
-                      { label: 'Reports', href: '/reports' },
-                      { label: 'Config', href: '/settings' },
-                      { label: 'Depart', href: '/departments' },
-                   ].map((nav) => (
-                      <Link key={nav.label} href={nav.href} className="p-3 md:p-5 rounded-xl md:rounded-2xl bg-(--bg-input) border border-(--border-primary) text-[8px] md:text-[10px] font-black uppercase tracking-wide text-(--text-secondary) hover:bg-red-600 hover:text-white hover:border-red-600 transition-all text-center">
-                         {nav.label}
-                      </Link>
-                   ))}
-                </div>
-             </div>
-          </motion.div>
+                
+                <h3 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tighter leading-none mb-2">{nav.label}</h3>
+                <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-widest">{nav.sub}</p>
+                
+                <div className="absolute bottom-0 right-0 w-16 h-16 bg-linear-to-tl from-white/5 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+            </Link>
+          ))}
         </div>
-      </motion.div>
-    </AdminLayout>
+      </div>
+
+      {/* ── CHARTS SECTION ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 bg-(--bg-card) p-6 md:p-8 rounded-4xl border border-(--border-primary) shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight">Tren Absensi Mingguan</h2>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2 text-[9px] font-black text-(--text-muted) uppercase"><div className="w-2 h-2 rounded-full bg-[#005596]" /> Hadir</div>
+              <div className="flex items-center gap-2 text-[9px] font-black text-(--text-muted) uppercase"><div className="w-2 h-2 rounded-full bg-[#E31E24]" /> Alfa</div>
+            </div>
+          </div>
+          
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorHadir" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#005596" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#005596" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1E293B' : '#F1F5F9'} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748B' : '#94A3B8', fontSize: 10, fontWeight: 700 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748B' : '#94A3B8', fontSize: 10, fontWeight: 700 }} />
+                <Tooltip 
+                  labelFormatter={(label) => `Hari: ${label}`}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                    backgroundColor: theme === 'dark' ? '#1E293B' : '#FFFFFF',
+                    color: theme === 'dark' ? '#F8FAFC' : '#0F172A'
+                  }} 
+                />
+                <Area type="monotone" dataKey="hadir" name="Hadir" stroke="#005596" strokeWidth={3} fillOpacity={1} fill="url(#colorHadir)" />
+                <Area type="monotone" dataKey="alfa" name="Alfa" stroke="#E31E24" strokeWidth={3} fillOpacity={0} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="lg:col-span-4 bg-(--bg-card) p-6 md:p-8 rounded-4xl border border-(--border-primary) shadow-sm">
+          <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight mb-6">Aktivitas Terbaru</h2>
+
+          <div className="space-y-5">
+            {recentAttendance.length > 0 ? recentAttendance.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center font-black text-[10px] text-(--text-muted) border border-(--border-primary)">
+                  {item.userName?.charAt(0)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-(--text-primary) truncate leading-tight">{item.userName}</p>
+                  <p className="text-[8px] font-bold text-(--text-dim) uppercase tracking-widest mt-1">{item.department}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-(--text-primary)">{item.checkInTime}</p>
+                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${item.status === 'late' ? 'text-orange-500' : 'text-green-500'}`}>
+                    {item.status === 'late' ? 'Terlambat' : 'Hadir'}
+                  </p>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-10 text-(--text-dim) font-bold uppercase text-[9px] tracking-widest">
+                Belum ada aktivitas
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

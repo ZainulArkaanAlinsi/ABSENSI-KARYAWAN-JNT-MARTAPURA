@@ -1,409 +1,160 @@
 'use client';
 
-import {
-  Download,
-  BarChart3,
-  Calendar,
-  Filter,
-  User,
-  Briefcase,
-  Activity,
-  ShieldCheck,
-  Zap,
-  ChevronRight,
-  Database,
-  Cpu,
-} from 'lucide-react';
-import AdminLayout from '@/components/layout/AdminLayout';
-import type { AttendanceStatus } from '@/types';
-import { StatusBadge } from '@/components/ui/Badge';
+import { useReportManagement } from '@/hooks/useReportManagement';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
-import { format } from 'date-fns';
-import {
-  useReportManagement,
-  STATUS_OPTIONS,
-  minsToHours,
-} from '@/hooks/useReportManagement';
+import { 
+  FileText, 
+  Download, 
+  Calendar as CalendarIcon, 
+  Filter, 
+  Search,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Loader2
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ReportsPage() {
   const {
-    attendance,
-    employees,
     loading,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    filterEmployee,
-    setFilterEmployee,
-    filterStatus,
-    setFilterStatus,
-    filterDept,
-    setFilterDept,
-    departments,
-    filtered,
-    summary,
-    exportCSV,
+    search,
+    setSearch,
+    month,
+    setMonth,
+    reports,
+    filteredReports,
+    handleExport,
+    stats
   } = useReportManagement();
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 size={40} className="animate-spin text-[#E31E24]" />
+        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Menyusun Laporan Berkala...</p>
+      </div>
+    );
+  }
+
+  // Pre-define summary cards with safe access
   const summaryCards = [
-    {
-      key: 'present',
-      label: 'Optimal',
-      value: summary.present,
-      color: '#10B981',
-      icon: ShieldCheck,
-    },
-    {
-      key: 'late',
-      label: 'Deviation',
-      value: summary.late,
-      color: '#E04B3A',
-      icon: Activity,
-    },
-    {
-      key: 'absent',
-      label: 'Offline',
-      value: summary.absent,
-      color: '#F59E0B',
-      icon: User,
-    },
-    {
-      key: 'leave',
-      label: 'Authorized',
-      value: summary.leave,
-      color: '#3B82F6',
-      icon: Calendar,
-    },
-    {
-      key: 'overtime',
-      label: 'Overflow',
-      value: summary.overtime,
-      color: '#06B6D4',
-      icon: Zap,
-    },
+    { label: 'Tepat Waktu', value: `${stats?.onTimeRate ?? 0}%`, icon: CheckCircle2, color: '#10B981', sub: 'Kedisiplinan' },
+    { label: 'Keterlambatan', value: stats?.lateCount ?? 0, icon: Clock, color: '#F59E0B', sub: 'Total Menit' },
+    { label: 'Mangkir (Alfa)', value: stats?.absentCount ?? 0, icon: AlertTriangle, color: '#E31E24', sub: 'Tanpa Keterangan' },
+    { label: 'Log Absensi', value: reports?.length ?? 0, icon: FileText, color: '#005596', sub: 'Bulan Berjalan' }
   ];
 
-  const periodLabel =
-    startDate && endDate
-      ? `${format(new Date(startDate), 'yyyy.MM.dd')} — ${format(
-          new Date(endDate),
-          'yyyy.MM.dd',
-        )}`
-      : 'Infinite Period';
-
   return (
-    <AdminLayout title="Intelligence" subtitle="Reports Hub">
-      <div className="dash-root">
-        {/* ── Header Row ── */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="dash-header-row mb-6 items-end"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-jne-success shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-              <span className="text-[10px] font-black text-jne-success uppercase tracking-[0.3em]">Data Aggregator</span>
-            </div>
-            <h2 className="dash-page-title leading-none" style={{ color: 'var(--text-primary)' }}>Intelligence Hub</h2>
-            <p className="dash-page-sub mt-2" style={{ color: 'var(--text-muted)' }}>Multidimensional attendance analytics & audit logs</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={exportCSV}
-              className="dash-btn-secondary flex items-center gap-2"
-            >
-              <Download size={16} />
-              Export Records
-            </button>
-          </div>
-        </motion.div>
-
-        {/* ── Filter Engine ── */}
-        <motion.div
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.1 }}
-           className="dash-card p-6 border-white/5 bg-white/2 mb-8"
-        >
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <Calendar size={10} /> Beginning
-              </label>
-              <input
-                type="date"
-                className="w-full h-11 rounded-xl border border-white/5 bg-white/3 px-4 text-[12px] font-black text-white outline-none focus:border-jne-success/30 transition-all cursor-pointer"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <Calendar size={10} /> Termination
-              </label>
-              <input
-                type="date"
-                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
-                style={{ 
-                  background: 'var(--bg-input)', 
-                  borderColor: 'var(--border-primary)',
-                  color: 'var(--text-primary)'
-                }}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <User size={10} /> Personnel
-              </label>
-              <select
-                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
-                style={{ 
-                  background: 'var(--bg-input)', 
-                  borderColor: 'var(--border-primary)',
-                  color: 'var(--text-primary)'
-                }}
-                value={filterEmployee}
-                onChange={(e) => setFilterEmployee(e.target.value)}
+    <div className="dash-root max-w-[1400px] mx-auto space-y-8">
+      {/* ── Summary Stats ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+         {summaryCards.map((stat, i) => (
+           <motion.div 
+             key={i}
+             initial={{ opacity: 0, y: 15 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: i * 0.05 }}
+             className="bg-(--bg-card) p-8 rounded-4xl border border-(--border-primary) shadow-sm flex items-center gap-6 group hover:shadow-md transition-all"
+           >
+              <div 
+                className="h-14 w-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
+                style={{ backgroundColor: `${stat.color}15`, color: stat.color }}
               >
-                <option value="all" style={{ background: 'var(--bg-card)' }}>Cross-Personnel</option>
-                {employees.map((e) => (
-                  <option key={e.id} value={e.id} style={{ background: 'var(--bg-card)' }}>
-                    {e.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <Briefcase size={10} /> Unit
-              </label>
-              <select
-                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
-                style={{ 
-                  background: 'var(--bg-input)', 
-                  borderColor: 'var(--border-primary)',
-                  color: 'var(--text-primary)'
-                }}
-                value={filterDept}
-                onChange={(e) => setFilterDept(e.target.value)}
-              >
-                {departments.map((d) => (
-                  <option key={d} value={d} style={{ background: 'var(--bg-card)' }}>
-                    {d === 'all' ? 'Cross-Unit' : d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <Activity size={10} /> Status
-              </label>
-              <select
-                className="w-full h-11 rounded-xl border px-4 text-[12px] font-black outline-none transition-all cursor-pointer"
-                style={{ 
-                  background: 'var(--bg-input)', 
-                  borderColor: 'var(--border-primary)',
-                  color: 'var(--text-primary)'
-                }}
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as AttendanceStatus | 'all')}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value} style={{ background: 'var(--bg-card)' }}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Metrics Grid ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-           {summaryCards.map((s, i) => (
-            <motion.div
-              key={s.key}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + i * 0.05 }}
-              className="dash-card p-4 relative overflow-hidden border shadow-sm"
-              style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <s.icon size={14} style={{ color: 'var(--text-muted)' }} />
-                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Aggregate</span>
+                 <stat.icon size={24} />
               </div>
-              <p className="text-2xl font-black tabular-nums mb-0.5" style={{ color: 'var(--text-primary)' }}>{loading ? '—' : s.value}</p>
-              <p className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-              <div className="absolute inset-x-0 bottom-0 h-[2px]" style={{ background: s.color, opacity: 0.4 }} />
-            </motion.div>
-           ))}
-        </div>
-
-        {/* ── Result Matrix ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="dash-card overflow-hidden"
-        >
-          <div className="dash-card-header mb-0 bg-white/1 -mx-px -mt-px px-6 py-5 border-b border-white/5">
-            <div>
-              <h3 className="dash-card-title uppercase tracking-wider text-xs">Transactional Matrix</h3>
-              <p className="dash-card-sub">{periodLabel}</p>
-            </div>
-            <div className="flex items-center gap-3">
-               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-slate-400">
-                <BarChart3 size={14} className="text-jne-success" />
-                <span className="text-white">{filtered.length}</span> SIGNALS DETECTED
+              <div>
+                 <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest leading-none mb-1.5">{stat.label}</p>
+                 <h3 className="text-2xl font-black text-(--text-primary) tracking-tighter">{stat.value}</h3>
+                 <p className="text-[8px] font-bold text-(--text-dim) uppercase tracking-widest mt-1">{stat.sub}</p>
               </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-                  <th className="px-6 py-5">Temporal Index</th>
-                  <th className="px-6 py-5">Personnel asset</th>
-                  <th className="px-6 py-5 text-center">Resolution</th>
-                  <th className="px-6 py-5 text-center">Entry/Exit</th>
-                  <th className="px-6 py-5 text-center">Yield</th>
-                  <th className="px-6 py-5 text-center">Deltas</th>
-                  <th className="px-6 py-5 text-right">Biometric</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/2">
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>
-                      <td colSpan={7} className="px-6 py-5"><div className="h-10 w-full dash-skeleton rounded-xl" /></td>
-                    </tr>
-                  ))
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-24 text-center">
-                      <div className="flex flex-col items-center gap-5">
-                        <div className="p-5 rounded-2xl bg-white/2 border border-white/5">
-                          <Database size={32} className="text-slate-800" />
-                        </div>
-                        <p className="text-[11px] font-black text-slate-600 uppercase tracking-[0.2em]">Matrix produced zero matching signals</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <AnimatePresence mode="popLayout">
-                    {filtered.map((record, idx) => (
-                        <motion.tr
-                          key={record.id}
-                          layout
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: idx * 0.015 }}
-                          className="hover:bg-(--bg-main) transition-all group"
-                        >
-                        <td className="px-6 py-5">
-                           <p className="text-[12px] font-black font-mono tracking-tight leading-none mb-1" style={{ color: 'var(--text-primary)' }}>
-                             {record.date ? format(new Date(record.date), 'yyyy.MM.dd') : '????.??.??'}
-                           </p>
-                           <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Temporal Log</p>
-                        </td>
-                        <td className="px-6 py-5">
-                           <div className="flex items-center gap-3">
-                               <div 
-                                className="h-9 w-9 flex items-center justify-center rounded-xl font-black text-xs border" 
-                                style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
-                              >
-                                {record.employeeName?.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="text-[13px] font-black group-hover:text-jne-red transition-all tracking-tight leading-none mb-1" style={{ color: 'var(--text-primary)' }}>{record.employeeName}</p>
-                                <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>{record.employeeId}</p>
-                              </div>
-                           </div>
-                        </td>
-                        <td className="px-6 py-5 text-center align-middle">
-                          <StatusBadge status={record.status} />
-                        </td>
-                        <td className="px-6 py-5">
-                           <div className="flex items-center justify-center gap-4">
-                              <div className="text-center">
-                                <p className="text-[11px] font-black font-mono tabular-nums leading-none mb-1" style={{ color: 'var(--color-success)' }}>{record.checkIn?.time || '--:--'}</p>
-                                <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Entry</p>
-                              </div>
-                              <span className="w-px h-6" style={{ background: 'var(--border-primary)' }} />
-                              <div className="text-center">
-                                <p className="text-[11px] font-black font-mono text-jne-red tabular-nums leading-none mb-1">{record.checkOut?.time || '--:--'}</p>
-                                <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Exit</p>
-                              </div>
-                           </div>
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                           <p className="text-[13px] font-black font-mono tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
-                             {minsToHours(record.totalWorkMinutes)}
-                           </p>
-                           <p className="text-[8px] font-black uppercase tracking-widest mt-1.5" style={{ color: 'var(--text-muted)' }}>Hours</p>
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                           <div className="flex flex-col items-center gap-1.5">
-                              {(record.lateMinutes || 0) > 0 && (
-                                <span className="px-2 py-0.5 rounded-md border border-[#E04B3A]/20 bg-[#E04B3A]/10 text-[9px] font-black text-[#E04B3A] uppercase tracking-wider">
-                                  Tardy +{record.lateMinutes}m
-                                </span>
-                              )}
-                              {(record.overtimeMinutes || 0) > 0 && (
-                                <span className="px-2 py-0.5 rounded-md border border-[#7C3AED]/20 bg-[#7C3AED]/10 text-[9px] font-black text-[#7C3AED] uppercase tracking-wider">
-                                  Overflow +{record.overtimeMinutes}m
-                                </span>
-                              )}
-                              {!record.lateMinutes && !record.overtimeMinutes && (
-                                <span className="text-slate-800 text-[10px]">—</span>
-                              )}
-                           </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                           {record.checkIn?.faceScore ? (
-                             <div className="flex flex-col items-end">
-                               <p className="text-[13px] font-black font-mono tabular-nums leading-none mb-1" style={{ color: record.checkIn.faceScore >= 80 ? '#10B981' : '#E04B3A' }}>
-                                 {record.checkIn.faceScore.toFixed(0)}%
-                               </p>
-                               <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Certainty</p>
-                             </div>
-                           ) : <span className="text-slate-800 text-[10px]">—</span>}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="px-6 py-4 border-t" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>
-                <div className="flex items-center gap-1.5">
-                  <Database size={10} />
-                  INDEX READY
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Cpu size={10} />
-                  CYCLES: 1.2M
-                </div>
-              </div>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                ANALYTICS ENGINE v1.4
-              </p>
-            </div>
-          </div>
-        </motion.div>
+           </motion.div>
+         ))}
       </div>
-    </AdminLayout>
+
+      {/* ── Filter Bar ── */}
+      <div className="bg-(--bg-card) p-6 rounded-4xl border border-(--border-primary) shadow-sm flex flex-col lg:flex-row gap-4 items-center">
+         <div className="flex-1 relative w-full group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-(--text-dim) group-focus-within:text-[#005596] transition-colors" size={18} />
+            <input 
+               type="text" 
+               placeholder="Cari nama karyawan atau unit..."
+               value={search}
+               onChange={(e) => setSearch(e.target.value)}
+               className="w-full pl-14 pr-6 py-4 rounded-2xl bg-white/5 border border-(--border-primary) outline-none focus:border-[#005596]/30 font-bold text-(--text-primary) transition-all shadow-sm"
+            />
+         </div>
+         <div className="flex items-center gap-4 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-56">
+               <CalendarIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-(--text-dim)" size={16} />
+               <input 
+                  type="month" 
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-(--border-primary) outline-none font-black uppercase text-[11px] text-(--text-primary)"
+               />
+            </div>
+            <button 
+               onClick={handleExport}
+               className="px-8 py-4 bg-[#E31E24] hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 transition-all shadow-lg shadow-red-600/20 active:scale-95"
+            >
+               <Download size={18} /> Export Data
+            </button>
+         </div>
+      </div>
+
+      {/* ── Data Table ── */}
+      <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) shadow-sm overflow-hidden">
+         <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full">
+               <thead>
+                  <tr className="bg-white/2">
+                     <th className="px-10 py-6 text-left text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Karyawan</th>
+                     <th className="px-6 py-6 text-left text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Unit Kerja</th>
+                     <th className="px-6 py-6 text-center text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Hadir</th>
+                     <th className="px-6 py-6 text-center text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Telat</th>
+                     <th className="px-6 py-6 text-center text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Alfa</th>
+                     <th className="px-10 py-6 text-right text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Aksi</th>
+               </tr>
+            </thead>
+            <tbody className="divide-y divide-(--border-primary)">
+               <AnimatePresence>
+                  {filteredReports?.map((report, idx) => (
+                     <motion.tr 
+                        key={idx}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.02 }}
+                        className="hover:bg-white/2 transition-colors group"
+                     >
+                        <td className="px-10 py-6">
+                           <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-lg bg-white/5 border border-(--border-primary) flex items-center justify-center text-xs font-black text-(--text-primary)">
+                                 {report.userName?.charAt(0) ?? '—'}
+                              </div>
+                              <span className="font-bold text-(--text-primary)">{report.userName}</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-6">
+                           <span className="px-4 py-1.5 rounded-xl bg-[#005596]/10 text-[10px] font-black uppercase tracking-widest text-[#005596] border border-[#005596]/20">
+                              {report.department}
+                           </span>
+                        </td>
+                        <td className="px-6 py-6 text-center font-black text-[#005596]">{report.presentDays}</td>
+                        <td className="px-6 py-6 text-center font-black text-amber-500">{report.lateDays}</td>
+                        <td className="px-6 py-6 text-center font-black text-red-600">{report.absentDays}</td>
+                        <td className="px-10 py-6 text-right">
+                           <button className="h-9 w-9 rounded-xl bg-white/5 text-(--text-dim) hover:bg-(--text-primary) hover:text-(--bg-card) flex items-center justify-center transition-all">
+                              <FileText size={18} />
+                           </button>
+                        </td>
+                     </motion.tr>
+                  ))}
+               </AnimatePresence>
+            </tbody>
+         </table>
+         </div>
+      </div>
+    </div>
   );
 }

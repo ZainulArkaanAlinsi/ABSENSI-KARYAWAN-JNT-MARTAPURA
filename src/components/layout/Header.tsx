@@ -1,133 +1,162 @@
 'use client';
 
-import { Bell, Search, LogOut, Sun, Moon, Cpu, ChevronRight, Terminal, X, Menu } from 'lucide-react';
-import NotificationPanel from '@/components/notifications/NotificationPanel';
-import { useHeaderLogic } from '@/hooks/useHeaderLogic';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
+import { 
+  Bell, 
+  Sun, 
+  Moon, 
+  User,
+  Settings,
+  LogOut,
+  ChevronDown,
+  Menu,
+  ArrowLeft
+} from 'lucide-react';
+import { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
-import * as animePkg from 'animejs';
-const safeAnimate = (animePkg as any).animate || (animePkg as any).default || animePkg;
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
-interface HeaderProps {
-  title: string;
-  subtitle?: string;
-  onMenuClick?: () => void;
-}
+export default function Header({ title, subtitle, onMenuClick }: any) {
+  const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-export default function Header({ title, subtitle, onMenuClick }: HeaderProps) {
-  const {
-    user,
-    unreadCount,
-    showNotifications,
-    setShowNotifications,
-    showUserMenu,
-    notifRef,
-    userRef,
-    toggleNotifications,
-    toggleUserMenu,
-    signOut,
-    theme,
-    toggleTheme
-  } = useHeaderLogic();
-
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
-
-  const searchRef = useRef<HTMLDivElement>(null);
-  const bellRef = useRef<HTMLButtonElement>(null);
+  const isDashboard = pathname === '/dashboard';
 
   return (
-    <header
-      className="sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-500"
-      style={{
-        height: 'var(--header-height)',
-        background: 'var(--bg-header)',
-        borderColor: 'var(--border-primary)',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
-      {/* ── LEFT: Mobile Menu & Title ── */}
-      <div className="flex items-center gap-3 px-4 md:px-6 min-w-0 flex-1">
+    <header className="h-20 bg-(--bg-header) backdrop-blur-md border-b border-(--border-primary) px-8 sticky top-0 z-50 flex items-center justify-between transition-all duration-300">
+      {/* ── LEFT: TITLE SECTION ── */}
+      <div className="flex items-center gap-4">
         <button 
           onClick={onMenuClick}
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+          className="md:hidden p-3 bg-white/5 border border-(--border-primary) rounded-xl text-(--text-primary) hover:bg-white/10 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+          type="button"
         >
           <Menu size={20} />
         </button>
+
+        {!isDashboard && (
+          <button 
+            onClick={() => router.back()}
+            className="hidden md:flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 border border-white/20 text-white hover:bg-[#E31E24] hover:border-transparent transition-all cursor-pointer group shadow-md active:scale-90"
+            title="Kembali"
+          >
+            <ArrowLeft size={18} strokeWidth={3} className="group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+        )}
         
-        <div className="flex flex-col md:flex-row md:items-center gap-0 md:gap-2 overflow-hidden">
-          <h1 className="text-[14px] md:text-[16px] font-black uppercase tracking-tight text-(--text-primary) truncate italic">
-            {title}
+        <div>
+          <h1 className="text-xl font-black text-(--text-primary) italic uppercase tracking-tight flex items-center gap-2">
+            {title || 'Admin'}
+            <span className="h-1 w-1 rounded-full bg-[#E31E24] block" />
+            <span className="text-(--text-dim) not-italic font-bold text-[10px] tracking-widest ml-1 uppercase">Control</span>
           </h1>
-          <span className="hidden md:inline text-[10px] font-bold uppercase tracking-widest text-(--text-dim)">· System</span>
+          <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-[0.2em] mt-0.5">
+            {subtitle || 'JNE Martapura Hub'}
+          </p>
         </div>
       </div>
 
-      {/* ── RIGHT: Actions ── */}
-      <div className="flex items-center gap-2 md:gap-4 px-4 md:px-6 shrink-0">
-        <button
-          onClick={toggleTheme}
-          className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all hover:bg-(--bg-input) text-(--text-dim)"
-        >
-          {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} className="text-orange-500" />}
-        </button>
-
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={toggleNotifications}
-            className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all hover:bg-(--bg-input) text-(--text-dim) relative"
+      {/* ── RIGHT: TOOLS & PROFILE ── */}
+      <div className="flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-3 border-r border-(--border-primary) pr-6">
+          {/* Theme Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="p-3 text-(--text-muted) hover:text-[#005596] hover:bg-white/5 rounded-xl transition-all cursor-pointer active:scale-90 flex items-center justify-center"
+            type="button"
           >
-            <Bell size={18} />
-            {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-600 border-2 border-(--bg-header)" />
-            )}
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-
-          <AnimatePresence>
-            {showNotifications && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute right-0 top-full mt-2"
-              >
-                <NotificationPanel onClose={() => setShowNotifications(false)} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          
+          {/* Notif Button */}
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setIsProfileOpen(false);
+                setIsNotifOpen(!isNotifOpen);
+              }}
+              className={`p-3 rounded-xl transition-all cursor-pointer active:scale-90 relative flex items-center justify-center ${isNotifOpen ? 'bg-[#005596]/10 text-[#005596]' : 'text-(--text-muted) hover:bg-white/5'}`}
+              type="button"
+            >
+              <Bell size={20} />
+              <span className="absolute top-3 right-3 w-2 h-2 bg-[#E31E24] rounded-full border-2 border-(--bg-header)" />
+            </button>
+            <AnimatePresence>
+              {isNotifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsNotifOpen(false)} />
+                  <div className="absolute right-0 top-full mt-3 z-50">
+                    <NotificationPanel onClose={() => setIsNotifOpen(false)} />
+                  </div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        <div className="relative" ref={userRef}>
-          <button
-            onClick={toggleUserMenu}
-            className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs shadow-lg shadow-red-600/20"
+        {/* User Profile Dropdown */}
+        <div className="relative">
+          <button 
+            onClick={() => {
+              setIsNotifOpen(false);
+              setIsProfileOpen(!isProfileOpen);
+            }}
+            className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all border border-(--border-primary) cursor-pointer active:scale-95"
+            type="button"
           >
-            {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+            <div className="h-9 w-9 rounded-xl bg-[#E31E24] flex items-center justify-center text-white font-black shadow-lg shadow-red-600/20">
+              {user?.name?.charAt(0) || 'A'}
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-[11px] font-black text-(--text-primary) leading-none uppercase truncate max-w-[120px]">
+                {user?.name || 'Admin'}
+              </p>
+              <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-widest mt-1">Super Admin</p>
+            </div>
+            <ChevronDown size={14} className={`text-(--text-dim) transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
 
           <AnimatePresence>
-            {showUserMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 top-full mt-2 w-56 rounded-2xl overflow-hidden border border-(--border-primary) shadow-2xl"
-                style={{ background: 'var(--bg-card)' }}
-              >
-                <div className="p-4 border-b border-(--border-primary)">
-                  <p className="text-[11px] font-black text-(--text-primary) uppercase truncate italic">{user?.name || 'Admin'}</p>
-                  <p className="text-[9px] text-(--text-dim) font-bold truncate mt-0.5">{user?.email}</p>
-                </div>
-                <div className="p-2">
-                  <button
-                    onClick={signOut}
-                    className="w-full text-left px-4 py-2.5 rounded-xl text-[10px] font-black text-(--text-secondary) hover:text-red-600 hover:bg-red-50 transition-all flex items-center gap-3 uppercase"
-                  >
-                    <LogOut size={14} />
-                    Logout
-                  </button>
-                </div>
-              </motion.div>
+            {isProfileOpen && (
+              <>
+                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsProfileOpen(false)} />
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-64 bg-(--bg-card) rounded-2xl shadow-2xl border border-(--border-primary) overflow-hidden z-50"
+                >
+                  <div className="p-5 bg-white/2 border-b border-(--border-primary)">
+                    <p className="text-[10px] font-black text-(--text-dim) uppercase tracking-[0.2em] mb-1">Status: Online</p>
+                    <p className="text-xs font-bold text-(--text-primary) truncate">{user?.email}</p>
+                  </div>
+                  <div className="p-2">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-(--text-secondary) hover:bg-white/5 hover:text-(--text-primary) transition-all text-xs font-bold cursor-pointer" type="button">
+                      <User size={16} /> Profil Saya
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-(--text-secondary) hover:bg-white/5 hover:text-(--text-primary) transition-all text-xs font-bold cursor-pointer" type="button">
+                      <Settings size={16} /> Pengaturan
+                    </button>
+                    <div className="h-px bg-(--border-primary) my-1 mx-2" />
+                    <button 
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        signOut();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#E31E24] hover:bg-red-500/10 transition-all text-xs font-black cursor-pointer"
+                      type="button"
+                    >
+                      <LogOut size={16} /> Keluar Sistem
+                    </button>
+                  </div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>

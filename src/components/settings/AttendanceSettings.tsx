@@ -72,6 +72,11 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
             desc: 'Data disimpan lokal saat tidak ada koneksi',
           },
           {
+            key: 'courierBypassGeofence',
+            label: 'Bypass Geofence Kurir',
+            desc: 'Kurir bebas absen di mana saja (tanpa radius lokasi), namun wajib absen tepat waktu & memenuhi target paket.',
+          },
+          {
             key: 'overtimeCalculation',
             label: 'Hitung Lembur Otomatis',
             desc: 'Sinkronisasi data lembur secara otomatis',

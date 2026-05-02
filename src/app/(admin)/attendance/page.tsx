@@ -1,6 +1,5 @@
 'use client';
 
-import AdminLayout from '@/components/layout/AdminLayout';
 import { DEPARTMENT_RULES } from '@/lib/departmentRules';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -44,109 +43,75 @@ export default function AttendancePage() {
   const router = useRouter();
 
   return (
-    <AdminLayout title="Attendance Control" subtitle="Rule Deployment & Ops">
-      <div className="dash-root">
-        {/* ── Info Banner ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.985 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-xl border border-[#E31E24]/20 bg-red-50 p-6 backdrop-blur-3xl mb-8 group"
-        >
-          <div className="absolute inset-0 bg-linear-to-r from-red-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-          <div className="flex items-start gap-5 relative z-10">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#E31E24]/10 border border-[#E31E24]/20 shadow-sm">
-              <ShieldCheck size={22} className="text-[#E31E24]" />
-            </div>
-            <div>
-              <p className="text-[15px] font-black text-slate-900 uppercase tracking-widest italic leading-none mb-1.5">Dynamic Rule Engine Active</p>
-              <p className="text-[13px] leading-relaxed text-slate-600 font-medium max-w-2xl">
-                Precision-engineered schedules for logistics and field operations. Each department 
-                is governed by unique entry thresholds, late-tolerances, and geofencing paradigms.
-              </p>
-            </div>
+    <div className="dash-root">
+      {/* ── Info Banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10 overflow-hidden rounded-4xl border border-[#005596]/10"
+        style={{ 
+          background: 'linear-gradient(135deg, rgba(0, 85, 150, 0.05) 0%, rgba(227, 30, 36, 0.05) 100%)',
+        }}
+      >
+        <div className="flex flex-col items-center gap-6 px-10 py-12 text-center md:flex-row md:text-left">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#005596] text-white shadow-xl shadow-[#005596]/20">
+            <Info size={32} />
           </div>
-        </motion.div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900">Pusat Kendali Unit</h2>
+            <p className="mt-2 font-bold uppercase tracking-widest text-slate-400 text-[11px]">Konfigurasi jam kerja & parameter absensi khusus tiap unit kerja JNE Martapura.</p>
+          </div>
+        </div>
+      </motion.div>
 
-        {/* ── Department Grid ── */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-12">
-          {DEPARTMENT_RULES.map((rule, idx) => (
-            <motion.button
-              key={rule.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -4, scale: 1.01 }}
-              whileTap={{ y: 2, scale: 0.99 }}
-              onClick={() => router.push(`/head-units/${rule.id}`)}
-              className={`group p-0 overflow-hidden text-left transition-all relative border`}
-              style={{ 
-                borderRadius: '1.5rem',
-                background: 'var(--bg-card)', 
-                borderColor: 'var(--border-primary)',
-                boxShadow: `0 15px 35px -10px ${rule.color}20, inset 0 2px 0 rgba(255, 255, 255, 0.4)`
-              }}
-            >
-              {/* Decorative Glow */}
-              <div 
-                className="absolute top-0 right-0 w-40 h-40 blur-[70px] opacity-10 transition-opacity group-hover:opacity-20" 
-                style={{ background: rule.color }}
-              />
-              
-              <div className="p-7 flex flex-col h-full relative z-10">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-8">
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-md border"
-                    style={{ background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}
-                  >
-                    <span style={{ color: rule.color, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
-                      <DeptIcon rule={rule} />
-                    </span>
-                  </div>
-                  <div 
-                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border"
-                    style={{ color: rule.color, background: 'var(--bg-input)', borderColor: 'var(--border-primary)' }}
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: rule.color, boxShadow: `0 0 8px ${rule.color}` }} />
-                    Active Node
-                  </div>
+      {/* ── Grid Rules ── */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        {DEPARTMENT_RULES.map((rule, idx) => (
+          <motion.div
+            key={rule.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.1 }}
+            className="group relative overflow-hidden rounded-4xl border border-slate-100 bg-white p-10 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/50"
+          >
+            {/* Header Unit */}
+            <div className="mb-10 flex items-start justify-between">
+              <div className="flex items-center gap-6">
+                <div 
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-transform group-hover:scale-110"
+                  style={{ background: 'var(--primary)', color: 'white' }}
+                >
+                  <DeptIcon rule={rule} />
                 </div>
-
-                <div className="mb-8 flex-1">
-                  <h3 className="text-[20px] font-black leading-tight uppercase tracking-tighter italic mb-2 group-hover:translate-x-1 transition-transform" style={{ color: 'var(--text-primary)' }}>{rule.name}</h3>
-                  <p className="text-[13px] leading-relaxed font-bold line-clamp-2" style={{ color: 'var(--text-muted)' }}>
-                    {rule.description}
-                  </p>
-                </div>
-
-                {/* Rule Grid */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <RuleBadge label="Shift Start" value={rule.checkInTime} />
-                  <RuleBadge
-                    label="End Window"
-                    value={rule.checkOutNextDay ? `${rule.checkOutTime} (+1)` : rule.checkOutTime}
-                  />
-                  <RuleBadge label="Grace Period" value={`${rule.toleranceMinutes}m`} />
-                  <RuleBadge
-                    label="Environment"
-                    value={rule.checkOutNextDay ? 'NIGHT' : rule.trackFromHome ? 'REMOTE' : rule.targetBased ? 'TARGET' : 'STATION'}
-                  />
-                </div>
-
-                {/* Footer Action */}
-                <div className="flex items-center justify-between pt-5 border-t mt-auto" style={{ borderColor: 'var(--border-primary)' }}>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--text-muted)' }}>Ops Deployment</span>
-                  <div className="flex items-center gap-2 text-[11px] font-black transition-all" style={{ color: 'var(--text-primary)' }}>
-                    <span className="group-hover:text-[#E31E24] transition-colors">LOGS</span> 
-                    <ChevronRight size={14} strokeWidth={3} className="group-hover:translate-x-1.5 group-hover:text-[#E31E24] transition-all" />
+                <div>
+                  <h3 className="text-xl font-black italic uppercase tracking-tight text-slate-900">{rule.id}</h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <ShieldCheck size={14} className="text-green-500" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">PARAMETER AKTIF</span>
                   </div>
                 </div>
               </div>
-            </motion.button>
-          ))}
-        </div>
+            </div>
+
+            {/* Grid Badges */}
+            <div className="grid grid-cols-2 gap-4">
+              <RuleBadge label="Mulai Shift" value={rule.checkInTime} />
+              <RuleBadge label="Selesai Shift" value={rule.checkOutTime} />
+              <RuleBadge label="Toleransi" value={`${rule.toleranceMinutes} Menit`} />
+              <RuleBadge label="Verifikasi" value={rule.trackFromHome ? 'Aplikasi Mobile' : 'Biometrik'} />
+            </div>
+
+            {/* Action */}
+            <button 
+              onClick={() => router.push(`/attendance/history?dept=${rule.id}`)}
+              className="mt-10 flex w-full items-center justify-between rounded-2xl bg-slate-50 px-8 py-5 transition-all hover:bg-slate-900 hover:text-white"
+            >
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Lihat Riwayat Unit</span>
+              <ChevronRight size={18} />
+            </button>
+          </motion.div>
+        ))}
       </div>
-    </AdminLayout>
+    </div>
   );
 }

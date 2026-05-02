@@ -1,69 +1,71 @@
 'use client';
 
+import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-  title: string;
-  subtitle?: string;
-}
-
-export default function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close sidebar automatically when navigating on mobile
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [pathname]);
+  // Mapping judul berdasarkan pathname secara komprehensif (Attendance Focused)
+  const getPageInfo = () => {
+    const path = pathname.split('/').filter(Boolean).pop() || 'dashboard';
+    
+    switch (path) {
+      case 'dashboard': return { title: 'Dashboard', sub: 'Monitoring Utama' };
+      case 'employees': return { title: 'Karyawan', sub: 'Manajemen Personel' };
+      case 'departments': return { title: 'Departemen', sub: 'Struktur Organisasi' };
+      case 'leaves': return { title: 'Izin & Cuti', sub: 'Otorisasi Kehadiran' };
+      case 'requests': return { title: 'Koreksi', sub: 'Pengajuan Perubahan' };
+      case 'reports': return { title: 'Laporan', sub: 'Rekapitulasi Data' };
+      case 'calendar': return { title: 'Kalender', sub: 'Agenda & Jadwal' };
+      case 'head-units': return { title: 'Kepala Unit', sub: 'Manajemen Pimpinan' };
+      case 'jam-kerja': return { title: 'Jam Kerja', sub: 'Pengaturan Waktu' };
+      case 'shifts': return { title: 'Shift Kerja', sub: 'Penjadwalan Regu' };
+      case 'settings': return { title: 'Pengaturan', sub: 'Konfigurasi Sistem' };
+      case 'face-enrollment': return { title: 'Biometrik', sub: 'Pendaftaran Wajah' };
+      default: return { title: path.charAt(0).toUpperCase() + path.slice(1).replace('-', ' '), sub: 'Panel Admin' };
+    }
+  };
+
+  const { title, sub } = getPageInfo();
 
   return (
-    <div className="min-h-screen selection:bg-red-600 selection:text-white" style={{ background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
-      
-      {/* 🌑 Mobile Overlay (Hanya muncul pas menu diklik) */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* 🚪 Sidebar (Ngumpet di kiri kalau di HP, muncul di samping kalau di Laptop) */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-50 w-[280px] transition-all duration-500 ease-in-out transform 
+    <div className="h-screen flex bg-(--bg-main) transition-colors duration-300 overflow-hidden font-sans">
+      {/* SIDEBAR DRAWER */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-60 w-[260px] transition-transform duration-300 transform 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          lg:translate-x-0 lg:z-30`}
+          md:translate-x-0 border-r border-(--border-primary)`}
       >
         <Sidebar />
-      </div>
-      
-      {/* 📋 Main Content Area (Geser otomatis kalau di Laptop) */}
-      <div className="flex flex-col min-w-0 min-h-screen transition-all duration-500 lg:pl-[280px]">
-         <Header 
+      </aside>
+
+      {/* MOBILE OVERLAY */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-55 md:hidden cursor-pointer"
+        />
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col md:pl-[260px] min-w-0 h-full overflow-hidden">
+        {/* Header - Fixed & Solid */}
+        <div className="sticky top-0 z-50 shadow-sm">
+          <Header 
             title={title} 
-            subtitle={subtitle} 
+            subtitle={sub} 
             onMenuClick={() => setIsSidebarOpen(true)} 
-         />
-         
-         <main className="flex-1 p-4 sm:p-6 md:p-10 pb-24 flex flex-col items-center">
-           <motion.div 
-             className="w-full max-w-7xl mx-auto"
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.5 }}
-           >
-             {children}
-           </motion.div>
-         </main>
+          />
+        </div>
+
+        {/* Content Area */}
+        <main className="flex-1 p-6 md:p-12 md:pt-14 relative z-10 overflow-y-auto custom-scrollbar">
+          {children}
+        </main>
       </div>
     </div>
   );

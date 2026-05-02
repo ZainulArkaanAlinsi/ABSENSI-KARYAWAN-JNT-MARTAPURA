@@ -5,7 +5,7 @@ const projectRoot = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  // output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   reactCompiler: true,
   // Required for next/image when using static export
   images: {

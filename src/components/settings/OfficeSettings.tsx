@@ -68,6 +68,25 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
           </div>
         </div>
 
+        <button
+          onClick={() => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  update('office', 'latitude', position.coords.latitude);
+                  update('office', 'longitude', position.coords.longitude);
+                },
+                (error) => alert('Gagal mendeteksi lokasi. Pastikan izin lokasi browser Anda aktif.')
+              );
+            } else {
+              alert('Browser tidak mendukung deteksi lokasi.');
+            }
+          }}
+          className="w-full py-3 bg-white/5 hover:bg-white/10 text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors border border-white/10 text-[#3B82F6] flex items-center justify-center gap-2"
+        >
+          <Globe size={16} /> Ambil Lokasi Saat Ini (GPS Laptop)
+        </button>
+
         <div className="space-y-4 pt-2">
           <div className="flex justify-between items-center">
             <label className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Radius Geo-Fence</label>

@@ -115,8 +115,8 @@ export default function CalendarGrid({
         {/* Header Hari */}
         <div className="grid grid-cols-7 border-b border-white/5 bg-white/2">
           {daysOfWeek.map((day) => (
-            <div key={day} className="py-1 text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div key={day} className="py-2 text-center">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {day.substring(0, 3)}
               </span>
             </div>
@@ -154,27 +154,27 @@ export default function CalendarGrid({
           )}
         </div>
 
-        {/* Legenda - sangat kecil */}
-        <div className="p-2 border-t border-white/5 bg-white/2">
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-              <Info size={10} /> Legenda:
+        {/* Legenda - diperbesar */}
+        <div className="p-3 border-t border-white/5 bg-white/2">
+          <div className="flex flex-wrap gap-4 items-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <Info size={14} /> Legenda:
             </span>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#F97316]" />
-              <span className="text-[9px] text-slate-400">Libur</span>
+              <div className="w-3 h-3 rounded-full bg-[#F97316]" />
+              <span className="text-xs text-slate-400">Libur</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
-              <span className="text-[9px] text-slate-400">Kerja</span>
+              <div className="w-3 h-3 rounded-full bg-[#3B82F6]" />
+              <span className="text-xs text-slate-400">Kerja</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
-              <span className="text-[9px] text-slate-400">Pribadi</span>
+              <div className="w-3 h-3 rounded-full bg-[#A855F7]" />
+              <span className="text-xs text-slate-400">Pribadi</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#EAB308]" />
-              <span className="text-[9px] text-slate-400">Ingat</span>
+              <div className="w-3 h-3 rounded-full bg-[#EAB308]" />
+              <span className="text-xs text-slate-400">Ingat</span>
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
       <div className="flex justify-between items-start">
         <div
           className={`
-            w-6 h-6 rounded flex items-center justify-center text-xs font-bold
+            w-8 h-8 rounded flex items-center justify-center text-sm font-bold
             ${isTodayActive ? 'bg-jne-red text-white shadow-lg shadow-jne-red/30' : ''}
             ${!isTodayActive && details.uiCategory !== 'normal' ? 'bg-white/5 text-white ring-1 ring-white/10' : ''}
             ${!isTodayActive && details.uiCategory === 'normal' ? 'text-slate-400 group-hover:text-white' : ''}
@@ -219,30 +219,30 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
 
         {details.systemEvents.length > 0 && (
           <div className="absolute top-1 right-1">
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ backgroundColor: details.uiColorHint.bg }} />
+            <div className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ backgroundColor: details.uiColorHint.bg }} />
           </div>
         )}
       </div>
 
       {/* Enhanced Data Markers */}
-      <div className="mt-1 flex flex-col gap-0.5 min-h-[12px] relative">
+      <div className="mt-1 flex flex-col gap-1 min-h-[16px] relative">
         {details.userEvents.some((e: any) => e.category === 'meeting') && (
-          <div className="absolute -top-6 -left-1 w-8 h-8 rounded-full border border-jne-red/20 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] pointer-events-none" />
+          <div className="absolute -top-7 -left-1 w-10 h-10 rounded-full border border-jne-red/20 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] pointer-events-none" />
         )}
       </div>
 
-      <div className="space-y-0.5 mt-1">
+      <div className="space-y-1 mt-1">
         {details.systemEvents.slice(0, 2).map((evt: string, i: number) => (
           <div
             key={i}
-            className="text-[9px] leading-tight text-white/90 font-medium truncate bg-white/5 px-1 py-0.5 rounded border-l-2"
+            className="text-[11px] leading-tight text-white/90 font-medium truncate bg-white/5 px-1.5 py-1 rounded border-l-2"
             style={{ borderColor: details.uiColorHint.bg }}
           >
             {evt}
           </div>
         ))}
         {details.systemEvents.length > 2 && (
-          <div className="text-[8px] text-slate-500">+{details.systemEvents.length - 2}</div>
+          <div className="text-[10px] text-slate-500 font-bold">+{details.systemEvents.length - 2}</div>
         )}
         {details.userEvents.length > 0 && (
           <div className="flex gap-0.5 flex-wrap">

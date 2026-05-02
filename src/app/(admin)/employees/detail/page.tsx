@@ -76,7 +76,7 @@ function EmployeeDetailContent() {
 
   if (loading)
     return (
-      <AdminLayout title="Detail Karyawan">
+      <AdminLayout>
         <div className="flex justify-center py-20">
           <PageLoader />
         </div>
@@ -85,7 +85,7 @@ function EmployeeDetailContent() {
 
   if (!id || !employee)
     return (
-      <AdminLayout title="Karyawan Tidak Ditemukan">
+      <AdminLayout>
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <p style={{ color: '#9BA4B4' }}>Karyawan tidak ditemukan.</p>
           <button
@@ -100,10 +100,7 @@ function EmployeeDetailContent() {
     );
 
   return (
-    <AdminLayout
-      title="Detail Karyawan"
-      subtitle={`Profil lengkap untuk ${employee.name}`}
-    >
+    <AdminLayout>
       {/* Back Navigation */}
       <motion.div
         initial={{ opacity: 0, x: -8 }}
@@ -329,7 +326,7 @@ function EmployeeDetailContent() {
 export default function EmployeeDetailPage() {
   return (
     <Suspense fallback={
-      <AdminLayout title="Detail Karyawan">
+      <AdminLayout>
         <div className="flex justify-center py-20">
           <PageLoader />
         </div>

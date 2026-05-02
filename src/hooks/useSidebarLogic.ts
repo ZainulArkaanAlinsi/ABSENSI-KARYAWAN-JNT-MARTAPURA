@@ -1,54 +1,73 @@
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import {
-  LayoutDashboard,
-  Users,
-  Clock,
-  FileText,
+import { 
+  LayoutDashboard, 
+  Users, 
+  Clock, 
+  Calendar, 
+  FileText, 
   Settings,
-  Calendar,
-  ClipboardCheck,
+  Map,
   Layers,
+  ShieldCheck,
+  UserCheck,
+  AlertCircle,
+  BarChart3,
+  LogOut,
+  Briefcase,
+  History,
+  ClipboardCheck,
+  Building2
 } from 'lucide-react';
-
-export const navItems = [
-  { href: '/dashboard',  label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/employees',  label: 'Karyawan',     icon: Users },
-  { href: '/departments', label: 'Departemen',    icon: Layers },
-  { href: '/attendance', label: 'Absensi',      icon: ClipboardCheck },
-  { href: '/attendance/requests', label: 'Koreksi Absensi', icon: FileText },
-  { href: '/calendar',   label: 'Kalender',     icon: Calendar },
-  { href: '/jam-kerja',  label: 'Jam Kerja',    icon: Clock },
-  { href: '/leaves',     label: 'Izin & Cuti',  icon: FileText },
-  {
-    label: 'HEAD UNITS',
-    isHeader: true,
-  },
-  { href: '/head-units/rider_delivery', label: 'Rider Delivery', icon: Users },
-  { href: '/head-units/driver_delivery', label: 'Driver Delivery', icon: Users },
-  { href: '/head-units/inbound_outbound', label: 'Inbound & Outbound', icon: Users },
-  { href: '/head-units/pick_up', label: 'Pick Up', icon: Users },
-  { href: '/head-units/admin_support', label: 'Admin Support', icon: Users },
-  { href: '/head-units/accounting', label: 'Accounting', icon: Users },
-  { href: '/head-units/sales_sco', label: 'Sales SCO', icon: Users },
-  { href: '/reports',    label: 'Laporan',      icon: FileText },
-  { href: '/settings',   label: 'Pengaturan',   icon: Settings },
-];
-
 
 export function useSidebarLogic() {
   const pathname = usePathname();
-  const { signOut } = useAuth();
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+
+  const navItems = [
+    { isHeader: true, label: 'Inti Sistem' },
+    { label: 'Dashboard Utama', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Analitik & Tren', href: '/analytics', icon: BarChart3 },
+
+    { isHeader: true, label: 'Manajemen SDM' },
+    { label: 'Data Karyawan', href: '/employees', icon: Users },
+    { label: 'Struktur Organisasi', href: '/departments', icon: Layers },
+    { label: 'Kepala Unit', href: '/head-units', icon: UserCheck },
+
+    { isHeader: true, label: 'Operasional Absensi' },
+    { label: 'Monitoring Absensi', href: '/attendance', icon: Clock },
+    { label: 'Koreksi Data', href: '/attendance/requests', icon: History },
+    { label: 'Izin & Cuti', href: '/leaves', icon: FileText },
+    { label: 'Kalender Kerja', href: '/calendar', icon: Calendar },
+
+    { isHeader: true, label: 'Penggajian & Aturan' },
+    { label: 'Master Jam Kerja', href: '/jam-kerja', icon: ClipboardCheck },
+    { label: 'Manajemen Shift', href: '/shifts', icon: Briefcase },
+    { label: 'Laporan Bulanan', href: '/reports', icon: ClipboardCheck },
+    { label: 'Kalkulasi Gaji', href: '/salary', icon: Building2 },
+
+    { isHeader: true, label: 'Konfigurasi' },
+    { label: 'Pengaturan Sistem', href: '/settings', icon: Settings },
+  ];
 
   const isActive = (href: string) => {
-    if (!pathname || !href) return false;
-    return pathname === href || pathname.startsWith(href + '/');
+    if (href === '/dashboard' && pathname === '/dashboard') return true;
+    if (href !== '/dashboard' && pathname.startsWith(href)) return true;
+    return false;
+  };
+
+  const handleSignOut = async () => {
+    if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      await signOut();
+      router.push('/login');
+    }
   };
 
   return {
-    pathname,
-    signOut,
-    isActive,
     navItems,
+    isActive,
+    signOut: handleSignOut,
+    user,
   };
 }

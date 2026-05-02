@@ -79,24 +79,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
-      // STICK DOMAIN CHECK
-      if (!email.endsWith('@jnemtp.com')) {
-        setError('Akses ditolak. Gunakan email resmi @jnemtp.com');
-        setLoading(false);
-        return false;
-      }
+      // NORMALISASI EMAIL
+      const normalizedEmail = email.trim().toLowerCase();
 
-      await signInWithEmailAndPassword(auth, email, password);
+      // Login langsung ke Firebase Auth
+      await signInWithEmailAndPassword(auth, normalizedEmail, password);
       return true;
     } catch (err: any) {
-      const msg = err instanceof Error ? err.message : 'Login gagal';
-      if (msg.includes('invalid-credential') || msg.includes('wrong-password') || msg.includes('user-not-found')) {
-        setError('Email atau password salah.');
-      } else if (msg.includes('too-many-requests')) {
-        setError('Terlalu banyak percobaan. Coba lagi nanti.');
-      } else {
-        setError('Login gagal. Periksa koneksi internet Anda.');
-      }
+      console.error('Full Login Error:', err);
+      const errorCode = err.code || 'unknown';
+      const errorMessage = err.message || 'Login gagal';
+      
+      setError(`DEBUG ERROR [${errorCode}]: ${errorMessage}`);
       setLoading(false);
       return false;
     }

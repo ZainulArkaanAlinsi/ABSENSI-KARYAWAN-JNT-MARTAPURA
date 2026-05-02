@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
-import AdminLayout from '@/components/layout/AdminLayout';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 import { getEmployees } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
@@ -169,10 +168,10 @@ export default function CalendarPage() {
     }
   };
 
-  if (loading || loadingHolidays) return <AdminLayout title="Kalender"><PageLoader /></AdminLayout>;
+  if (loading || loadingHolidays) return <div className="h-full flex items-center justify-center"><PageLoader /></div>;
 
   return (
-    <AdminLayout title="Kalender" subtitle="Libur nasional & acara internal">
+    <>
       <div className="flex flex-col lg:flex-row gap-3 h-full pb-3">
         <CalendarGrid
           currentYear={currentYear}
@@ -232,6 +231,6 @@ export default function CalendarPage() {
           background: rgba(255, 255, 255, 0.1);
         }
       `}</style>
-    </AdminLayout>
+    </>
   );
 }

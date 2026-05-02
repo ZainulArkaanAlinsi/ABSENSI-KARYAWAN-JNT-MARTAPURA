@@ -32,8 +32,8 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
     
-    // Allow read of system settings for everyone (authenticated)
-    match /settings/{docId} {
+    // Allow read of departments for everyone (authenticated)
+    match /departments/{deptId} {
       allow read: if request.auth != null;
     }
   }

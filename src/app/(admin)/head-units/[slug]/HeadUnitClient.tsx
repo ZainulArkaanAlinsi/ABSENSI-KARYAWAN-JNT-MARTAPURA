@@ -16,7 +16,6 @@ import {
   CalendarDays
 } from 'lucide-react';
 
-import AdminLayout from '@/components/layout/AdminLayout';
 import { DEPARTMENT_RULES } from '@/lib/departmentRules';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion } from 'framer-motion';
@@ -51,13 +50,13 @@ export default function HeadUnitClient() {
 
   if (!rule) {
     return (
-      <AdminLayout title="Error" subtitle="Head unit tidak ditemukan">
+      <>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <AlertCircle size={48} className="text-[#E31E24] mb-4" />
           <h2 className="text-xl font-bold text-slate-900">Head Unit Tidak Ditemukan</h2>
           <p className="text-slate-500">Slug "{slug}" tidak terdaftar dalam sistem.</p>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
@@ -67,7 +66,7 @@ export default function HeadUnitClient() {
   const absentCount = totalEmp > 0 ? (totalEmp - attendance.length) : 0;
 
   return (
-    <AdminLayout title={rule.name} subtitle={rule.description}>
+    <>
       {empLoading ? (
         <div className="flex justify-center py-24"><PageLoader /></div>
       ) : (
@@ -180,6 +179,6 @@ export default function HeadUnitClient() {
           </motion.div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

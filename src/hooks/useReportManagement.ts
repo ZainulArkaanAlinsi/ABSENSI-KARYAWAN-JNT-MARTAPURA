@@ -1,109 +1,118 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAttendanceByRange, getEmployees } from '@/lib/firestore';
-import type { AttendanceRecord, Employee, AttendanceStatus } from '@/types';
-import { format, subDays } from 'date-fns';
-
-export const STATUS_OPTIONS: { value: AttendanceStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'Semua Status' },
-  { value: 'present', label: 'Hadir' },
-  { value: 'late', label: 'Terlambat' },
-  { value: 'absent', label: 'Tidak Hadir' },
-  { value: 'leave', label: 'Izin' },
-  { value: 'overtime', label: 'Lembur' },
-];
-
-export function minsToHours(mins?: number) {
-  if (!mins) return '-';
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return h > 0 ? `${h}j ${m}m` : `${m}m`;
-}
+import type { AttendanceRecord, Employee } from '@/types';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 
 export function useReportManagement() {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [filterEmployee, setFilterEmployee] = useState('all');
-  const [filterStatus, setFilterStatus] = useState<AttendanceStatus | 'all'>('all');
-  const [filterDept, setFilterDept] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'));
 
   useEffect(() => {
     getEmployees().then(setEmployees);
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    const data = await getAttendanceByRange(
-      startDate,
-      endDate,
-      filterEmployee !== 'all' ? filterEmployee : undefined
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      setLoading(true);
+      try {
+        const dateObj = parseISO(`${month}-01`);
+        const start = startOfMonth(dateObj);
+        const end = endOfMonth(dateObj);
+        
+        const data = await getAttendanceByRange(
+          format(start, 'yyyy-MM-dd'),
+          format(end, 'yyyy-MM-dd')
+        );
+        setAttendance(data);
+      } catch (error) {
+        console.error('Failed to fetch attendance:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendance();
+  }, [month]);
+
+  // Transform attendance to per-employee reports
+  const reports = useMemo(() => {
+    return employees.map(emp => {
+      const empAttendance = attendance.filter(a => a.userId === emp.id);
+      const presentDays = empAttendance.filter(a => ['present', 'late', 'overtime'].includes(a.status)).length;
+      const lateDays = empAttendance.filter(a => a.status === 'late').length;
+      const totalLateMinutes = empAttendance.reduce((acc, a) => acc + (a.lateMinutes || 0), 0);
+      const absentDays = empAttendance.filter(a => a.status === 'absent').length;
+
+      return {
+        userId: emp.id,
+        userName: emp.name,
+        employeeId: emp.employeeId,
+        department: emp.department,
+        presentDays,
+        lateDays,
+        absentDays,
+        totalLateMinutes
+      };
+    });
+  }, [employees, attendance]);
+
+  const filteredReports = useMemo(() => {
+    return reports.filter(r => 
+      r.userName.toLowerCase().includes(search.toLowerCase()) ||
+      r.department.toLowerCase().includes(search.toLowerCase())
     );
-    setAttendance(data);
-    setLoading(false);
-  };
+  }, [reports, search]);
 
-  useEffect(() => { fetchData(); }, [startDate, endDate]);
+  const stats = useMemo(() => {
+    if (reports.length === 0) return { onTimeRate: 0, lateCount: 0, absentCount: 0 };
+    
+    const totalPresent = reports.reduce((acc, r) => acc + r.presentDays, 0);
+    const totalLate = reports.reduce((acc, r) => acc + r.lateDays, 0);
+    const totalAbsent = reports.reduce((acc, r) => acc + r.absentDays, 0);
+    const totalLateMins = reports.reduce((acc, r) => acc + r.totalLateMinutes, 0);
 
-  const departments = ['all', ...Array.from(new Set(employees.map(e => e.department).filter(Boolean)))];
+    const onTimeRate = totalPresent > 0 ? Math.round(((totalPresent - totalLate) / totalPresent) * 100) : 0;
 
-  const filtered = attendance.filter(a => {
-    const matchStatus = filterStatus === 'all' || a.status === filterStatus;
-    const matchDept = filterDept === 'all' || a.department === filterDept;
-    const matchEmp = filterEmployee === 'all' || a.userId === filterEmployee;
-    return matchStatus && matchDept && matchEmp;
-  });
+    return {
+      onTimeRate,
+      lateCount: totalLateMins,
+      absentCount: totalAbsent
+    };
+  }, [reports]);
 
-  // Summary stats
-  const summary = {
-    present: filtered.filter(a => ['present', 'late', 'overtime'].includes(a.status)).length,
-    late: filtered.filter(a => a.status === 'late').length,
-    absent: filtered.filter(a => a.status === 'absent').length,
-    leave: filtered.filter(a => a.status === 'leave').length,
-    overtime: filtered.filter(a => a.status === 'overtime').length,
-  };
-
-  const exportCSV = () => {
-    const headers = ['Tanggal', 'Nama', 'Departemen', 'Status', 'Jam Masuk', 'Jam Pulang', 'Total Jam', 'Terlambat (menit)', 'Lembur (menit)'];
-    const rows = filtered.map(a => [
-      a.date,
-      a.employeeName,
-      a.department,
-      a.status,
-      a.checkIn?.time || '-',
-      a.checkOut?.time || '-',
-      minsToHours(a.totalWorkMinutes),
-      a.lateMinutes || 0,
-      a.overtimeMinutes || 0,
+  const handleExport = () => {
+    const headers = ['Nama', 'ID Karyawan', 'Unit', 'Hadir', 'Telat', 'Alfa'];
+    const rows = filteredReports.map(r => [
+      r.userName,
+      r.employeeId,
+      r.department,
+      r.presentDays,
+      r.lateDays,
+      r.absentDays
     ]);
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `laporan-absensi-${startDate}-${endDate}.csv`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Laporan_Absensi_${month}.csv`;
+    link.click();
     URL.revokeObjectURL(url);
   };
 
   return {
-    attendance,
-    employees,
     loading,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    filterEmployee,
-    setFilterEmployee,
-    filterStatus,
-    setFilterStatus,
-    filterDept,
-    setFilterDept,
-    departments,
-    filtered,
-    summary,
-    exportCSV,
+    search,
+    setSearch,
+    month,
+    setMonth,
+    reports,
+    filteredReports,
+    handleExport,
+    stats
   };
 }

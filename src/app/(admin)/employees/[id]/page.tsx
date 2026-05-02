@@ -1,11 +1,13 @@
-// File ini "dinetralkan" agar tidak menghambat proses build.
-// Tetap sangat disarankan untuk MENGHAPUS folder ini: admin/src/app/(admin)/employees/[id]
+import EmployeeDetailClient from './EmployeeDetailClient';
 
+// This is required for static export (output: export)
 export function generateStaticParams() {
-  // Kita kasih dummy ID supaya Next.js tidak error saat 'npm run build'
-  return [{ id: 'dummy-static-path' }];
+  // We return an empty array because employees are dynamic and fetched client-side.
+  // In a real static site, you would fetch all IDs here, but for an admin dashboard
+  // we usually rely on client-side routing.
+  return [];
 }
 
-export default function NeutralPage() {
-  return null;
+export default function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return <EmployeeDetailClient params={params} />;
 }

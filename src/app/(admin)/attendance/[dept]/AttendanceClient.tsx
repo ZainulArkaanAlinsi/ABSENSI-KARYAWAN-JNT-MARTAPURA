@@ -67,7 +67,7 @@ export default function AttendanceClient() {
 
   if (!rule) {
     return (
-      <AdminLayout title="System" subtitle="Error">
+      <AdminLayout>
         <div className="flex flex-col items-center gap-6 py-32 text-center">
           <div className="h-20 w-20 rounded-3xl bg-jne-red/10 border border-jne-red/20 flex items-center justify-center">
             <XCircle size={40} className="text-jne-red" />
@@ -93,7 +93,7 @@ export default function AttendanceClient() {
   const totalLeave    = records.filter((r) => r.status === 'leave').length;
 
   return (
-    <AdminLayout title={rule.name} subtitle="Attendance Domain">
+    <AdminLayout>
       <div className="dash-root px-1 sm:px-2">
         <div className="flex items-center gap-2 mb-6">
           <button

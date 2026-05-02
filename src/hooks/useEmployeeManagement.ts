@@ -15,12 +15,11 @@ export function useEmployeeManagement() {
   useEffect(() => {
     const unsubEmployees = subscribeToEmployees((data) => {
       setEmployees(data);
-      if (departmentItems.length > 0) setLoading(false);
+      setLoading(false);
     });
 
     const unsubDepts = subscribeToDepartments((data) => {
       setDepartmentItems(data);
-      if (employees.length > 0 || !loading) setLoading(false);
     });
 
     getJamKerjas().then(setJamKerjas);

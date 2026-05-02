@@ -36,78 +36,74 @@ export default function SettingsPanel({
         key={activeTab}
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-3xl border flex flex-col overflow-hidden relative"
-        style={{ 
-          background: 'var(--bg-card)', 
-          borderColor: 'var(--border-primary)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15), inset 0 2px 0 rgba(255, 255, 255, 0.8)'
-        }}
+        transition={{ duration: 0.4 }}
+        className="rounded-4xl border border-(--border-primary) flex flex-col overflow-hidden bg-(--bg-card) shadow-sm"
       >
         {/* Panel Header */}
-        <div className="flex items-center gap-5 px-8 py-7 border-b relative z-10" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-sidebar)', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.1)' }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner" style={{ background: 'rgba(0, 0, 0, 0.2)', boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.1)' }}>
-            <SettingsIcon size={24} style={{ color: '#fff', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5))' }} />
+        <div className="flex items-center gap-6 px-10 py-8 border-b border-(--border-primary) bg-white/2 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/5 to-transparent pointer-events-none" />
+          <div className="h-16 w-16 rounded-2xl flex items-center justify-center bg-[#005596] text-white shadow-lg shadow-[#005596]/20">
+            <SettingsIcon size={28} />
           </div>
           <div>
-            <h3 className="text-2xl font-black tracking-tighter text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            <h3 className="text-2xl font-black italic tracking-tighter text-(--text-primary) uppercase">
               {currentTab?.label}
             </h3>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-1 text-white/80">
-              Konfigurasi Parameter Sistem
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-1 text-(--text-muted)">
+              Parameter Operasional JNE Martapura
             </p>
           </div>
         </div>
 
         {/* Settings Fields */}
-        <div className="p-8 space-y-8 min-h-[420px] relative z-10" style={{ background: 'var(--bg-card)' }}>
-          {activeTab === 'office' && <OfficeSettings settings={settings.office} update={update} />}
-          {activeTab === 'company' && <CompanySettings settings={settings.company} update={update} />}
-          {activeTab === 'attendance' && <AttendanceSettings settings={settings.attendance} update={update} />}
-          {activeTab === 'notifications' && <NotificationsSettings settings={settings.notifications} update={update} />}
+        <div className="p-10 space-y-8 min-h-[420px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'office' && <OfficeSettings settings={settings.office} update={update} />}
+              {activeTab === 'company' && <CompanySettings settings={settings.company} update={update} />}
+              {activeTab === 'attendance' && <AttendanceSettings settings={settings.attendance} update={update} />}
+              {activeTab === 'notifications' && <NotificationsSettings settings={settings.notifications} update={update} />}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Action Bar */}
-        <div className="flex items-center justify-between px-8 py-5 border-t relative z-10" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-sidebar)', boxShadow: '0 -4px 20px -2px rgba(0,0,0,0.1)' }}>
+        <div className="flex items-center justify-between px-10 py-6 border-t border-(--border-primary) bg-white/2">
           <AnimatePresence>
             {saved && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, x: -10 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.9, x: -10 }}
-                className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl"
-                style={{
-                  background: '#10B981',
-                  color: '#fff',
-                  boxShadow: '0 4px 0 #059669, 0 5px 10px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.4)',
-                }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
               >
-                <CheckCircle2 size={16} /> Tersimpan
+                <CheckCircle2 size={16} /> Data Tersimpan
               </motion.div>
             )}
           </AnimatePresence>
 
-          <motion.button
-            whileHover={{ y: -2 }}
-            whileTap={{ y: 2, boxShadow: '0 0px 0 #b31217, 0 2px 4px rgba(227,30,36,0.3)' }}
+          <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-3 ml-auto px-8 py-3.5 rounded-xl font-black text-[12px] uppercase tracking-[0.15em] text-white transition-all"
-            style={{ 
-              background: saving ? 'var(--text-muted)' : 'var(--jne-red)',
-              boxShadow: saving ? '0 4px 0 #64748b' : '0 4px 0 #b31217, 0 8px 15px rgba(227,30,36,0.4), inset 0 2px 0 rgba(255,255,255,0.2)'
-            }}
+            className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white transition-all shadow-lg shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
+            style={{ background: '#E31E24' }}
           >
             {saving ? (
               <>
-                <Loader2 size={16} className="animate-spin" /> Processing
+                <Loader2 size={18} className="animate-spin" /> Sedang Memproses
               </>
             ) : (
               <>
-                <Save size={16} style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' }} /> Simpan Perubahan
+                <Save size={18} /> Simpan Konfigurasi
               </>
             )}
-          </motion.button>
+          </button>
         </div>
       </motion.div>
     </div>
