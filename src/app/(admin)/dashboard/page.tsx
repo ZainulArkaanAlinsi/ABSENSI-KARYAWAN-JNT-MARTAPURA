@@ -1,212 +1,478 @@
 'use client';
 
-import { useDashboardStats } from '@/hooks/useDashboardStats';
-import { useTheme } from '@/context/ThemeContext';
+import React, { useEffect, useState } from 'react';
+import { motion, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
   Clock, 
   UserCheck, 
-  UserX, 
-  Calendar as CalendarIcon,
+  AlertTriangle, 
+  ArrowRight, 
+  Calendar,
+  Layers,
+  ChevronRight,
+  Zap,
+  TrendingUp,
+  LayoutDashboard,
   FileText,
   Settings,
-  Layers,
-  ArrowUpRight
+  Bell,
+  MapPin,
+  CheckCircle2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
+import { format } from 'date-fns';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useTheme } from '@/context/ThemeContext';
+
+// ── Components ──
+
+const AnimatedCounter = ({ value, duration = 1.5 }: { value: number; duration?: number }) => {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (v) => Math.round(v));
+
+  useEffect(() => {
+    const controls = animate(count, value, { duration, ease: 'easeOut' });
+    return controls.stop;
+  }, [value, duration, count]);
+
+  return <motion.span>{rounded}</motion.span>;
+};
+
+const WelcomeBanner = ({ stats, loading }: { stats: any; loading: boolean }) => {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Selamat Pagi' : hour < 17 ? 'Selamat Siang' : 'Selamat Malam';
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="dashboard-hero p-8 md:p-12 mb-8 flex flex-col md:flex-row justify-between items-center gap-8"
+    >
+      <div className="space-y-4 text-center md:text-left relative z-10">
+        <div className="flex items-center justify-center md:justify-start gap-3">
+          <motion.div
+            animate={{ y: [-2, 2, -2] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30"
+          >
+            <Zap size={20} className="text-white" />
+          </motion.div>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/70">Operational Overview</span>
+        </div>
+        <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-none">
+          {greeting},<br/><span className="text-white/80">Admin JNE.</span>
+        </h1>
+        <p className="text-sm font-bold text-white/60 uppercase tracking-widest">
+          {format(new Date(), 'EEEE, dd MMMM yyyy')}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 relative z-10">
+        {[
+          { label: 'Total Staff', value: stats?.totalEmployees ?? 0, icon: Users },
+          { label: 'Punctuality', value: `${stats?.punctualityRate ?? 0}%`, icon: Clock },
+          { label: 'Pending Izin', value: stats?.pendingLeaves ?? 0, icon: FileText },
+        ].map((item, i) => (
+          <div key={i} className="flex flex-col items-center md:items-start">
+            <div className="flex items-center gap-2 mb-1">
+              <item.icon size={14} className="text-white/40" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-white/50">{item.label}</span>
+            </div>
+            <span className="text-2xl font-black tracking-tighter">{loading ? '...' : item.value}</span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+const StatCardV2 = ({ 
+  label, 
+  value, 
+  trend, 
+  accent, 
+  progress, 
+  loading,
+  idx 
+}: { 
+  label: string; 
+  value: number; 
+  trend: string; 
+  accent: string; 
+  progress: number;
+  loading: boolean;
+  idx: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: 0.2 + (idx * 0.1), duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+    whileHover={{ y: -2, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
+    className="stat-card-v2 p-6 flex flex-col justify-between"
+  >
+    <div className="accent-bar" style={{ backgroundColor: accent }} />
+    <div className="space-y-4">
+      <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest leading-none">{label}</p>
+      <div className="flex items-baseline gap-2">
+        <h3 className="text-4xl font-black text-(--text-primary) tracking-tighter">
+          {loading ? '...' : <AnimatedCounter value={value} />}
+        </h3>
+        <span className="text-[10px] font-bold text-(--text-dim) uppercase tracking-widest">{trend}</span>
+      </div>
+    </div>
+    <div className="mt-6 space-y-2">
+      <div className="flex justify-between items-center">
+        <span className="text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Efficiency</span>
+        <span className="text-[9px] font-black text-(--text-muted) uppercase tracking-widest">{progress}%</span>
+      </div>
+      <div className="w-full h-1 bg-(--border-primary) rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1.5, delay: 0.5, ease: 'circOut' }}
+          className="h-full rounded-full" 
+          style={{ backgroundColor: accent }}
+        />
+      </div>
+    </div>
+  </motion.div>
+);
+
+const AttendanceDonut = ({ stats, loading }: { stats: any; loading: boolean }) => {
+  const { theme } = useTheme();
+  const chartData = [
+    { name: 'Hadir', value: stats?.presentToday ?? 0, color: '#10B981' },
+    { name: 'Terlambat', value: stats?.lateToday ?? 0, color: '#F59E0B' },
+    { name: 'Alfa', value: stats?.absentToday ?? 0, color: '#E31E24' },
+  ];
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="relative h-[250px] w-full flex items-center justify-center">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              innerRadius={70}
+              outerRadius={90}
+              paddingAngle={8}
+              dataKey="value"
+              animationBegin={500}
+              animationDuration={1500}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span 
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5, type: 'spring' }}
+            className="text-4xl font-black text-(--text-primary) tracking-tighter"
+          >
+            {loading ? '...' : `${stats?.engagementIndex ?? 0}%`}
+          </motion.span>
+          <span className="text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Presence Rate</span>
+        </div>
+      </div>
+      <div className="mt-auto space-y-3">
+        {chartData.map((item, i) => (
+          <div key={i} className="flex items-center justify-between group">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest group-hover:text-(--text-primary) transition-colors">{item.name}</span>
+            </div>
+            <span className="text-xs font-black text-(--text-primary)">{loading ? '...' : item.value} pax</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const { data, loading } = useDashboardStats();
   const { theme } = useTheme();
 
-  const stats = {
-    totalEmployees: data?.totalEmployees ?? 0,
-    todayPresent: data?.presentToday ?? 0,
-    todayLate: data?.lateToday ?? 0,
-    todayAbsent: data?.absentToday ?? 0,
-  };
-
   const chartData = data?.weeklyTrends.map(t => ({
     name: t.day,
     hadir: t.present,
-    alfa: t.absent
+    late: t.late,
+    absent: t.absent
   })) ?? [];
-
-  const recentAttendance = data?.recentActivities.map(r => ({
-    userName: r.userName,
-    department: r.department,
-    checkInTime: typeof r.checkIn === 'string' ? r.checkIn : '—',
-    status: r.status,
-  })) ?? [];
-
-  const statCards = [
-    { label: 'Total Personel', value: stats.totalEmployees, icon: Users, color: '#005596', trend: 'Karyawan Aktif' },
-    { label: 'Hadir Hari Ini', value: stats.todayPresent, icon: UserCheck, color: '#10B981', trend: 'Absensi Masuk' },
-    { label: 'Terlambat', value: stats.todayLate, icon: Clock, color: '#F59E0B', trend: 'Perlu Evaluasi' },
-    { label: 'Tanpa Keterangan', value: stats.todayAbsent, icon: UserX, color: '#E31E24', trend: 'Belum Scan' },
-  ];
-
-  const quickNav = [
-    { label: 'Staff', sub: 'Manajemen Karyawan', icon: Users, href: '/employees', color: '#005596' },
-    { label: 'Reports', sub: 'Laporan Berkala', icon: FileText, href: '/reports', color: '#E31E24' },
-    { label: 'Config', sub: 'Parameter Sistem', icon: Settings, href: '/settings', color: '#64748B' },
-    { label: 'Depart', sub: 'Struktur Unit', icon: Layers, href: '/departments', color: '#005596' },
-  ];
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8">
+    <div className="max-w-[1400px] mx-auto p-4 md:p-0 space-y-8">
+      <WelcomeBanner stats={data} loading={loading} />
+
       {/* ── STAT CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {statCards.map((stat, idx) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="group relative bg-(--bg-card) p-6 rounded-4xl border border-(--border-primary) shadow-sm hover:shadow-md transition-all duration-300"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div 
-                className="h-12 w-12 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${stat.color}15`, color: stat.color }}
-              >
-                <stat.icon size={22} strokeWidth={2.5} />
-              </div>
-              <div className="text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Status Terkini</div>
-            </div>
-
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-3xl font-black text-(--text-primary) tracking-tighter">{loading ? '...' : stat.value}</h3>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-(--border-primary)">
-              <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-wide flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> {stat.trend}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCardV2 
+          idx={0} label="Hadir Hari Ini" 
+          value={data?.presentToday ?? 0} trend="Live Scan" 
+          accent="#10B981" progress={data?.engagementIndex ?? 0} 
+          loading={loading}
+        />
+        <StatCardV2 
+          idx={1} label="Terlambat" 
+          value={data?.lateToday ?? 0} trend="Buffer Limit" 
+          accent="#F59E0B" progress={Math.max(0, 100 - (data?.punctualityRate ?? 0))} 
+          loading={loading}
+        />
+        <StatCardV2 
+          idx={2} label="Total Jam Kerja" 
+          value={data?.totalWorkingHours ?? 0} trend="Cumulated" 
+          accent="#8B5CF6" progress={78} 
+          loading={loading}
+        />
+        <StatCardV2 
+          idx={3} label="Departemen Aktif" 
+          value={data?.activeDepartmentsCount ?? 0} trend="Operational" 
+          accent="#3B82F6" progress={100} 
+          loading={loading}
+        />
       </div>
 
-      {/* ── QUICK NAVIGATION (Zen Remake) ── */}
-      <div className="bg-(--bg-card) p-10 rounded-4xl border border-(--border-primary) shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-red-600/5 to-transparent pointer-events-none" />
-        
-        <div className="mb-8 px-2 flex items-center justify-between">
-           <div>
-              <h2 className="text-xl font-black text-(--text-primary) italic uppercase tracking-tighter">Navigasi Cepat</h2>
-              <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mt-1">Akses Langsung ke Fitur Utama</p>
-           </div>
-           <div className="h-px flex-1 mx-8 bg-(--border-primary)" />
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickNav.map((nav, idx) => (
-            <Link key={nav.label} href={nav.href}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + (idx * 0.05) }}
-                whileHover={{ y: -5 }}
-                className="bg-white/2 border border-(--border-primary) p-6 rounded-3xl hover:bg-(--bg-main) hover:border-(--text-dim) transition-all group cursor-pointer relative overflow-hidden"
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div 
-                    className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: nav.color }}
-                  >
-                    <nav.icon size={22} />
-                  </div>
-                  <ArrowUpRight size={16} className="text-(--text-dim) group-hover:text-(--text-primary) transition-colors" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* ── MAIN TREND CHART ── */}
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="lg:col-span-8 bg-(--bg-card) p-8 rounded-4xl border border-(--border-primary) shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-xl font-black text-(--text-primary) uppercase italic tracking-tighter">Matriks Kehadiran</h2>
+              <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mt-1">Daily Performance Tracking</p>
+            </div>
+            <div className="hidden md:flex gap-6">
+              {[
+                { label: 'Hadir', color: '#10B981' },
+                { label: 'Late', color: '#F59E0B' },
+                { label: 'Alfa', color: '#E31E24' }
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">{item.label}</span>
                 </div>
-                
-                <h3 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tighter leading-none mb-2">{nav.label}</h3>
-                <p className="text-[9px] font-bold text-(--text-muted) uppercase tracking-widest">{nav.sub}</p>
-                
-                <div className="absolute bottom-0 right-0 w-16 h-16 bg-linear-to-tl from-white/5 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* ── CHARTS SECTION ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 bg-(--bg-card) p-6 md:p-8 rounded-4xl border border-(--border-primary) shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight">Tren Absensi Mingguan</h2>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2 text-[9px] font-black text-(--text-muted) uppercase"><div className="w-2 h-2 rounded-full bg-[#005596]" /> Hadir</div>
-              <div className="flex items-center gap-2 text-[9px] font-black text-(--text-muted) uppercase"><div className="w-2 h-2 rounded-full bg-[#E31E24]" /> Alfa</div>
+              ))}
             </div>
           </div>
-          
-          <div className="h-[300px] w-full">
+
+          <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
-                  <linearGradient id="colorHadir" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#005596" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#005596" stopOpacity={0}/>
+                  <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorLate" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1E293B' : '#F1F5F9'} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748B' : '#94A3B8', fontSize: 10, fontWeight: 700 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748B' : '#94A3B8', fontSize: 10, fontWeight: 700 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#F1F5F9'} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} 
+                />
                 <Tooltip 
-                  labelFormatter={(label) => `Hari: ${label}`}
                   contentStyle={{ 
-                    borderRadius: '12px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                    backgroundColor: theme === 'dark' ? '#1E293B' : '#FFFFFF',
-                    color: theme === 'dark' ? '#F8FAFC' : '#0F172A'
+                    borderRadius: '24px', 
+                    border: '1px solid var(--border-primary)', 
+                    boxShadow: 'var(--shadow-premium)',
+                    backgroundColor: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
                   }} 
                 />
-                <Area type="monotone" dataKey="hadir" name="Hadir" stroke="#005596" strokeWidth={3} fillOpacity={1} fill="url(#colorHadir)" />
-                <Area type="monotone" dataKey="alfa" name="Alfa" stroke="#E31E24" strokeWidth={3} fillOpacity={0} />
+                <Area type="monotone" dataKey="hadir" stroke="#10B981" strokeWidth={4} fillOpacity={1} fill="url(#colorPresent)" />
+                <Area type="monotone" dataKey="late" stroke="#F59E0B" strokeWidth={4} fillOpacity={1} fill="url(#colorLate)" />
+                <Area type="monotone" dataKey="absent" stroke="#E31E24" strokeWidth={4} fillOpacity={0} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </motion.div>
+
+        {/* ── DONUT DISTRIBUTION ── */}
+        <motion.div 
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="lg:col-span-4 bg-(--bg-card) p-8 rounded-4xl border border-(--border-primary) shadow-sm flex flex-col"
+        >
+          <div className="mb-6">
+            <h2 className="text-xl font-black text-(--text-primary) uppercase italic tracking-tighter">Distribusi</h2>
+            <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mt-1">Attendance Spread</p>
+          </div>
+          <AttendanceDonut stats={data} loading={loading} />
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* ── ACTIVITIES TIMELINE ── */}
+        <div className="lg:col-span-5 bg-(--bg-card) p-8 rounded-4xl border border-(--border-primary) shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight">Timeline Aktivitas</h2>
+            <Link href="/logs" className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest hover:underline">View All</Link>
+          </div>
+
+          <div className="space-y-8 relative">
+            <div className="absolute left-4 top-2 bottom-2 w-px bg-(--border-primary)" />
+            
+            {data?.recentActivities.map((act, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + (i * 0.1) }}
+                className="flex gap-6 relative z-10"
+              >
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-black text-[10px] shrink-0 shadow-lg"
+                  style={{ backgroundColor: act.color }}
+                >
+                  {act.userName.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="text-[13px] font-black text-(--text-primary) truncate">{act.userName}</h4>
+                    <span className="text-[9px] font-bold text-(--text-dim) uppercase shrink-0">{act.checkIn}</span>
+                  </div>
+                  <p className="text-[11px] font-medium text-(--text-muted) leading-snug">{act.actionLabel}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        <div className="lg:col-span-4 bg-(--bg-card) p-6 md:p-8 rounded-4xl border border-(--border-primary) shadow-sm">
-          <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight mb-6">Aktivitas Terbaru</h2>
-
-          <div className="space-y-5">
-            {recentAttendance.length > 0 ? recentAttendance.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center font-black text-[10px] text-(--text-muted) border border-(--border-primary)">
-                  {item.userName?.charAt(0)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black text-(--text-primary) truncate leading-tight">{item.userName}</p>
-                  <p className="text-[8px] font-bold text-(--text-dim) uppercase tracking-widest mt-1">{item.department}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-(--text-primary)">{item.checkInTime}</p>
-                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${item.status === 'late' ? 'text-orange-500' : 'text-green-500'}`}>
-                    {item.status === 'late' ? 'Terlambat' : 'Hadir'}
-                  </p>
-                </div>
-              </div>
-            )) : (
-              <div className="text-center py-10 text-(--text-dim) font-bold uppercase text-[9px] tracking-widest">
-                Belum ada aktivitas
-              </div>
-            )}
+        {/* ── OPERATIONAL LOGS TABLE ── */}
+        <div className="lg:col-span-7 bg-(--bg-card) rounded-4xl border border-(--border-primary) shadow-sm overflow-hidden flex flex-col">
+          <div className="p-8 border-b border-(--border-primary) flex items-center justify-between">
+             <h2 className="text-lg font-black text-(--text-primary) uppercase italic tracking-tight">Log Operasional</h2>
+             <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">Live Updates</span>
+             </div>
           </div>
+          <div className="flex-1 overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-(--bg-main) border-b border-(--border-primary)">
+                  <th className="px-8 py-4 text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Personnel</th>
+                  <th className="px-8 py-4 text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Department</th>
+                  <th className="px-8 py-4 text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-(--border-primary)">
+                {data?.recentActivities.map((act, i) => (
+                  <motion.tr 
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 + (i * 0.05) }}
+                    className="hover:bg-(--bg-main)/50 transition-colors"
+                  >
+                    <td className="px-8 py-4">
+                      <span className="text-[12px] font-black text-(--text-primary)">{act.userName}</span>
+                    </td>
+                    <td className="px-8 py-4">
+                      <span className="text-[10px] font-bold text-(--text-muted) uppercase tracking-widest">{act.department}</span>
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: act.color }} />
+                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: act.color }}>{act.status}</span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* ── DEPARTMENT PERFORMANCE ── */}
+        <div className="lg:col-span-8 bg-(--bg-card) p-8 rounded-4xl border border-(--border-primary) shadow-sm">
+          <div className="mb-8">
+            <h2 className="text-xl font-black text-(--text-primary) uppercase italic tracking-tighter">Kinerja Unit</h2>
+            <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mt-1">Department Attendance Strength</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            {data?.departmentDistribution.map((dept, i) => (
+              <div key={i} className="space-y-3">
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-[11px] font-black text-(--text-primary) uppercase tracking-tight">{dept.name}</span>
+                  <span className="text-[11px] font-black text-(--text-muted) uppercase tracking-widest">{dept.attendance}%</span>
+                </div>
+                <div className="dept-progress-bar">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${dept.attendance}%` }}
+                    transition={{ duration: 1, delay: 1 + (i * 0.1), ease: [0.16, 1, 0.3, 1] }}
+                    className="dept-progress-fill"
+                    style={{ backgroundColor: i % 2 === 0 ? '#10B981' : '#005596' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── QUICK ACTIONS ── */}
+        <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+          {[
+            { label: 'Lihat Absensi', icon: Calendar, href: '/attendance', delay: 1.2 },
+            { label: 'Staff Hub', icon: Users, href: '/employees', delay: 1.3 },
+            { label: 'Reporting', icon: FileText, href: '/reports', delay: 1.4 },
+            { label: 'System Config', icon: Settings, href: '/settings', delay: 1.5 },
+          ].map((action, i) => (
+            <Link key={i} href={action.href} className="contents">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: action.delay }}
+                whileHover={{ y: -4, borderColor: '#E31E24', backgroundColor: 'rgba(227, 30, 36, 0.02)' }}
+                whileTap={{ scale: 0.98 }}
+                className="quick-action-btn flex flex-col items-center justify-center gap-3 group"
+              >
+                <div className="w-12 h-12 bg-(--bg-main) rounded-2xl flex items-center justify-center text-(--text-muted) group-hover:text-[#E31E24] group-hover:bg-red-500/5 transition-all">
+                  <action.icon size={22} strokeWidth={2.5} />
+                </div>
+                <span className="text-[10px] font-black text-(--text-primary) uppercase tracking-tighter text-center">{action.label}</span>
+              </motion.div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

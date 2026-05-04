@@ -1,10 +1,12 @@
 import EmployeeDetailClient from './EmployeeDetailClient';
 
-// This is required for static export (output: export)
-export function generateStaticParams() {
-  // We return an empty array because employees are dynamic and fetched client-side.
-  // In a real static site, you would fetch all IDs here, but for an admin dashboard
-  // we usually rely on client-side routing.
+// Wajib diset false untuk static export pada rute dinamis
+export const dynamicParams = false;
+
+// Pastikan fungsi ini async untuk standar Next.js terbaru
+export async function generateStaticParams() {
+  // Kita return array kosong karena data akan ditarik di sisi klien (browser)
+  // Ini trik agar build sukses tanpa harus mendaftarkan semua ID karyawan
   return [];
 }
 
