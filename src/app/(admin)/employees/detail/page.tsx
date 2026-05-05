@@ -1,336 +1,241 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Smartphone,
-  Calendar,
-  RotateCcw,
-  Trash2,
-  Shield,
-  Clock,
-  Briefcase,
-} from 'lucide-react';
-import AdminLayout from '@/components/layout/AdminLayout';
-import { getEmployee, updateEmployee, getJamKerjas } from '@/lib/firestore';
-import type { Employee, JamKerja } from '@/types';
-
-import { FaceBadge, ContractBadge } from '@/components/ui/Badge';
+import { useSearchParams } from 'next/navigation';
+import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
-import { format } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
+import { id as dateFnsId } from 'date-fns/locale';
+import { ArrowLeft, User, Mail, Briefcase, Calendar, CheckCircle2, AlertTriangle, XCircle, Clock, Building } from 'lucide-react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
+import type { Employee, AttendanceRecord } from '@/types';
 
 function EmployeeDetailContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const id = searchParams.get('id');
-
+  const employeeId = searchParams.get('id');
+  
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [jamKerjas, setJamKerjas] = useState<JamKerja[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [resetting, setResetting] = useState(false);
-
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
+    async function loadData() {
+      if (!employeeId) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const emp = await getEmployee(employeeId);
+        setEmployee(emp);
+
+        if (emp) {
+           // Tarik history absensi 30 hari terakhir
+           const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+           const endDate = format(new Date(), 'yyyy-MM-dd');
+           const records = await getAttendanceByRange(startDate, endDate, emp.uid);
+           setAttendance(records);
+        }
+      } catch (error) {
+        console.error('Gagal memuat detail karyawan', error);
+      } finally {
+        setLoading(false);
+      }
     }
-    Promise.all([getEmployee(id), getJamKerjas()]).then(([emp, jk]) => {
-      setEmployee(emp);
-      setJamKerjas(jk);
-      setLoading(false);
-    });
-  }, [id]);
+    loadData();
+  }, [employeeId]);
 
-  const handleResetFace = async () => {
-    if (
-      !id ||
-      !employee ||
-      !confirm('Reset data wajah karyawan ini? Karyawan harus mendaftar ulang wajah.')
-    )
-      return;
-    setResetting(true);
-    await updateEmployee(id, {
-      faceRegistered: false,
-      deviceId: undefined,
-      deviceModel: undefined,
-    });
-    setEmployee((prev) =>
-      prev
-        ? {
-            ...prev,
-            faceRegistered: false,
-            deviceId: undefined,
-            deviceModel: undefined,
-          }
-        : null
-    );
-    setResetting(false);
-  };
-
-  const jamKerja = jamKerjas.find((s) => s.id === employee?.jamKerjaId);
-
-  if (loading)
+  if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex justify-center py-20">
-          <PageLoader />
-        </div>
-      </AdminLayout>
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <PageLoader />
+        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Memuat Rekam Jejak...</p>
+      </div>
     );
+  }
 
-  if (!id || !employee)
+  if (!employee) {
     return (
-      <AdminLayout>
-        <div className="flex flex-col items-center justify-center gap-4 py-20">
-          <p style={{ color: '#9BA4B4' }}>Karyawan tidak ditemukan.</p>
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium text-slate-700 transition-colors"
-            style={{ backgroundColor: 'white', borderColor: 'rgba(0,0,0,0.1)' }}
-          >
-            <ArrowLeft size={14} /> Kembali
-          </button>
-        </div>
-      </AdminLayout>
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <AlertTriangle size={48} className="text-[#E31E24]/50" />
+        <h2 className="text-xl font-bold text-white">Karyawan Tidak Ditemukan</h2>
+        <Link href="/employees" className="mt-4 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-xs font-black tracking-widest uppercase">
+          Kembali ke Daftar
+        </Link>
+      </div>
     );
+  }
+
+  // Statistik Singkat
+  const totalHadir = attendance.filter(a => a.status === 'present' || a.status === 'late').length;
+  const totalTelat = attendance.filter(a => a.status === 'late').length;
+  const totalAbsen = attendance.filter(a => a.status === 'absent').length;
 
   return (
-    <AdminLayout>
-      {/* Back Navigation */}
-      <motion.div
-        initial={{ opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="mb-4"
-      >
-        <button
-          onClick={() => router.back()}
-          className="group inline-flex items-center gap-2 text-xs font-medium transition-colors"
-          style={{ color: '#9BA4B4' }}
+    <div className="max-w-[1400px] mx-auto space-y-8 pb-10">
+      
+      {/* ── Header ── */}
+      <div className="flex items-center gap-4">
+        <Link 
+          href="/employees" 
+          className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
         >
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors bg-white border-slate-200"
-          >
-            <ArrowLeft size={15} />
-          </span>
-          <span>Kembali ke daftar karyawan</span>
-        </button>
-      </motion.div>
+          <ArrowLeft size={18} className="text-(--text-dim) group-hover:text-white transition-colors" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase">Profil Karyawan</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-muted)">Rekam Jejak & Identitas</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-        {/* Left column */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="space-y-4 xl:col-span-4"
-        >
-          {/* Identity card */}
-          <div
-            className="rounded-xl border p-6 text-center bg-white border-slate-100 shadow-sm"
-          >
-            <div className="relative mb-4 inline-block">
-              <div
-                className="flex h-24 w-24 items-center justify-center rounded-xl text-3xl font-bold text-white shadow-lg bg-[#005596]"
-              >
-                {employee.name?.charAt(0)?.toUpperCase()}
-              </div>
-              <div
-                className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-100 bg-white shadow-sm"
-              >
-                <Shield size={14} className="text-[#E31E24]" />
-              </div>
-            </div>
-
-            <h3 className="text-lg font-black text-slate-900">{employee.name}</h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">
-              {employee.position || '—'} • {employee.department || '—'}
-            </p>
-
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <FaceBadge registered={employee.faceRegistered} />
-              <ContractBadge type={employee.contractType} />
-            </div>
-
-            <div className="mt-6 space-y-4 border-t pt-6 text-left border-slate-100">
-              {[
-                { icon: Mail, label: 'Email', value: employee.email },
-                ...(employee.phone
-                  ? [{ icon: Phone, label: 'Telepon', value: employee.phone }]
-                  : []),
-                {
-                  icon: Calendar,
-                  label: 'Tanggal bergabung',
-                  value: employee.joinDate
-                    ? format(new Date(employee.joinDate), 'dd MMMM yyyy')
-                    : '—',
-                },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 border border-slate-100">
-                    <item.icon size={14} className="text-[#005596]" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</p>
-                    <p className="text-sm font-bold text-slate-900">{item.value}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* ── Kolom Kiri: Profil Card ── */}
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-1 space-y-6">
+          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) p-8 shadow-sm relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/10 to-transparent pointer-events-none" />
+             
+             <div className="flex flex-col items-center text-center">
+                <div className="h-28 w-28 rounded-full bg-black/20 border-4 border-white/5 flex items-center justify-center mb-6 relative">
+                  {employee.photoUrl ? (
+                    <img src={employee.photoUrl} alt={employee.name} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <User size={40} className="text-(--text-dim)" />
+                  )}
+                  <div className={`absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-[#020617] flex items-center justify-center ${employee.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                    {employee.faceRegistered ? <CheckCircle2 size={12} className="text-white" /> : <XCircle size={12} className="text-white" />}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Account actions */}
-          <div
-            className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
-          >
-            <h4 className="mb-3 text-xs font-black text-slate-400 uppercase tracking-widest">Manajemen Akun</h4>
-            <div className="space-y-2">
-              <button
-                onClick={handleResetFace}
-                disabled={resetting || !employee.faceRegistered}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-[#E31E24]/5 hover:text-[#E31E24] disabled:opacity-40"
-              >
-                <RotateCcw size={14} className={resetting ? 'animate-spin' : ''} />
-                {resetting ? 'Mereset...' : 'Reset Data Wajah'}
-              </button>
+                <h2 className="text-2xl font-black text-(--text-primary) tracking-tight mb-1">{employee.name}</h2>
+                <p className="text-[11px] font-bold tracking-widest text-[#005596] uppercase bg-[#005596]/10 px-3 py-1 rounded-lg mb-6">
+                  {employee.employeeId}
+                </p>
 
-              <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-[#005596]/5 hover:text-[#005596]"
-                onClick={() => alert('Fitur segera hadir!')}
-              >
-                <Mail size={14} />
-                Kirim Reset Password
-              </button>
-
-              <button
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-xs font-bold text-[#E31E24] transition-all hover:bg-red-100"
-                onClick={() => alert('Konfirmasi nonaktifkan karyawan.')}
-              >
-                <Trash2 size={14} />
-                Nonaktifkan Akun
-              </button>
-            </div>
+                <div className="w-full space-y-4 text-left">
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <Building size={16} className="text-(--text-muted)" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Departemen</p>
+                      <p className="text-sm font-bold text-(--text-primary)">{employee.department || '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <Briefcase size={16} className="text-(--text-muted)" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Posisi / Jabatan</p>
+                      <p className="text-sm font-bold text-(--text-primary)">{employee.position || '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <Mail size={16} className="text-(--text-muted)" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Email Akses</p>
+                      <p className="text-sm font-bold text-(--text-primary)">{employee.email}</p>
+                    </div>
+                  </div>
+                </div>
+             </div>
           </div>
         </motion.div>
 
-        {/* Right column */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4 xl:col-span-8"
-        >
-          {/* Device info */}
-          <div
-            className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
-          >
-            <div className="mb-4 flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#005596]/10 text-[#005596]"
-              >
-                <Smartphone size={18} />
-              </div>
-              <div>
-                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Perangkat Terdaftar</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Perangkat untuk presensi wajah</p>
-              </div>
-            </div>
 
-            {employee.deviceModel ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Model Perangkat</p>
-                  <p className="mt-1 text-sm font-bold text-slate-900">{employee.deviceModel}</p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Device ID</p>
-                  <p className="mt-1 break-all font-mono text-[10px] font-bold text-slate-900">
-                    {employee.deviceId || '—'}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-                <Smartphone size={32} style={{ color: '#9BA4B4', opacity: 0.5 }} />
-                <p className="text-sm font-medium" style={{ color: '#9BA4B4' }}>Belum ada perangkat terdaftar</p>
-                <p className="text-xs" style={{ color: '#9BA4B4', opacity: 0.7 }}>
-                  Perangkat akan muncul setelah karyawan melakukan presensi pertama.
-                </p>
-              </div>
-            )}
+        {/* ── Kolom Kanan: History & Stats ── */}
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-2 space-y-6">
+          
+          {/* Stats Bar */}
+          <div className="grid grid-cols-3 gap-4">
+             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Total Hadir (30 Hari)</span>
+                <span className="text-3xl font-black text-emerald-500">{totalHadir}</span>
+             </div>
+             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Terlambat</span>
+                <span className="text-3xl font-black text-amber-500">{totalTelat}</span>
+             </div>
+             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Alpha / Mangkir</span>
+                <span className="text-3xl font-black text-[#E31E24]">{totalAbsen}</span>
+             </div>
           </div>
 
-          {/* Jam Kerja info */}
-          {jamKerja && (
-            <div
-              className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm"
-            >
-              <div className="mb-4 flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E31E24]/10 text-[#E31E24]"
-                >
-                  <Clock size={18} />
-                </div>
+          {/* Table History */}
+          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) shadow-sm overflow-hidden flex flex-col">
+             <div className="px-8 py-6 border-b border-(--border-primary) flex justify-between items-center bg-white/2">
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Jadwal Jam Kerja</h4>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detail jadwal kerja dan toleransi</p>
+                  <h3 className="text-lg font-black italic tracking-tighter text-(--text-primary) uppercase">Log Absensi</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-(--text-muted)">30 Hari Terakhir</p>
                 </div>
-              </div>
+                <Calendar className="text-(--text-dim)" size={20} />
+             </div>
 
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit</p>
-                  <p className="mt-1 text-sm font-black text-[#E31E24]">{jamKerja.name}</p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam Masuk</p>
-                  <p className="mt-1 text-sm font-bold text-slate-900">{jamKerja.checkInTime}</p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jam Pulang</p>
-                  <p className="mt-1 text-sm font-bold text-slate-900">{jamKerja.checkOutTime}</p>
-                </div>
-              </div>
-
-
-              <div
-                className="mt-4 flex items-center justify-between rounded-xl px-4 py-3 bg-[#E31E24]/5 border border-[#E31E24]/10"
-              >
-                <span className="text-xs font-black text-[#E31E24] uppercase tracking-tight">Toleransi Keterlambatan</span>
-                <span className="text-sm font-black text-slate-900">{jamKerja.toleranceMinutes} menit</span>
-              </div>
-
-            </div>
-          )}
-
-          <div
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-slate-200 p-10 text-center bg-slate-50/50"
-          >
-            <Briefcase size={36} className="text-slate-200" />
-            <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Riwayat Absensi</p>
-            <p className="max-w-sm text-xs" style={{ color: '#9BA4B4', opacity: 0.7 }}>
-              Fitur riwayat absensi detail akan segera hadir.
-            </p>
+             <div className="overflow-x-auto">
+               <table className="w-full text-left">
+                 <thead>
+                   <tr className="border-b border-(--border-primary) bg-black/20">
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tanggal</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Masuk</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Pulang</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Status</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-(--border-primary)">
+                   {attendance.length === 0 ? (
+                     <tr>
+                       <td colSpan={4} className="px-8 py-16 text-center">
+                         <div className="flex flex-col items-center justify-center gap-3">
+                            <Clock size={32} className="text-(--text-dim)" />
+                            <p className="text-[11px] font-bold text-(--text-muted) uppercase tracking-widest">Belum Ada Riwayat Absensi</p>
+                         </div>
+                       </td>
+                     </tr>
+                   ) : (
+                     attendance.map((record) => (
+                       <tr key={record.id} className="hover:bg-white/5 transition-colors">
+                         <td className="px-8 py-4 whitespace-nowrap">
+                           <span className="text-sm font-bold text-(--text-primary)">
+                             {format(parseISO(record.date), 'dd MMM yyyy', { locale: dateFnsId })}
+                           </span>
+                         </td>
+                         <td className="px-8 py-4 whitespace-nowrap">
+                           <span className="text-sm font-bold text-(--text-primary)">
+                             {record.checkIn ? format(parseISO(record.checkIn.time), 'HH:mm') : '--:--'}
+                           </span>
+                         </td>
+                         <td className="px-8 py-4 whitespace-nowrap">
+                           <span className="text-sm font-bold text-(--text-primary)">
+                             {record.checkOut ? format(parseISO(record.checkOut.time), 'HH:mm') : '--:--'}
+                           </span>
+                         </td>
+                         <td className="px-8 py-4 whitespace-nowrap">
+                            {record.status === 'present' && <span className="inline-flex px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">Tepat Waktu</span>}
+                            {record.status === 'late' && <span className="inline-flex px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-amber-500/20">Terlambat</span>}
+                            {record.status === 'absent' && <span className="inline-flex px-3 py-1 bg-[#E31E24]/10 text-[#E31E24] text-[10px] font-black uppercase tracking-widest rounded-lg border border-[#E31E24]/20">Alpha</span>}
+                            {record.status === 'leave' && <span className="inline-flex px-3 py-1 bg-[#005596]/10 text-[#005596] text-[10px] font-black uppercase tracking-widest rounded-lg border border-[#005596]/20">Izin / Cuti</span>}
+                         </td>
+                       </tr>
+                     ))
+                   )}
+                 </tbody>
+               </table>
+             </div>
           </div>
+
         </motion.div>
       </div>
-    </AdminLayout>
+
+    </div>
   );
 }
 
 export default function EmployeeDetailPage() {
   return (
     <Suspense fallback={
-      <AdminLayout>
-        <div className="flex justify-center py-20">
-          <PageLoader />
-        </div>
-      </AdminLayout>
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <PageLoader />
+        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Memuat Halaman...</p>
+      </div>
     }>
       <EmployeeDetailContent />
     </Suspense>

@@ -178,92 +178,119 @@ export default function LeavesPage() {
                 layout
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-(--bg-card) rounded-4xl border border-(--border-primary) overflow-hidden shadow-sm hover:shadow-md transition-all group"
+                className="bg-[#020617] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl hover:shadow-[#005596]/10 transition-all group relative"
               >
-                <div className="flex flex-col lg:flex-row lg:items-center">
+                {/* Subtle Background Glow */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#005596]/5 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+
+                <div className="flex flex-col lg:flex-row lg:items-stretch">
                   {/* Bagian Karyawan */}
-                  <div className="p-8 lg:w-80 lg:border-r border-(--border-primary) bg-white/2">
-                    <div className="flex items-center gap-5">
-                      <div className="h-14 w-14 rounded-2xl bg-white/5 border border-(--border-primary) flex items-center justify-center text-xl font-black text-(--text-primary) shadow-sm group-hover:border-[#E31E24]/50 transition-all">
+                  <div className="p-10 lg:w-72 flex flex-col items-center justify-center text-center bg-white/2 border-b lg:border-b-0 lg:border-r border-white/5">
+                    <div className="relative mb-4">
+                      <div className="h-20 w-20 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-3xl font-black text-white shadow-inner transition-transform group-hover:scale-105">
                         {leave.employeeName?.charAt(0)}
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-black text-(--text-primary) leading-tight mb-1 truncate">{leave.employeeName}</h3>
-                        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">{leave.employeeId}</p>
-                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg bg-emerald-500 border-4 border-[#020617] shadow-sm" />
                     </div>
+                    <h3 className="text-lg font-black text-white leading-tight mb-1 truncate w-full">{leave.employeeName}</h3>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{leave.employeeId}</p>
                   </div>
 
                   {/* Konten Izin */}
-                  <div className="flex-1 p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div>
-                      <p className="text-[9px] font-black text-(--text-muted) uppercase tracking-widest mb-3">Jenis Pengajuan</p>
-                      <span className="px-4 py-1.5 rounded-xl bg-[#005596]/10 text-[#005596] text-[11px] font-black uppercase tracking-widest border border-[#005596]/20">
-                        {getLeaveLabel(leave.type)}
-                      </span>
-                    </div>
-
-                    <div>
-                      <p className="text-[9px] font-black text-(--text-muted) uppercase tracking-widest mb-3">Timeline & Durasi</p>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-sm font-black text-(--text-primary)">
-                          <Calendar size={14} className="text-(--text-dim)" />
-                          {leave.startDate ? format(new Date(leave.startDate), 'dd MMM', { locale: id }) : '?'}
-                          <span className="text-(--text-dim)">—</span>
-                          {leave.endDate ? format(new Date(leave.endDate), 'dd MMM', { locale: id }) : '?'}
+                  <div className="flex-1 p-10 flex flex-col justify-between">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Jenis Pengajuan</p>
+                        <div className="inline-flex px-5 py-2.5 rounded-2xl bg-[#005596]/10 text-[#005596] text-[11px] font-black uppercase tracking-widest border border-[#005596]/20">
+                          {getLeaveLabel(leave.type)}
                         </div>
-                        <p className="text-[10px] font-bold text-(--text-muted) uppercase tracking-widest ml-6">{leave.totalDays} Hari Kerja</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Timeline & Durasi</p>
+                        <div className="flex items-center gap-6">
+                           <div className="text-center">
+                              <p className="text-2xl font-black text-white tracking-tighter leading-none">
+                                {leave.startDate ? format(new Date(leave.startDate), 'dd') : '--'}
+                              </p>
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">
+                                {leave.startDate ? format(new Date(leave.startDate), 'MMM', { locale: id }) : '--'}
+                              </p>
+                           </div>
+                           <div className="h-px w-6 bg-white/10" />
+                           <div className="text-center">
+                              <p className="text-2xl font-black text-white tracking-tighter leading-none">
+                                {leave.endDate ? format(new Date(leave.endDate), 'dd') : '--'}
+                              </p>
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">
+                                {leave.endDate ? format(new Date(leave.endDate), 'MMM', { locale: id }) : '--'}
+                              </p>
+                           </div>
+                           <div className="ml-4 pl-6 border-l border-white/5">
+                              <p className="text-xs font-black text-white uppercase tracking-widest">{leave.totalDays} Hari</p>
+                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Kerja</p>
+                           </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col justify-center">
-                       {leave.status === 'pending' ? (
-                         <div className="flex gap-2">
-                           <button
-                             onClick={() => openReject(leave)}
-                             disabled={!!processing}
-                             className="flex-1 h-12 rounded-xl border border-(--border-primary) bg-white/5 text-(--text-muted) text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 hover:text-red-600 transition-all"
-                           >
-                             Tolak
-                           </button>
-                           <button
-                             onClick={() => handleApprove(leave)}
-                             disabled={!!processing}
-                             className="flex-1.5 h-12 rounded-xl bg-[#005596] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#005596]/20 hover:bg-[#004480] transition-all flex items-center justify-center gap-2"
-                           >
-                             {processing === leave.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={14} />}
-                             Setujui
-                           </button>
-                         </div>
-                       ) : (
-                         <div className="flex items-center justify-end gap-3">
-                            <div className="text-right">
-                               <p className="text-[9px] font-black text-(--text-muted) uppercase tracking-widest mb-1">Ditinjau oleh</p>
-                               <div className="flex items-center gap-2 justify-end">
-                                  <UserCheck size={14} className="text-green-500" />
-                                  <span className="text-xs font-black text-(--text-primary) uppercase">{leave.reviewedBy || 'Sistem'}</span>
-                                </div>
+                    <div className="mt-10 pt-10 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
+                       <div className="flex items-start gap-4 flex-1">
+                          <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                             <FileText size={18} className="text-slate-500" />
+                          </div>
+                          <p className="text-xs font-medium text-slate-400 italic leading-relaxed">
+                            &ldquo;{leave.reason}&rdquo;
+                          </p>
+                       </div>
+
+                       <div className="shrink-0">
+                          {leave.status === 'pending' ? (
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => openReject(leave)}
+                                disabled={!!processing}
+                                className="px-8 h-12 rounded-2xl bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all border border-transparent hover:border-red-500/20"
+                              >
+                                Tolak
+                              </button>
+                              <button
+                                onClick={() => handleApprove(leave)}
+                                disabled={!!processing}
+                                className="px-10 h-12 rounded-2xl bg-[#005596] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#005596]/30 hover:bg-[#004480] transition-all flex items-center justify-center gap-3 active:scale-95"
+                              >
+                                {processing === leave.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} strokeWidth={3} />}
+                                Setujui
+                              </button>
                             </div>
-                         </div>
-                       )}
+                          ) : (
+                            <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
+                               <div className="text-right">
+                                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Ditinjau oleh</p>
+                                  <p className="text-[11px] font-black text-white uppercase tracking-tight">{leave.reviewedBy || 'Sistem'}</p>
+                               </div>
+                               <div className="h-8 w-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                  <UserCheck size={16} />
+                               </div>
+                            </div>
+                          )}
+                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer Keterangan */}
-                <div className="px-8 py-5 bg-white/2 border-t border-(--border-primary) flex items-center justify-between gap-6">
-                  <div className="flex items-center gap-3">
-                    <FileText size={14} className="text-(--text-dim)" />
-                    <p className="text-xs font-medium text-(--text-secondary) italic">
-                      &ldquo;{leave.reason}&rdquo;
-                    </p>
-                  </div>
-                  {leave.documentUrl && (
-                    <a href={leave.documentUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-[#005596] uppercase tracking-widest hover:underline">
-                      Lihat Bukti
+                {leave.documentUrl && (
+                  <div className="absolute top-6 right-6">
+                    <a 
+                      href={leave.documentUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all shadow-sm"
+                    >
+                      <Search size={18} />
                     </a>
-                  )}
-                </div>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>

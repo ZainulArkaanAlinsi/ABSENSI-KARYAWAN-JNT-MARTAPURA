@@ -108,14 +108,16 @@ body {
   animation: entrance 0.5s ease-out forwards;
 }
 
-/* ── Dashboard Lector V2 Enhancements ── */
+/* ── Dashboard Clean Professional Enhancements ── */
 
 .dashboard-hero {
-  background: linear-gradient(135deg, #E31E24, #8B1A1A);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: 2.5rem;
-  color: white;
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-premium);
 }
 
 .dashboard-hero::before {
@@ -125,7 +127,7 @@ body {
   right: -20%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(227,30,36,0.03) 0%, transparent 70%);
   border-radius: 50%;
 }
 

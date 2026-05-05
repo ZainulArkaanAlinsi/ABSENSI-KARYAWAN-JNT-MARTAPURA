@@ -62,15 +62,29 @@ export default function Sidebar() {
       <div className="absolute top-0 left-0 w-full h-64 bg-linear-to-b from-red-600/10 to-transparent pointer-events-none" />
 
       {/* ── FIXED TOP: BRAND ── */}
-      <div className="pt-8 pb-6 px-8 relative z-10 border-b border-white/5">
-        <div className="flex items-center gap-4">
-          <div className="h-11 w-11 rounded-2xl bg-[#E31E24] flex items-center justify-center shadow-lg shadow-red-600/20 group cursor-pointer overflow-hidden shrink-0">
-            <img src="/logo-jne.svg" alt="JNE" className="w-7 h-7 brightness-0 invert group-hover:scale-110 transition-transform" />
+      <div className="pt-10 pb-6 px-8 relative z-10">
+        <div className="flex items-center gap-4 group cursor-pointer">
+          <div className="h-12 w-12 rounded-[1.25rem] bg-[#E31E24] flex items-center justify-center shadow-xl shadow-red-600/20 overflow-hidden shrink-0 transition-transform group-hover:rotate-12">
+            <img src="/logo-jne.svg" alt="JNE" className="w-8 h-8 brightness-0 invert" />
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] font-black text-[#E31E24] uppercase tracking-[0.3em] leading-none mb-1">Martapura</p>
-            <h2 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none truncate">Attendance</h2>
+            <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-[0.4em] leading-none mb-1">Martapura</p>
+            <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate">Attendance</h2>
           </div>
+        </div>
+      </div>
+
+      {/* ── USER PROFILE PREVIEW ── */}
+      <div className="px-6 mt-4 mb-2">
+        <div className="p-4 rounded-3xl bg-white/2 border border-white/5 flex items-center gap-3 group hover:bg-white/5 transition-all">
+          <div className="h-10 w-10 rounded-2xl bg-linear-to-br from-red-500 to-red-800 flex items-center justify-center text-white font-black text-sm shadow-inner">
+            A
+          </div>
+          <div className="flex-1 min-w-0">
+             <p className="text-[11px] font-black text-white uppercase tracking-tight leading-none mb-1">Admin JNE</p>
+             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">System Root</p>
+          </div>
+          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
         </div>
       </div>
 
@@ -86,20 +100,27 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all relative overflow-hidden ${
+                    className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-[13px] font-black transition-all relative overflow-hidden ${
                       isActive 
-                        ? 'bg-[#E31E24] text-white shadow-xl shadow-red-600/20' 
+                        ? 'bg-[#E31E24] text-white shadow-2xl shadow-red-600/30' 
                         : 'hover:bg-white/5 hover:text-white text-slate-400'
                     }`}
                   >
                     {isActive && (
                       <motion.div 
                         layoutId="activeNav"
-                        className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent pointer-events-none"
+                        className="absolute inset-0 bg-linear-to-r from-white/20 to-transparent pointer-events-none"
                       />
                     )}
-                    <item.icon size={18} strokeWidth={isActive ? 3 : 2} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white transition-colors'} />
-                    <span className="relative z-10 tracking-tight">{item.label}</span>
+                    <item.icon size={18} strokeWidth={isActive ? 3 : 2} className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-white group-hover:scale-110 transition-all duration-300'}`} />
+                    <span className="relative z-10 tracking-wide uppercase text-[11px]">{item.label}</span>
+                    {isActive && (
+                      <motion.div 
+                        className="absolute right-2 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_#fff]"
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                      />
+                    )}
                   </Link>
                 );
               })}

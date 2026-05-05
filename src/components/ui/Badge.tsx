@@ -34,53 +34,55 @@ const labelMap: Record<string, string> = {
 
 export function StatusBadge({ status, size = 'md' }: BadgeProps) {
   const label = labelMap[status] || status;
-  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-[10px]';
+  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[8px]' : 'px-3 py-1.5 text-[9px]';
   
-  // Map internal status to JNE badge class
-  const badgeClassMap: Record<string, string> = {
-    present: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-    late: 'bg-amber-50 text-amber-700 border border-amber-100',
-    absent: 'bg-red-50 text-[#E31E24] border border-red-100',
-    leave: 'bg-blue-50 text-[#005596] border border-blue-100',
-    overtime: 'bg-indigo-50 text-indigo-700 border border-indigo-100',
-    pending: 'bg-amber-50 text-amber-700 border border-amber-100',
-    approved: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-    rejected: 'bg-red-50 text-[#E31E24] border border-red-100',
+  const configMap: Record<string, { bg: string; text: string; dot: string }> = {
+    present:  { bg: 'bg-emerald-500/10', text: 'text-emerald-500', dot: 'bg-emerald-500' },
+    late:     { bg: 'bg-amber-500/10',   text: 'text-amber-500',   dot: 'bg-amber-500' },
+    absent:   { bg: 'bg-red-500/10',     text: 'text-red-600',     dot: 'bg-red-600' },
+    leave:    { bg: 'bg-blue-500/10',    text: 'text-blue-600',    dot: 'bg-blue-600' },
+    overtime: { bg: 'bg-indigo-500/10',  text: 'text-indigo-600',  dot: 'bg-indigo-600' },
+    pending:  { bg: 'bg-amber-500/10',   text: 'text-amber-500',   dot: 'bg-amber-500' },
+    approved: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', dot: 'bg-emerald-500' },
+    rejected: { bg: 'bg-red-500/10',     text: 'text-red-600',     dot: 'bg-red-600' },
   };
 
-  const badgeClass = badgeClassMap[status] || 'bg-white/5 text-white/40 border border-white/10';
+  const config = configMap[status] || { bg: 'bg-slate-500/10', text: 'text-slate-500', dot: 'bg-slate-500' };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 ${badgeClass} ${sizeClass} rounded-lg font-bold uppercase tracking-wider`}>
+    <span className={`inline-flex items-center gap-2 ${config.bg} ${config.text} ${sizeClass} rounded-lg font-black uppercase tracking-widest border border-transparent shadow-xs transition-all hover:border-current/10`}>
+      <div className={`w-1 h-1 rounded-full ${config.dot} shadow-[0_0_4px_currentColor]`} />
       {label}
     </span>
   );
 }
 
 export function FaceBadge({ registered }: { registered: boolean }) {
-  const badgeClass = registered ? 'bg-blue-50 text-[#005596] border border-blue-100' : 'bg-red-50 text-[#E31E24] border border-red-100';
+  const config = registered 
+    ? { bg: 'bg-blue-500/10', text: 'text-blue-600', dot: 'bg-blue-600', label: 'VERIFIED' } 
+    : { bg: 'bg-red-500/10', text: 'text-red-600', dot: 'bg-red-600', label: 'UNVERIFIED' };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 ${badgeClass} px-2.5 py-1 text-[9px] font-bold rounded-lg uppercase tracking-wider`}>
-      {registered ? <ShieldCheck size={11} strokeWidth={3} /> : <ShieldAlert size={11} strokeWidth={3} />}
-      {registered ? 'TERDAFTAR' : 'BELUM DAFTAR'}
+    <span className={`inline-flex items-center gap-2 ${config.bg} ${config.text} px-3 py-1.5 text-[9px] font-black rounded-lg uppercase tracking-widest border border-transparent hover:border-current/10 transition-all`}>
+      {registered ? <ShieldCheck size={12} strokeWidth={3} /> : <ShieldAlert size={12} strokeWidth={3} />}
+      {config.label}
     </span>
   );
 }
 
 export function ContractBadge({ type }: { type: string }) {
-  const configMap: Record<string, { label: string; class: string; icon: any }> = {
-    permanent: { label: 'TETAP', class: 'bg-emerald-50 text-emerald-700 border border-emerald-100', icon: UserCheck },
-    contract: { label: 'KONTRAK', class: 'bg-blue-50 text-[#005596] border border-blue-100', icon: Clock },
-    intern: { label: 'MAGANG', class: 'bg-indigo-50 text-indigo-700 border border-indigo-100', icon: Zap },
+  const configMap: Record<string, { label: string; bg: string; text: string; icon: any }> = {
+    permanent: { label: 'TETAP',   bg: 'bg-emerald-500/10', text: 'text-emerald-500', icon: UserCheck },
+    contract:  { label: 'KONTRAK', bg: 'bg-blue-500/10',    text: 'text-blue-600',    icon: Clock },
+    intern:    { label: 'MAGANG',  bg: 'bg-indigo-500/10',  text: 'text-indigo-600',  icon: Zap },
   };
 
-  const config = configMap[type] || { label: type, class: 'bg-white/5 text-white/40', icon: null };
+  const config = configMap[type] || { label: type.toUpperCase(), bg: 'bg-slate-500/10', text: 'text-slate-500', icon: null };
   const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 ${config.class} px-2.5 py-1 text-[9px] font-bold rounded-lg uppercase tracking-wider`}>
-      {Icon && <Icon size={11} strokeWidth={3} />}
+    <span className={`inline-flex items-center gap-2 ${config.bg} ${config.text} px-3 py-1.5 text-[9px] font-black rounded-lg uppercase tracking-widest border border-transparent hover:border-current/10 transition-all`}>
+      {Icon && <Icon size={12} strokeWidth={3} />}
       {config.label}
     </span>
   );

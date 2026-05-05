@@ -1,15 +1,16 @@
-import EmployeeDetailClient from './EmployeeDetailClient';
+import { redirect } from 'next/navigation';
 
-// Wajib diset false untuk static export pada rute dinamis
+// Halaman ini dinonaktifkan karena menggunakan query parameter untuk static export.
+// Redirect ke halaman detail yang baru.
+
 export const dynamicParams = false;
 
-// Pastikan fungsi ini async untuk standar Next.js terbaru
 export async function generateStaticParams() {
-  // Kita return array kosong karena data akan ditarik di sisi klien (browser)
-  // Ini trik agar build sukses tanpa harus mendaftarkan semua ID karyawan
-  return [];
+  // Return dummy agar build sukses
+  return [{ id: 'redirect' }];
 }
 
-export default function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  return <EmployeeDetailClient params={params} />;
+export default function EmployeeRedirectPage() {
+  redirect('/employees');
+  return null;
 }

@@ -7,6 +7,7 @@ export const TABS = [
   { key: 'company', label: 'Perusahaan', icon: 'company' },
   { key: 'attendance', label: 'Absensi', icon: 'attendance' },
   { key: 'notifications', label: 'Notifikasi', icon: 'notifications' },
+  { key: 'maintenance', label: 'Maintenance', icon: 'maintenance' },
 ] as const;
 
 export type TabKey = typeof TABS[number]['key'];

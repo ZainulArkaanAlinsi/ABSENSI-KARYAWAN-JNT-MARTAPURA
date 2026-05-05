@@ -133,45 +133,67 @@ export default function EmployeesPage() {
               <motion.div
                 key={emp.id}
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: idx * 0.03 }}
-                className="bg-(--bg-card) border border-(--border-primary) rounded-4xl p-8 hover:shadow-xl transition-all group"
+                transition={{ delay: idx * 0.02, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -5 }}
+                className="bg-(--bg-card) border border-(--border-primary) rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-[#005596]/10 transition-all group relative overflow-hidden"
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center text-2xl font-black text-(--text-primary) border border-(--border-primary) group-hover:border-[#E31E24]/30 transition-all">
-                    {emp.name.charAt(0)}
+                {/* Decorative Background Accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/5 to-transparent pointer-events-none" />
+                
+                <div className="flex items-start justify-between mb-8 relative z-10">
+                  <div className="relative">
+                    <div className="h-20 w-20 rounded-3xl bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center text-3xl font-black text-(--text-primary) border border-(--border-primary) group-hover:border-[#005596]/30 transition-all shadow-inner">
+                      {emp.name.charAt(0)}
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-xl bg-white dark:bg-slate-900 border border-(--border-primary) shadow-sm flex items-center justify-center">
+                       <ShieldCheck size={14} className={emp.faceRegistered ? 'text-emerald-500' : 'text-(--text-dim)'} />
+                    </div>
                   </div>
-                  <FaceBadge registered={emp.faceRegistered} />
+                  <div className="flex flex-col items-end gap-2">
+                    <FaceBadge registered={emp.faceRegistered} />
+                    <span className="text-[9px] font-black text-(--text-muted) uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-(--border-primary)">
+                      {emp.contractType || 'Permanent'}
+                    </span>
+                  </div>
                 </div>
                 
-                <div className="mb-8">
-                  <h3 className="text-xl font-black text-(--text-primary) italic uppercase tracking-tighter leading-tight mb-1 truncate">
+                <div className="mb-8 relative z-10">
+                  <h3 className="text-2xl font-black text-(--text-primary) tracking-tighter uppercase leading-tight mb-1 truncate group-hover:text-[#005596] transition-colors">
                     {emp.name}
                   </h3>
-                  <p className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest">{emp.employeeId}</p>
-                  <p className="mt-4 text-xs font-bold text-(--text-muted)">{emp.email}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-black text-(--text-dim) uppercase tracking-[0.2em]">{emp.employeeId}</p>
+                    <div className="w-1 h-1 rounded-full bg-(--text-dim)" />
+                    <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{emp.position || 'Staff'}</p>
+                  </div>
+                  <p className="mt-5 text-xs font-bold text-(--text-muted) flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    {emp.email}
+                  </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-6 border-t border-(--border-primary)">
-                  <div className="flex items-center gap-2">
-                    <div className="px-3 py-1.5 rounded-lg bg-[#005596]/10 text-[#005596] text-[9px] font-black uppercase tracking-widest">
+                <div className="flex items-center justify-between pt-8 border-t border-(--border-primary) relative z-10">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] font-black text-(--text-dim) uppercase tracking-widest">Department Unit</span>
+                    <div className="px-4 py-2 rounded-xl bg-[#005596]/10 text-[#005596] text-[10px] font-black uppercase tracking-widest border border-[#005596]/20">
                       {emp.department}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button 
                       onClick={() => deleteEmployee(emp.id)}
-                      className="h-9 w-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all"
+                      className="h-11 w-11 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shadow-sm active:scale-90"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                     <Link 
-                      href={`/employees/${emp.id}`}
-                      className="h-9 w-9 rounded-xl bg-white/5 text-(--text-dim) hover:bg-(--text-primary) hover:text-(--bg-card) flex items-center justify-center transition-all"
+                      href={`/employees/detail?id=${emp.id}`}
+                      className="h-11 w-11 rounded-2xl bg-[#005596] text-white hover:bg-[#003d6b] flex items-center justify-center transition-all shadow-lg shadow-[#005596]/30 active:scale-90"
                     >
-                      <ChevronRight size={18} />
+                      <ChevronRight size={22} strokeWidth={3} />
                     </Link>
                   </div>
                 </div>

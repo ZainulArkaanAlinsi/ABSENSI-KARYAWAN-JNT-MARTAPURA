@@ -1,12 +1,13 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Loader2, CheckCircle2, Settings as SettingsIcon } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, MapPin, Building, Shield, Bell, Database } from 'lucide-react';
 import type { TabKey } from '@/hooks/useSettingsManagement';
 import OfficeSettings from './OfficeSettings';
 import CompanySettings from './CompanySettings';
 import AttendanceSettings from './AttendanceSettings';
 import NotificationsSettings from './NotificationsSettings';
+import MaintenanceSettings from './MaintenanceSettings';
 import type { Settings } from '@/types';
 
 interface SettingsPanelProps {
@@ -42,8 +43,12 @@ export default function SettingsPanel({
         {/* Panel Header */}
         <div className="flex items-center gap-6 px-10 py-8 border-b border-(--border-primary) bg-white/2 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/5 to-transparent pointer-events-none" />
-          <div className="h-16 w-16 rounded-2xl flex items-center justify-center bg-[#005596] text-white shadow-lg shadow-[#005596]/20">
-            <SettingsIcon size={28} />
+          <div className="h-16 w-16 rounded-2xl flex items-center justify-center bg-[#005596] text-white shadow-lg shadow-[#005596]/20 transition-transform hover:scale-110">
+            {activeTab === 'office' && <MapPin size={28} />}
+            {activeTab === 'company' && <Building size={28} />}
+            {activeTab === 'attendance' && <Shield size={28} />}
+            {activeTab === 'notifications' && <Bell size={28} />}
+            {activeTab === 'maintenance' && <Database size={28} />}
           </div>
           <div>
             <h3 className="text-2xl font-black italic tracking-tighter text-(--text-primary) uppercase">
@@ -69,6 +74,7 @@ export default function SettingsPanel({
               {activeTab === 'company' && <CompanySettings settings={settings.company} update={update} />}
               {activeTab === 'attendance' && <AttendanceSettings settings={settings.attendance} update={update} />}
               {activeTab === 'notifications' && <NotificationsSettings settings={settings.notifications} update={update} />}
+              {activeTab === 'maintenance' && <MaintenanceSettings />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -87,23 +93,25 @@ export default function SettingsPanel({
               </motion.div>
             )}
           </AnimatePresence>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white transition-all shadow-lg shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
-            style={{ background: '#E31E24' }}
-          >
-            {saving ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Sedang Memproses
-              </>
-            ) : (
-              <>
-                <Save size={18} /> Simpan Konfigurasi
-              </>
-            )}
-          </button>
+          
+          {activeTab !== 'maintenance' && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white transition-all shadow-lg shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
+              style={{ background: '#E31E24' }}
+            >
+              {saving ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" /> Sedang Memproses
+                </>
+              ) : (
+                <>
+                  <Save size={18} /> Simpan Konfigurasi
+                </>
+              )}
+            </button>
+          )}
         </div>
       </motion.div>
     </div>

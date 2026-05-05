@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Building, Shield, Bell } from 'lucide-react';
+import { MapPin, Building, Shield, Bell, Database } from 'lucide-react';
 import type { TabKey } from '@/hooks/useSettingsManagement';
 
 const iconMap = {
@@ -9,6 +9,7 @@ const iconMap = {
   company: Building,
   attendance: Shield,
   notifications: Bell,
+  maintenance: Database,
 };
 
 interface SettingsSidebarProps {
