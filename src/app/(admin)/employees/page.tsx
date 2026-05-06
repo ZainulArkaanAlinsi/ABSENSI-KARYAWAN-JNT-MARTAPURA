@@ -18,6 +18,8 @@ import { deleteEmployee } from '@/lib/firestore';
 import Link from 'next/link';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function EmployeesPage() {
   const {
@@ -35,6 +37,19 @@ export default function EmployeesPage() {
     jamKerjas,
     filteredEmployees,
   } = useEmployeeManagement();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterDept, filterFace]);
+
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <>
@@ -129,7 +144,7 @@ export default function EmployeesPage() {
           <AnimatePresence>
             {loading ? (
               <div className="col-span-full py-20 flex justify-center"><PageLoader /></div>
-            ) : filteredEmployees.map((emp, idx) => (
+            ) : paginatedEmployees.map((emp, idx) => (
               <motion.div
                 key={emp.id}
                 layout
@@ -169,10 +184,10 @@ export default function EmployeesPage() {
                     <div className="w-1 h-1 rounded-full bg-(--text-dim)" />
                     <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{emp.position || 'Staff'}</p>
                   </div>
-                  <p className="mt-5 text-xs font-bold text-(--text-muted) flex items-center gap-2">
+                  <div className="mt-5 text-xs font-bold text-(--text-muted) flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     {emp.email}
-                  </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-8 border-t border-(--border-primary) relative z-10">
@@ -201,6 +216,12 @@ export default function EmployeesPage() {
             ))}
           </AnimatePresence>
         </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       <AddEmployeeModal 

@@ -14,7 +14,7 @@ interface AdminUser {
   uid: string;
   email: string | null;
   name: string;
-  role: 'admin' | 'superadmin';
+  role: 'admin' | 'superadmin' | 'employee';
 }
 
 interface AuthContextType {
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            if (data.role === 'admin' || data.role === 'superadmin') {
+            if (data.role === 'admin' || data.role === 'superadmin' || data.role === 'employee') {
               setUser({
                 uid: fbUser.uid,
                 email: fbUser.email,
@@ -50,10 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: data.role,
               });
             } else {
-              console.warn('User is not an admin:', data.role);
+              console.warn('User role not allowed:', data.role);
               await firebaseSignOut(auth);
               setUser(null);
-              setError('Akses ditolak. Akun ini bukan admin.');
+              setError('Akses ditolak. Akun ini tidak memiliki izin akses.');
             }
           } else {
             console.error('User document not found for UID:', fbUser.uid);
@@ -79,18 +79,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
-      // NORMALISASI EMAIL
       const normalizedEmail = email.trim().toLowerCase();
+      
+      // 1. Firebase Auth Sign In
+      const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      const fbUser = userCredential.user;
 
-      // Login langsung ke Firebase Auth
-      await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      // 2. Immediate Firestore Verification
+      const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+      
+      if (!userDoc.exists()) {
+        await firebaseSignOut(auth);
+        setError('Akun tidak ditemukan di database. Hubungi Administrator.');
+        setLoading(false);
+        return false;
+      }
+
+      const data = userDoc.data();
+      if (data.role !== 'admin' && data.role !== 'superadmin' && data.role !== 'employee') {
+        await firebaseSignOut(auth);
+        setError('Akses ditolak. Akun ini tidak memiliki hak akses.');
+        setLoading(false);
+        return false;
+      }
+
+      // 3. Set local state immediately for faster UI response
+      setUser({
+        uid: fbUser.uid,
+        email: fbUser.email,
+        name: data.name || fbUser.email || 'Admin',
+        role: data.role,
+      });
+
+      setLoading(false);
       return true;
     } catch (err: any) {
-      console.error('Full Login Error:', err);
-      const errorCode = err.code || 'unknown';
-      const errorMessage = err.message || 'Login gagal';
+      console.error('Login error detail:', err);
+      let msg = 'Gagal masuk. Periksa kembali email dan password Anda.';
       
-      setError(`DEBUG ERROR [${errorCode}]: ${errorMessage}`);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        msg = 'Email atau password salah.';
+      } else if (err.code === 'auth/too-many-requests') {
+        msg = 'Terlalu banyak percobaan. Coba lagi nanti.';
+      }
+      
+      setError(`${msg} (Error: ${err.code || err.message})`);
       setLoading(false);
       return false;
     }

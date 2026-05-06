@@ -1,185 +1,123 @@
 @import "tailwindcss";
 
 :root {
-  /* Zen Light Theme */
-  --bg-main: #fcfdfe;
-  --bg-sidebar: #0f172a;
-  --bg-header: rgba(255, 255, 255, 0.95);
+  /* JNE Enterprise Premium Theme (Workplace Ready) */
+  --bg-main: #f4f7fa;
+  --bg-sidebar: #1e293b; /* Slate-900 for serious workplace feel */
   --bg-card: #ffffff;
-  --border-primary: #f1f5f9;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-dim: #cbd5e1;
-  --shadow-premium: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --bg-panel: #ffffff;
   
-  --radius-jne: 2rem;
-  --sidebar-width: 260px;
+  --jne-red: #E31E24;
+  --jne-blue: #005596;
+  --color-indigo: #6366f1;
+  --color-emerald: #10b981;
+  
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  
+  --border-primary: rgba(226, 232, 240, 0.8);
+  
+  --shadow-premium: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-accent: 0 10px 15px -3px rgba(227, 30, 36, 0.1);
+  
+  --sidebar-width: 280px;
+  --right-panel-width: 340px;
 }
 
 [data-theme="dark"] {
-  /* Zen Dark Theme */
   --bg-main: #020617;
-  --bg-sidebar: #020617;
-  --bg-header: rgba(2, 6, 23, 0.95);
-  --bg-card: #0f172a;
-  --border-primary: rgba(255, 255, 255, 0.05);
+  --bg-sidebar: #0f172a;
+  --bg-card: #1e293b;
+  --bg-panel: #0f172a;
+  
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-dim: #334155;
-  --shadow-premium: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
-}
-
-/* Transisi Halus Global */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-}
-
-/* Selection Color */
-::selection {
-  background-color: #E31E24;
-  color: white;
+  --border-primary: rgba(255, 255, 255, 0.05);
 }
 
 body {
   @apply antialiased;
   background-color: var(--bg-main);
   color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s eajse;
 }
 
-/* ── Custom Scrollbar Premium ── */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+/* ── Work-Ready Bento Grid ── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.25rem;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--text-dim);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #E31E24;
-}
-
-/* ── Utility Classes ── */
-.glass-card {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-primary);
-  background: var(--bg-card);
-}
-
-.dash-skeleton {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  background-color: var(--border-primary);
-  border-radius: 1rem;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
-}
-
-/* Custom scrollbar for containers */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-primary);
-  border-radius: 9999px;
-}
-
-/* Animations */
-@keyframes entrance {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-entrance {
-  animation: entrance 0.5s ease-out forwards;
-}
-
-/* ── Dashboard Clean Professional Enhancements ── */
-
-.dashboard-hero {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 2.5rem;
-  color: var(--text-primary);
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-premium);
-}
-
-.dashboard-hero::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(227,30,36,0.03) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-.stat-card-v2 {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 2rem;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.stat-card-v2:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-premium);
-}
-
-.stat-card-v2 .accent-bar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-}
-
-.dept-progress-bar {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--border-primary);
-  overflow: hidden;
-}
-
-.dept-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.quick-action-btn {
+.premium-card {
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 1.5rem;
-  padding: 1.25rem;
-  text-align: center;
-  transition: all 0.2s;
-  cursor: pointer;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-premium);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.quick-action-btn:hover {
-  border-color: #E31E24;
-  background: rgba(227, 30, 36, 0.04);
+.premium-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08);
 }
 
+/* ── Enterprise Sidebar ── */
+.sidebar-enterprise {
+  background: var(--bg-sidebar);
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  margin: 0.25rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.sidebar-link.active {
+  background: var(--jne-red);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(227, 30, 36, 0.3);
+}
+
+/* ── Operational Badges ── */
+.badge-live {
+  @apply flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100;
+}
+
+.badge-warning {
+  @apply flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100;
+}
+
+/* ── Progress ── */
+.work-progress {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.work-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #334155; }

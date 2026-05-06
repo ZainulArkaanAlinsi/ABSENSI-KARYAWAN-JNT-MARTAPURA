@@ -4,8 +4,10 @@ import { useDepartmentManagement } from '@/hooks/useDepartmentManagement';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import DepartmentCard from '@/components/departments/DepartmentCard';
 import DepartmentModal from '@/components/departments/DepartmentModal';
+import { Pagination } from '@/components/ui/Pagination';
 import { Plus, Search, Layers, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export default function DepartmentsPage() {
   const {
@@ -25,6 +27,19 @@ export default function DepartmentsPage() {
     handleDelete,
     filteredDepartments
   } = useDepartmentManagement();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage);
+  const paginatedDepartments = filteredDepartments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   if (loading) {
     return (
@@ -80,7 +95,7 @@ export default function DepartmentsPage() {
 
       {/* ── Departments Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {filteredDepartments.map((dept, idx) => (
+        {paginatedDepartments.map((dept, idx) => (
           <motion.div
             key={dept.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -96,6 +111,12 @@ export default function DepartmentsPage() {
           </motion.div>
         ))}
       </div>
+
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* ── Modals ── */}
       <DepartmentModal 

@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -256,20 +257,8 @@ export async function registerEmployee(
     const uid = userCred.user.uid;
 
     // 4. Buat Profil di Firestore dengan ID = UID
-    await updateDoc(doc(db, COLLECTIONS.USERS, uid), {
-      ...employeeData,
-      uid: uid,
-      email: finalEmail,
-      faceRegistered: false,
-      isActive: true,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    
-    // Jika updateDoc gagal karena doc belum ada, kita pakai setDoc
-    // Tapi biasanya doc(db, col, id) + setDoc lebih aman
-    const { setDoc } = await import('firebase/firestore');
-    await setDoc(doc(db, COLLECTIONS.USERS, uid), {
+    const userRef = doc(db, COLLECTIONS.USERS, uid);
+    await setDoc(userRef, {
       ...employeeData,
       uid: uid,
       email: finalEmail,

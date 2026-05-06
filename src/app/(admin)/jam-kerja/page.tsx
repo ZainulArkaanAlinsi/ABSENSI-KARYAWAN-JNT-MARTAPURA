@@ -17,6 +17,8 @@ import {
   JAM_KERJA_COLORS,
 } from '@/hooks/useJamKerjaManagement';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function JamKerjaPage() {
   const {
@@ -35,6 +37,15 @@ export default function JamKerjaPage() {
     handleDelete,
     calcDuration,
   } = useJamKerjaManagement();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(jamKerjas.length / itemsPerPage);
+  const paginatedJamKerja = jamKerjas.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const activeCount = jamKerjas.filter((s) => s.isActive).length;
 
@@ -101,7 +112,7 @@ export default function JamKerjaPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           <AnimatePresence mode="popLayout">
-            {jamKerjas.map((s, idx) => {
+            {paginatedJamKerja.map((s, idx) => {
               const duration = calcDuration(s.checkInTime, s.checkOutTime);
               const accent = s.color || '#005596';
 
@@ -192,6 +203,14 @@ export default function JamKerjaPage() {
               );
             })}
           </AnimatePresence>
+
+          <div className="col-span-full">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </div>
       )}
 

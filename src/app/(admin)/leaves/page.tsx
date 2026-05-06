@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
+import { Pagination } from '@/components/ui/Pagination';
 
 const TABS = [
   { key: 'pending', label: 'Pending' },
@@ -47,6 +48,19 @@ export default function LeavesPage() {
     });
     return () => unsubscribe();
   }, [activeTab]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  const totalPages = Math.ceil(leaves.length / itemsPerPage);
+  const paginatedLeaves = leaves.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleApprove = async (leave: LeaveRequest) => {
     setProcessing(leave.id);
@@ -172,7 +186,7 @@ export default function LeavesPage() {
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {leaves.map((leave) => (
+            {paginatedLeaves.map((leave) => (
               <motion.div
                 key={leave.id}
                 layout
@@ -271,7 +285,7 @@ export default function LeavesPage() {
                                </div>
                                <div className="h-8 w-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
                                   <UserCheck size={16} />
-                               </div>
+                                </div>
                             </div>
                           )}
                        </div>
@@ -296,6 +310,12 @@ export default function LeavesPage() {
           </AnimatePresence>
         )}
       </div>
+
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* MODAL ALASAN PENOLAKAN */}
       <Modal

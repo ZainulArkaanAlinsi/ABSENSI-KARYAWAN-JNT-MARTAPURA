@@ -8,37 +8,15 @@ import { usePathname } from 'next/navigation';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
-
-  // Mapping judul berdasarkan pathname secara komprehensif (Attendance Focused)
-  const getPageInfo = () => {
-    const path = pathname.split('/').filter(Boolean).pop() || 'dashboard';
-    
-    switch (path) {
-      case 'dashboard': return { title: 'Dashboard', sub: 'Monitoring Utama' };
-      case 'employees': return { title: 'Karyawan', sub: 'Manajemen Personel' };
-      case 'departments': return { title: 'Departemen', sub: 'Struktur Organisasi' };
-      case 'leaves': return { title: 'Izin & Cuti', sub: 'Otorisasi Kehadiran' };
-      case 'requests': return { title: 'Koreksi', sub: 'Pengajuan Perubahan' };
-      case 'reports': return { title: 'Laporan', sub: 'Rekapitulasi Data' };
-      case 'calendar': return { title: 'Kalender', sub: 'Agenda & Jadwal' };
-      case 'head-units': return { title: 'Kepala Unit', sub: 'Manajemen Pimpinan' };
-      case 'jam-kerja': return { title: 'Jam Kerja', sub: 'Pengaturan Waktu' };
-      case 'shifts': return { title: 'Shift Kerja', sub: 'Penjadwalan Regu' };
-      case 'settings': return { title: 'Pengaturan', sub: 'Konfigurasi Sistem' };
-      case 'face-enrollment': return { title: 'Biometrik', sub: 'Pendaftaran Wajah' };
-      default: return { title: path.charAt(0).toUpperCase() + path.slice(1).replace('-', ' '), sub: 'Panel Admin' };
-    }
-  };
-
-  const { title, sub } = getPageInfo();
+  const isDashboard = pathname === '/dashboard';
 
   return (
     <div className="h-screen flex bg-(--bg-main) transition-colors duration-300 overflow-hidden font-sans">
-      {/* SIDEBAR DRAWER */}
+      {/* SIDEBAR (Enterprise Slate Style) */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-60 w-[260px] transition-transform duration-300 transform 
+        className={`fixed inset-y-0 left-0 z-60 w-[var(--sidebar-width)] transition-transform duration-300 transform 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 border-r border-(--border-primary)`}
+          md:translate-x-0`}
       >
         <Sidebar />
       </aside>
@@ -47,25 +25,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {isSidebarOpen && (
         <div 
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-55 md:hidden cursor-pointer"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-55 md:hidden cursor-pointer"
         />
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col md:pl-[260px] min-w-0 h-full overflow-hidden">
-        {/* Header - Fixed & Solid */}
-        <div className="sticky top-0 z-50 shadow-sm">
-          <Header 
-            title={title} 
-            subtitle={sub} 
-            onMenuClick={() => setIsSidebarOpen(true)} 
-          />
-        </div>
+      <div className="flex-1 flex flex-col md:pl-[var(--sidebar-width)] min-w-0 h-full overflow-hidden">
+        <div className="flex h-full">
+          {/* MIDDLE COLUMN: Operational Core */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Header onMenuClick={() => setIsSidebarOpen(true)} />
+            <main className="flex-1 px-6 lg:px-8 pb-8 relative z-10 overflow-y-auto custom-scrollbar">
+              <div className="max-w-[1400px] mx-auto">
+                {children}
+              </div>
+            </main>
+          </div>
 
-        {/* Content Area */}
-        <main className="flex-1 p-6 md:p-12 md:pt-14 relative z-10 overflow-y-auto custom-scrollbar">
-          {children}
-        </main>
+          {/* RIGHT COLUMN: Operational Analytics Panel */}
+          {isDashboard && (
+            <aside className="hidden xl:block w-[var(--right-panel-width)] h-full bg-white dark:bg-[#0f172a] border-l border-(--border-primary) overflow-y-auto custom-scrollbar">
+              <div id="enterprise-right-panel" className="p-8 space-y-10">
+                {/* Real-time operational widgets will be injected here */}
+              </div>
+            </aside>
+          )}
+        </div>
       </div>
     </div>
   );
