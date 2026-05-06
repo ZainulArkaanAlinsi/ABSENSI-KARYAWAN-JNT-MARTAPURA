@@ -38,12 +38,11 @@ export default function SettingsPanel({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="rounded-4xl border border-(--border-primary) flex flex-col overflow-hidden bg-(--bg-card) shadow-sm"
+        className="rounded-[32px] border border-(--border-color) flex flex-col overflow-hidden bg-(--bg-card) shadow-sm"
       >
         {/* Panel Header */}
-        <div className="flex items-center gap-6 px-10 py-8 border-b border-(--border-primary) bg-white/2 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/5 to-transparent pointer-events-none" />
-          <div className="h-16 w-16 rounded-2xl flex items-center justify-center bg-[#005596] text-white shadow-lg shadow-[#005596]/20 transition-transform hover:scale-110">
+        <div className="flex items-center gap-6 px-10 py-8 border-b border-(--border-color) bg-slate-50/50 dark:bg-slate-900/50 relative overflow-hidden">
+          <div className="h-16 w-16 rounded-2xl flex items-center justify-center bg-slate-950 text-white shadow-2xl transition-transform hover:scale-110">
             {activeTab === 'office' && <MapPin size={28} />}
             {activeTab === 'company' && <Building size={28} />}
             {activeTab === 'attendance' && <Shield size={28} />}
@@ -54,14 +53,14 @@ export default function SettingsPanel({
             <h3 className="text-2xl font-black italic tracking-tighter text-(--text-primary) uppercase">
               {currentTab?.label}
             </h3>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-1 text-(--text-muted)">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-1 text-(--text-secondary)">
               Parameter Operasional JNE Martapura
             </p>
           </div>
         </div>
 
         {/* Settings Fields */}
-        <div className="p-10 space-y-8 min-h-[420px]">
+        <div className="p-10 space-y-8 min-h-[420px] bg-(--bg-card)">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -80,7 +79,7 @@ export default function SettingsPanel({
         </div>
 
         {/* Action Bar */}
-        <div className="flex items-center justify-between px-10 py-6 border-t border-(--border-primary) bg-white/2">
+        <div className="flex items-center justify-between px-10 py-6 border-t border-(--border-color) bg-slate-50/50 dark:bg-slate-900/50">
           <AnimatePresence>
             {saved && (
               <motion.div
@@ -98,16 +97,15 @@ export default function SettingsPanel({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white transition-all shadow-lg shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
-              style={{ background: '#E31E24' }}
+              className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white bg-rose-600 shadow-xl shadow-rose-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
             >
               {saving ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" /> Sedang Memproses
+                  <Loader2 size={18} className="animate-spin" /> Processing
                 </>
               ) : (
                 <>
-                  <Save size={18} /> Simpan Konfigurasi
+                  <Save size={18} /> Update Configuration
                 </>
               )}
             </button>

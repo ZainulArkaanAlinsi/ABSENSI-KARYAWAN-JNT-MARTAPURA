@@ -1,35 +1,30 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Layers, 
-  FileText, 
-  PieChart, 
-  ClipboardCheck,
-  Clock,
-  LogOut,
-  ScanFace,
-  Briefcase,
+import {
+  LayoutGrid,
+  Users,
+  Calendar,
+  MessageSquare,
+  Bell,
   Settings,
-  HelpCircle,
-  Package,
-  ShieldCheck
+  LogOut,
+  Clock,
+  ScanFace,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
-const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Users, label: 'Personel', href: '/employees' },
-  { icon: Briefcase, label: 'Kepala Unit', href: '/head-units' },
-  { icon: Layers, label: 'Departemen/Hub', href: '/departments' },
-  { icon: ScanFace, label: 'Verifikasi Wajah', href: '/face-enrollment' },
-  { icon: ClipboardCheck, label: 'Izin & Cuti', href: '/leaves' },
-  { icon: FileText, label: 'Koreksi Absen', href: '/attendance/requests' },
-  { icon: Clock, label: 'Jam Operasional', href: '/jam-kerja' },
-  { icon: PieChart, label: 'Laporan Hub', href: '/reports' },
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Overview', icon: LayoutGrid, path: '/dashboard' },
+  { id: 'attendance', label: 'Attendance', icon: Clock, path: '/attendance' },
+  { id: 'employees', label: 'Personnel', icon: Users, path: '/employees' },
+  { id: 'chat', label: 'Messages', icon: MessageSquare, path: '/chat' },
+  { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
+  { id: 'face-enrollment', label: 'Face Scan', icon: ScanFace, path: '/face-enrollment' },
+  { id: 'settings', label: 'System', icon: Settings, path: '/settings' },
 ];
 
 export default function Sidebar() {
@@ -37,67 +32,58 @@ export default function Sidebar() {
   const { signOut } = useAuth();
 
   return (
-    <div className="sidebar-enterprise h-full pt-10 pb-6">
-      {/* ── JNE BRANDING ── */}
-      <div className="px-8 mb-12">
-        <Link href="/dashboard" className="flex items-center gap-4 group">
-          <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center p-2 shadow-lg transition-transform group-hover:rotate-12">
-            {/* JNE Logo simulation with Red/Blue */}
-            <div className="flex flex-col items-center">
-               <span className="text-[14px] font-black text-[#E31E24] leading-none">JNE</span>
-               <div className="h-1 w-full bg-[#005596] mt-0.5 rounded-full" />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-[16px] font-black text-white leading-none tracking-tight">MARTAPURA</h1>
-            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1.5">Hub Attendance</span>
-          </div>
-        </Link>
+    <aside className="w-[84px] h-screen bg-slate-950 flex flex-col items-center py-10 border-r border-white/5 relative z-50 transition-colors duration-500">
+      {/* LOGO */}
+      <div className="mb-12">
+        <div className="w-12 h-12 bg-rose-600 dark:bg-rose-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-600/30 dark:shadow-rose-500/20 transform -rotate-12 transition-all duration-500">
+          <span className="text-white font-black italic text-xl tracking-tighter">J</span>
+        </div>
       </div>
 
-      {/* ── NAVIGATION ── */}
-      <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+      {/* NAVIGATION */}
+      <nav className="flex-1 w-full flex flex-col items-center gap-6">
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname.startsWith(item.path);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`sidebar-link ${isActive ? 'active' : 'text-slate-400'}`}
-            >
-              <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="tracking-wide text-[13px]">{item.label}</span>
-            </Link>
+            <div key={item.id} className="relative group">
+              <Link
+                href={item.path}
+                className={`nav-link-premium ${isActive ? 'active' : ''}`}
+              >
+                <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              </Link>
+
+              {/* TOOLTIP */}
+              <div className="absolute left-[calc(100%+15px)] top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-[-10px] group-hover:translate-x-0 whitespace-nowrap shadow-2xl border border-white/10 z-50">
+                {item.label}
+                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-white/10 rotate-45" />
+              </div>
+
+              {/* ACTIVE INDICATOR */}
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-6 bg-rose-600 dark:bg-rose-500 rounded-r-full"
+                />
+              )}
+            </div>
           );
         })}
       </nav>
 
-      {/* ── SYSTEM STATUS (Workplace Feel) ── */}
-      <div className="mx-6 p-5 rounded-2xl bg-white/5 border border-white/5 mb-6">
-        <div className="flex items-center gap-3 mb-4">
-           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[10px] font-black text-white uppercase tracking-widest">Server Hub Live</span>
-        </div>
-        <div className="flex items-center justify-between">
-           <p className="text-[10px] font-bold text-slate-500">Last Sync</p>
-           <p className="text-[10px] font-black text-white">Just Now</p>
-        </div>
-      </div>
-
-      {/* ── FOOTER ── */}
-      <div className="mt-auto px-6 space-y-2">
-        <Link href="/settings" className="sidebar-link mx-0! bg-transparent! hover:bg-white/5! text-slate-400">
-          <Settings size={18} />
-          <span className="text-[13px]">Pengaturan</span>
-        </Link>
-        <button 
+      {/* FOOTER ACTIONS */}
+      <div className="pt-8 border-t border-white/5 w-full flex flex-col items-center gap-6">
+        <button className="w-12 h-12 rounded-2xl flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all group relative">
+          <Bell size={20} />
+          <div className="absolute top-3.5 right-3.5 w-2 h-2 bg-rose-600 dark:bg-rose-500 rounded-full border-2 border-slate-950" />
+        </button>
+        <button
           onClick={() => signOut()}
-          className="sidebar-link mx-0! w-full text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-600/10 transition-all group"
         >
-          <LogOut size={18} />
-          <span className="text-[13px]">Sign Out</span>
+          <LogOut size={20} />
         </button>
       </div>
-    </div>
+    </aside>
   );
 }

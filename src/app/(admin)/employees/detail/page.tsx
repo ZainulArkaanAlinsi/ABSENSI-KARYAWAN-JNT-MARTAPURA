@@ -6,7 +6,7 @@ import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format, subDays, parseISO } from 'date-fns';
 import { id as dateFnsId } from 'date-fns/locale';
-import { ArrowLeft, User, Mail, Briefcase, Calendar, CheckCircle2, AlertTriangle, XCircle, Clock, Building } from 'lucide-react';
+import { ArrowLeft, User, Mail, Briefcase, Calendar, CheckCircle2, AlertTriangle, XCircle, Clock, Building, Edit3, RefreshCcw } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { Employee, AttendanceRecord } from '@/types';
@@ -86,6 +86,20 @@ function EmployeeDetailContent() {
         <div>
           <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase">Profil Karyawan</h1>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-muted)">Rekam Jejak & Identitas</p>
+        </div>
+        <div className="ml-auto flex gap-3">
+          <button 
+            onClick={() => alert('Feature: Form edit data personil sedang disiapkan.')}
+            className="h-11 px-6 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-white/10 transition-all"
+          >
+            <Edit3 size={16} /> Edit Personnel
+          </button>
+          <button 
+            onClick={() => alert('Security Protocol: Reset biometrik memerlukan otorisasi fisik. Silakan instruksikan karyawan untuk login ulang di perangkat baru.')}
+            className="h-11 px-6 rounded-xl bg-rose-600/10 border border-rose-600/20 text-rose-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 hover:text-white transition-all"
+          >
+            <RefreshCcw size={16} /> Reset Binding
+          </button>
         </div>
       </div>
 
@@ -177,13 +191,14 @@ function EmployeeDetailContent() {
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tanggal</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Masuk</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Pulang</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Foto</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Status</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-(--border-primary)">
                    {attendance.length === 0 ? (
                      <tr>
-                       <td colSpan={4} className="px-8 py-16 text-center">
+                       <td colSpan={5} className="px-8 py-16 text-center">
                          <div className="flex flex-col items-center justify-center gap-3">
                             <Clock size={32} className="text-(--text-dim)" />
                             <p className="text-[11px] font-bold text-(--text-muted) uppercase tracking-widest">Belum Ada Riwayat Absensi</p>
@@ -195,18 +210,25 @@ function EmployeeDetailContent() {
                        <tr key={record.id} className="hover:bg-white/5 transition-colors">
                          <td className="px-8 py-4 whitespace-nowrap">
                            <span className="text-sm font-bold text-(--text-primary)">
-                             {format(parseISO(record.date), 'dd MMM yyyy', { locale: dateFnsId })}
+                             {record.date ? format(parseISO(record.date), 'dd MMM yyyy', { locale: dateFnsId }) : '-'}
                            </span>
                          </td>
                          <td className="px-8 py-4 whitespace-nowrap">
                            <span className="text-sm font-bold text-(--text-primary)">
-                             {record.checkIn ? format(parseISO(record.checkIn.time), 'HH:mm') : '--:--'}
+                             {record.checkIn?.time ? format(parseISO(record.checkIn.time), 'HH:mm') : '--:--'}
                            </span>
                          </td>
                          <td className="px-8 py-4 whitespace-nowrap">
                            <span className="text-sm font-bold text-(--text-primary)">
-                             {record.checkOut ? format(parseISO(record.checkOut.time), 'HH:mm') : '--:--'}
+                             {record.checkOut?.time ? format(parseISO(record.checkOut.time), 'HH:mm') : '--:--'}
                            </span>
+                         </td>
+                         <td className="px-8 py-4 whitespace-nowrap">
+                           {record.checkIn?.photoUrl ? (
+                             <img src={record.checkIn.photoUrl} alt="Foto Absen" className="h-10 w-10 rounded-full object-cover border border-(--border-primary) shadow-sm" />
+                           ) : (
+                             <span className="text-xs text-(--text-muted)">-</span>
+                           )}
                          </td>
                          <td className="px-8 py-4 whitespace-nowrap">
                             {record.status === 'present' && <span className="inline-flex px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">Tepat Waktu</span>}

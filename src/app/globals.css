@@ -1,123 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  /* JNE Enterprise Premium Theme (Workplace Ready) */
-  --bg-main: #f4f7fa;
-  --bg-sidebar: #1e293b; /* Slate-900 for serious workplace feel */
-  --bg-card: #ffffff;
-  --bg-panel: #ffffff;
-  
-  --jne-red: #E31E24;
-  --jne-blue: #005596;
-  --color-indigo: #6366f1;
-  --color-emerald: #10b981;
-  
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  
-  --border-primary: rgba(226, 232, 240, 0.8);
-  
-  --shadow-premium: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  --shadow-accent: 0 10px 15px -3px rgba(227, 30, 36, 0.1);
-  
-  --sidebar-width: 280px;
-  --right-panel-width: 340px;
+  --bg-main: #F1F5F9; /* Slate 100 - Better contrast for light mode */
+  --bg-card: #FFFFFF;
+  --jne-rose: #E11D48;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --border-color: #E2E8F0;
+  --radius-apple: 24px;
 }
 
 [data-theme="dark"] {
-  --bg-main: #020617;
-  --bg-sidebar: #0f172a;
-  --bg-card: #1e293b;
-  --bg-panel: #0f172a;
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border-primary: rgba(255, 255, 255, 0.05);
+  --bg-main: #020617; /* Slate 950 - Deeper dark for better depth */
+  --bg-card: #0F172A; /* Slate 900 - More solid card color */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border-color: #1E293B;
+  --jne-rose: #FB7185;
 }
 
 body {
-  @apply antialiased;
   background-color: var(--bg-main);
   color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
-  transition: all 0.2s eajse;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Work-Ready Bento Grid ── */
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 1.25rem;
+@layer components {
+  .bento-card {
+    @apply bg-(--bg-card) border border-(--border-color) rounded-(--radius-apple) p-8 transition-all duration-300;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+
+  .bento-card:hover {
+    @apply border-rose-500/20 shadow-lg shadow-rose-500/5;
+    transform: translateY(-2px);
+  }
+
+  .glass-header {
+    @apply sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-(--border-color);
+  }
+
+  .sidebar-solid {
+    @apply h-screen w-[84px] bg-slate-950 flex flex-col items-center py-10 border-r border-white/5 z-50;
+  }
+
+  .nav-link-premium {
+    @apply w-12 h-12 flex items-center justify-center rounded-2xl text-slate-500 transition-all duration-300 hover:bg-white/5 hover:text-white mb-4;
+  }
+
+  .nav-link-premium.active {
+    @apply bg-(--jne-rose) text-white shadow-lg shadow-rose-600/30;
+  }
 }
 
-.premium-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 1.5rem;
-  padding: 1.75rem;
-  box-shadow: var(--shadow-premium);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* ── CUSTOM UTILS ── */
+.text-gradient-rose {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-rose-400;
 }
 
-.premium-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08);
-}
-
-/* ── Enterprise Sidebar ── */
-.sidebar-enterprise {
-  background: var(--bg-sidebar);
-  color: #94a3b8;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1.25rem;
-  margin: 0.25rem 1.25rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-}
-
-.sidebar-link.active {
-  background: var(--jne-red);
-  color: white;
-  box-shadow: 0 10px 15px -3px rgba(227, 30, 36, 0.3);
-}
-
-/* ── Operational Badges ── */
-.badge-live {
-  @apply flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100;
-}
-
-.badge-warning {
-  @apply flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100;
-}
-
-/* ── Progress ── */
-.work-progress {
-  height: 6px;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.work-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #334155; }

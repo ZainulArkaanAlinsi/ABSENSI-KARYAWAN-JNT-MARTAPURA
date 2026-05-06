@@ -130,10 +130,12 @@ export default function FaceEnrollmentPage() {
                 {emp.department || 'Staff'}
               </span>
 
-              <button className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+              <button 
+                onClick={() => alert('Security Protocol: Pendaftaran wajah hanya dapat dilakukan langsung oleh personil melalui JNE Attendance Mobile App untuk verifikasi biometrik asli.')}
+                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                 emp.faceData 
                   ? 'bg-white/5 text-(--text-primary) hover:bg-white/10 border border-white/5' 
-                  : 'bg-[#E31E24]/10 text-[#E31E24] hover:bg-[#E31E24]/20 border border-[#E31E24]/20'
+                  : 'bg-rose-600/10 text-rose-600 hover:bg-rose-600/20 border border-rose-600/20'
               }`}>
                 <ScanFace size={16} />
                 {emp.faceData ? 'Perbarui Data Wajah' : 'Daftarkan Wajah'}

@@ -1,57 +1,39 @@
 'use client';
 
-import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { usePathname } from 'next/navigation';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const pathname = usePathname();
-  const isDashboard = pathname === '/dashboard';
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="h-screen flex bg-(--bg-main) transition-colors duration-300 overflow-hidden font-sans">
-      {/* SIDEBAR (Enterprise Slate Style) */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-60 w-[var(--sidebar-width)] transition-transform duration-300 transform 
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0`}
-      >
-        <Sidebar />
-      </aside>
+    <div className="h-screen bg-[var(--bg-main)] flex overflow-hidden transition-colors duration-500">
+      {/* SIDEBAR */}
+      <Sidebar />
 
-      {/* MOBILE OVERLAY */}
-      {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-55 md:hidden cursor-pointer"
-        />
-      )}
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* HEADER */}
+        <header className="px-8 pt-6">
+          <Header onMenuClick={() => {}} />
+        </header>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col md:pl-[var(--sidebar-width)] min-w-0 h-full overflow-hidden">
-        <div className="flex h-full">
-          {/* MIDDLE COLUMN: Operational Core */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header onMenuClick={() => setIsSidebarOpen(true)} />
-            <main className="flex-1 px-6 lg:px-8 pb-8 relative z-10 overflow-y-auto custom-scrollbar">
-              <div className="max-w-[1400px] mx-auto">
-                {children}
-              </div>
-            </main>
+        {/* SCROLLABLE CONTENT */}
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-[var(--bg-main)] p-8">
+          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {children}
           </div>
-
-          {/* RIGHT COLUMN: Operational Analytics Panel */}
-          {isDashboard && (
-            <aside className="hidden xl:block w-[var(--right-panel-width)] h-full bg-white dark:bg-[#0f172a] border-l border-(--border-primary) overflow-y-auto custom-scrollbar">
-              <div id="enterprise-right-panel" className="p-8 space-y-10">
-                {/* Real-time operational widgets will be injected here */}
-              </div>
-            </aside>
-          )}
-        </div>
+        </main>
       </div>
+
+      {/* THEME TOGGLE */}
+      <button
+        onClick={toggleTheme}
+        className="fixed bottom-8 right-8 w-14 h-14 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 border border-white/10"
+      >
+        {theme === 'dark' ? '☀️' : '🌙'}
+      </button>
     </div>
   );
 }

@@ -11,6 +11,9 @@ import {
   ChevronRight,
   Info,
   ShieldCheck,
+  Activity,
+  CalendarDays,
+  FileText
 } from 'lucide-react';
 
 // Department icon mapping
@@ -23,18 +26,11 @@ function DeptIcon({ rule }: { rule: typeof DEPARTMENT_RULES[0] }) {
 
 function RuleBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div 
-      className="flex flex-col gap-1.5 rounded-2xl border px-4 py-3.5 transition-all group/badge"
-      style={{ 
-        background: 'var(--bg-input)', 
-        borderColor: 'var(--border-primary)',
-        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-      }}
-    >
-      <span className="text-[10px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--text-muted)' }}>
+    <div className="flex flex-col gap-1.5 rounded-2xl border border-(--border-color) bg-(--bg-main) px-4 py-3.5 transition-all group/badge">
+      <span className="text-[10px] font-black uppercase tracking-widest leading-none text-(--text-secondary)">
         {label}
       </span>
-      <span className="text-[13px] font-black leading-tight tracking-tight" style={{ color: 'var(--text-primary)' }}>{value}</span>
+      <span className="text-[13px] font-black leading-tight tracking-tight text-(--text-primary)">{value}</span>
     </div>
   );
 }
@@ -43,71 +39,101 @@ export default function AttendancePage() {
   const router = useRouter();
 
   return (
-    <div className="dash-root">
-      {/* ── Info Banner ── */}
+    <div className="space-y-10 animate-in fade-in duration-700">
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">
+            Operational <span className="text-rose-600">Nexus</span>
+          </h1>
+          <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.3em] mt-2 ml-1">Konfigurasi & Monitoring Absensi Unit</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => router.push('/attendance/live')}
+            className="h-12 px-8 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl hover:bg-rose-600 transition-all group"
+          >
+             <Activity size={18} className="group-hover:animate-pulse" />
+             Live Monitor
+          </button>
+          <button 
+            onClick={() => router.push('/attendance/leaves')}
+            className="h-12 px-8 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl shadow-rose-600/20 hover:scale-105 transition-all"
+          >
+             <FileText size={18} />
+             Leave Requests
+          </button>
+          <button 
+            onClick={() => router.push('/attendance/history')}
+            className="h-12 px-8 bg-white dark:bg-slate-900 border border-(--border-color) text-(--text-primary) rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 hover:border-rose-600 transition-all"
+          >
+             <CalendarDays size={18} />
+             Full Archive
+          </button>
+        </div>
+      </div>
+
+      {/* ── Info Banner (Zen Premium Style) ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 overflow-hidden rounded-4xl border border-[#005596]/10"
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(0, 85, 150, 0.05) 0%, rgba(227, 30, 36, 0.05) 100%)',
-        }}
+        className="overflow-hidden rounded-[32px] border border-rose-600/10 bg-(--jne-rose)/5"
       >
-        <div className="flex flex-col items-center gap-6 px-10 py-12 text-center md:flex-row md:text-left">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#005596] text-white shadow-xl shadow-[#005596]/20">
-            <Info size={32} />
+        <div className="flex flex-col items-center gap-8 px-10 py-10 text-center md:flex-row md:text-left">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-2xl">
+            <Info size={28} />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900">Pusat Kendali Unit</h2>
-            <p className="mt-2 font-bold uppercase tracking-widest text-slate-400 text-[11px]">Konfigurasi jam kerja & parameter absensi khusus tiap unit kerja JNE Martapura.</p>
+            <h2 className="text-xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">Unit Protocol Control</h2>
+            <p className="mt-2 font-bold uppercase tracking-widest text-slate-500 text-[10px] leading-relaxed">
+              Setiap unit kerja memiliki parameter absensi yang berbeda berdasarkan kebutuhan operasional di lapangan. 
+              Gunakan panel di bawah untuk meninjau aturan atau melihat riwayat tiap unit.
+            </p>
           </div>
         </div>
       </motion.div>
 
       {/* ── Grid Rules ── */}
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {DEPARTMENT_RULES.map((rule, idx) => (
           <motion.div
             key={rule.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: idx * 0.1 }}
-            className="group relative overflow-hidden rounded-4xl border border-slate-100 bg-white p-10 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="bento-card group flex flex-col h-full"
           >
             {/* Header Unit */}
-            <div className="mb-10 flex items-start justify-between">
-              <div className="flex items-center gap-6">
-                <div 
-                  className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-transform group-hover:scale-110"
-                  style={{ background: 'var(--primary)', color: 'white' }}
-                >
+            <div className="mb-8 flex items-start justify-between">
+              <div className="flex items-center gap-5">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg transition-transform group-hover:scale-110 group-hover:bg-rose-600">
                   <DeptIcon rule={rule} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black italic uppercase tracking-tight text-slate-900">{rule.id}</h3>
-                  <div className="mt-2 flex items-center gap-2">
-                    <ShieldCheck size={14} className="text-green-500" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">PARAMETER AKTIF</span>
+                  <h3 className="text-lg font-black italic uppercase tracking-tight text-(--text-primary)">{rule.id}</h3>
+                  <div className="mt-1 flex items-center gap-2">
+                    <ShieldCheck size={12} className="text-emerald-500" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Parameter Aktif</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Grid Badges */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 flex-1 mb-8">
               <RuleBadge label="Mulai Shift" value={rule.checkInTime} />
               <RuleBadge label="Selesai Shift" value={rule.checkOutTime} />
-              <RuleBadge label="Toleransi" value={`${rule.toleranceMinutes} Menit`} />
-              <RuleBadge label="Verifikasi" value={rule.trackFromHome ? 'Aplikasi Mobile' : 'Biometrik'} />
+              <RuleBadge label="Toleransi" value={`${rule.toleranceMinutes}m`} />
+              <RuleBadge label="Verifikasi" value={rule.trackFromHome ? 'Mobile App' : 'Biometric'} />
             </div>
 
             {/* Action */}
             <button 
               onClick={() => router.push(`/attendance/history?dept=${rule.id}`)}
-              className="mt-10 flex w-full items-center justify-between rounded-2xl bg-slate-50 px-8 py-5 transition-all hover:bg-slate-900 hover:text-white"
+              className="flex items-center justify-between rounded-xl bg-(--bg-main) border border-(--border-color) px-6 py-4 transition-all hover:bg-rose-600 hover:text-white group/btn"
             >
-              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Lihat Riwayat Unit</span>
-              <ChevronRight size={18} />
+              <span className="text-[10px] font-black uppercase tracking-widest italic">Review Unit Archive</span>
+              <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         ))}

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import ToggleSwitch from './ToggleSwitch';
 import type { Settings } from '@/types';
+import { Bell, UserPlus, ShieldAlert, Mail, Smartphone, Radio } from 'lucide-react';
 
 interface NotificationsSettingsProps {
   settings: Settings['notifications'];
@@ -11,75 +12,106 @@ interface NotificationsSettingsProps {
 
 export default function NotificationsSettings({ settings, update }: NotificationsSettingsProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {[
-          {
-            key: 'notifyOnLeaveRequest',
-            label: 'Permohonan Izin Baru',
-            desc: 'Notifikasi saat ada pengajuan izin baru',
-          },
-          {
-            key: 'notifyOnFaceEnrollment',
-            label: 'Pendaftaran Wajah Berhasil',
-            desc: 'Konfirmasi saat biometrik terdaftar',
-          },
-          {
-            key: 'notifyOnFaceFailure',
-            label: 'Kegagalan Verifikasi Wajah',
-            desc: 'Peringatan pada percobaan berulang yang gagal',
-          },
-          {
-            key: 'notifyOnNewEmployee',
-            label: 'Karyawan Baru Aktif',
-            desc: 'Notifikasi login awal karyawan baru',
-          },
-        ].map((item) => (
-          <div key={item.key} className="p-5 rounded-2xl border transition-all hover:bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-card)' }}>
-            <ToggleSwitch
-              checked={Boolean((settings as any)[item.key])}
-              onChange={() => update('notifications', item.key, !(settings as any)[item.key])}
-              label={item.label}
-              description={item.desc}
-            />
-          </div>
-        ))}
+    <div className="space-y-10">
+      {/* Real-time Alerts */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+           <div className="w-8 h-8 rounded-lg bg-rose-600/10 text-rose-600 flex items-center justify-center">
+              <Radio size={18} />
+           </div>
+           <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white italic">Broadcast Protocol</h4>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            {
+              key: 'notifyOnLeaveRequest',
+              label: 'Leave Submission',
+              desc: 'Notifikasi instan untuk pengajuan izin baru.',
+              icon: Bell
+            },
+            {
+              key: 'notifyOnFaceEnrollment',
+              label: 'Identity Verification',
+              desc: 'Konfirmasi pendaftaran biometrik sukses.',
+              icon: Smartphone
+            },
+            {
+              key: 'notifyOnFaceFailure',
+              label: 'Security Breaches',
+              desc: 'Peringatan kegagalan verifikasi berulang.',
+              icon: ShieldAlert
+            },
+            {
+              key: 'notifyOnNewEmployee',
+              label: 'Personnel Onboarding',
+              desc: 'Status login pertama karyawan baru.',
+              icon: UserPlus
+            },
+          ].map((item) => (
+            <div key={item.key} className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-rose-600/30 transition-all group">
+              <div className="flex items-center gap-4 mb-4">
+                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-rose-600 transition-colors">
+                    <item.icon size={20} />
+                 </div>
+                 <div className="flex-1">
+                    <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">{item.label}</p>
+                 </div>
+              </div>
+              <ToggleSwitch
+                checked={Boolean((settings as any)[item.key])}
+                onChange={() => update('notifications', item.key, !(settings as any)[item.key])}
+                label=""
+                description={item.desc}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="pt-6 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-        <div className="p-5 rounded-2xl border transition-all hover:bg-(--bg-input)" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-card)' }}>
+      {/* External Channels */}
+      <div className="pt-8 border-t border-(--border-color)">
+        <div className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-rose-600/30 transition-all group">
+          <div className="flex items-center gap-4 mb-4">
+             <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-rose-600 transition-colors">
+                <Mail size={20} />
+             </div>
+             <div className="flex-1">
+                <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">Enterprise Email Bridge</p>
+             </div>
+          </div>
           <ToggleSwitch
             checked={settings.emailNotifications}
             onChange={() => update('notifications', 'emailNotifications', !settings.emailNotifications)}
-            label="Notifikasi Email"
-            description="Kirim ringkasan harian ke email admin"
+            label=""
+            description="Kirim ringkasan operasional harian ke email pusat."
           />
+          
+          <AnimatePresence>
+            {settings.emailNotifications && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden mt-8"
+              >
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Destination Address</label>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      className="w-full h-14 bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-6 text-sm font-black text-(--text-primary) outline-none focus:border-rose-600/50 transition-all shadow-sm"
+                      placeholder="admin.nexus@jne.mtp.com"
+                      value={settings.adminEmail ?? ''}
+                      onChange={(e) => update('notifications', 'adminEmail', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence>
-          {settings.emailNotifications && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, y: -10 }}
-              animate={{ opacity: 1, height: 'auto', y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -10 }}
-              className="overflow-hidden mt-6 space-y-3"
-            >
-              <label className="text-[11px] font-black uppercase tracking-widest block" style={{ color: 'var(--text-muted)' }}>Email Penerima Notifikasi</label>
-              <input
-                type="email"
-                className="w-full bg-black/5 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-(--jne-red) transition-colors"
-                style={{ 
-                  borderColor: 'var(--border-primary)', 
-                  color: 'var(--text-primary)',
-                  boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.5)'
-                }}
-                placeholder="admin@perusahaan.com"
-                value={settings.adminEmail ?? ''}
-                onChange={(e) => update('notifications', 'adminEmail', e.target.value)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

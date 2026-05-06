@@ -236,6 +236,13 @@ const firebaseConfig = {
   appId: '1:586449872388:web:e72ef8330d71be35ce3751',
 };
 
+export async function getNextEmployeeId(): Promise<string> {
+  const q = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
+  const snap = await getDocs(q);
+  const count = snap.size + 1;
+  return `JNE-MTP-${count.toString().padStart(3, '0')}`;
+}
+
 export async function registerEmployee(
   employeeData: Omit<Employee, 'id' | 'uid' | 'createdAt' | 'updatedAt'>,
   password: string
@@ -252,8 +259,8 @@ export async function registerEmployee(
     secondaryApp = initializeApp(firebaseConfig, 'SecondaryAuth');
     const secondaryAuth = getAuth(secondaryApp);
 
-    // 3. Buat User di Firebase Auth
-    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, password);
+    // 3. Buat User di Firebase Auth (Gunakan Password Default JNE123!)
+    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, 'JNE123!');
     const uid = userCred.user.uid;
 
     // 4. Buat Profil di Firestore dengan ID = UID
@@ -264,13 +271,25 @@ export async function registerEmployee(
       email: finalEmail,
       faceRegistered: false,
       isActive: true,
+      firstLogin: true, // Menandai untuk ganti password di HP
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
 
     return uid;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error registering employee:', error);
+    
+    // Cleanup: Jika Auth berhasil tapi Firestore gagal, hapus akun Auth-nya biar tidak gantung
+    if (error.code !== 'auth/email-already-in-use') {
+       // Kita coba delete user yang baru dibuat kalau Firestore gagal
+       // Note: Ini butuh penanganan ekstra di secondaryApp
+    }
+
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.');
+    }
+    
     throw error;
   } finally {
     if (secondaryApp) {

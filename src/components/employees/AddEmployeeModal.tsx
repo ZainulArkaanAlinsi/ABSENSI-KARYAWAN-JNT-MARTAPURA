@@ -9,16 +9,14 @@ import {
   Clock,
   Plus,
   CheckCircle,
+  Phone,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import type { JamKerja, DepartmentItem } from '@/types';
 import { useAddEmployeeLogic } from '@/hooks/useAddEmployeeLogic';
-
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStaggerEntrance, usePopAnimation } from '@/hooks/useAnime';
-import { useEffect, useRef } from 'react';
-import { animate } from 'animejs';
-
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -27,122 +25,84 @@ interface AddEmployeeModalProps {
   departmentItems: DepartmentItem[];
 }
 
-
-
-
-
 export default function AddEmployeeModal({
   isOpen,
   onClose,
   jamKerjas,
   departmentItems,
 }: AddEmployeeModalProps) {
-
-  const { loading, success, form, handleChange, handleSubmit } =
-    useAddEmployeeLogic(onClose);
-
-  const formRef = useRef<HTMLFormElement>(null);
-  const successRef = useRef<HTMLDivElement>(null);
-
-  // Stagger form fields when modal opens
-  useStaggerEntrance('.animate-field', formRef);
-
-  const { elementRef: checkmarkRef, play: playPop } = usePopAnimation<HTMLDivElement>();
-
-  useEffect(() => {
-    if (success) {
-      setTimeout(() => playPop(), 100);
-    }
-  }, [success, playPop]);
+  const { loading, success, form, handleChange, handleSubmit } = useAddEmployeeLogic(onClose);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Tambah Karyawan Baru" maxWidth={680}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Daftarkan Personil Baru" maxWidth={720}>
       <AnimatePresence mode="wait">
         {success ? (
           <motion.div
             key="success"
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            className="flex flex-col items-center justify-center px-6 py-8 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-12 text-center"
           >
-            <div
-              ref={checkmarkRef}
-              className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ring-1 ring-green-500/30"
-              style={{ backgroundColor: 'rgba(22,163,74,0.1)' }}
-            >
-              <CheckCircle size={32} className="text-green-500" />
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[32px] bg-emerald-50 text-emerald-500 shadow-sm border border-emerald-100">
+              <CheckCircle size={40} strokeWidth={2.5} />
             </div>
-            <h3 className="text-lg font-black text-white uppercase tracking-tight">
-              Pendaftaran Berhasil!
-            </h3>
-            <p className="mt-2 text-xs text-white/60">
-              Silakan berikan data berikut kepada karyawan:
-            </p>
-
-            {/* Credential Card */}
-            <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 p-5 text-left">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email/Login</span>
-                  <span className="text-xs font-bold text-white">{form.email.includes('@') ? form.email : `${form.email}@jne.mtp.com`}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Password</span>
-                  <span className="text-xs font-bold text-[#E31E24]">{form.password}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ID Karyawan</span>
-                  <span className="text-xs font-bold text-white">{form.employeeId}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Unit Kerja</span>
-                  <span className="text-xs font-bold text-blue-400 uppercase">{form.department}</span>
-                </div>
-              </div>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight italic">Personil Berhasil Didaftarkan!</h3>
+            <p className="mt-2 text-sm font-medium text-slate-500">Akses absensi telah aktif. Password default: <span className="font-black text-rose-600">JNE123!</span></p>
+            
+            <div className="mt-8 w-full max-w-sm bg-slate-50 rounded-[24px] border border-slate-100 p-6 text-left">
+               <div className="space-y-4">
+                  <div className="flex justify-between">
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee ID</span>
+                     <span className="text-xs font-black text-slate-900 italic">{form.employeeId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login Email</span>
+                     <span className="text-xs font-bold text-slate-900">{form.email}@jne.mtp.com</span>
+                  </div>
+               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="mt-8 w-full rounded-xl bg-white/10 py-3 text-xs font-black text-white uppercase tracking-widest hover:bg-white/20 transition-all"
+              className="mt-8 px-12 py-4 bg-slate-950 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all"
             >
-              Selesai & Tutup
+              Kembali ke Dashboard
             </button>
           </motion.div>
         ) : (
           <motion.form
             key="form"
-            ref={formRef}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
             onSubmit={handleSubmit}
-            className="flex flex-col"
+            className="flex flex-col gap-8 p-2"
           >
-            {/* Info banner */}
-            <div
-              className="flex items-start gap-3 rounded-2xl border px-4 py-3 text-[11px] font-medium uppercase tracking-[0.18em]"
-              style={{ backgroundColor: 'rgba(56,99,195,0.1)', borderColor: 'rgba(56,99,195,0.2)', color: '#3863C3' }}
-            >
-              <Mail size={16} className="mt-0.5 shrink-0" />
-              <p className="leading-relaxed">
-                Isi data karyawan dengan lengkap untuk mengaktifkan akses absensi dan penjadwalan.
-              </p>
+            {/* Header Info */}
+            <div className="flex items-start gap-4 p-5 bg-(--jne-rose)/5 rounded-[24px] border border-(--jne-rose)/10">
+               <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-(--jne-rose) shadow-sm shrink-0">
+                  <ShieldCheck size={20} />
+               </div>
+               <div>
+                  <p className="text-[11px] font-black text-(--jne-rose) uppercase tracking-widest mb-1">Security Auto-Provisioning</p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed uppercase italic">
+                    Sistem akan membuat akun otomatis dengan password default <span className="font-black text-(--jne-rose)">JNE123!</span>. 
+                    Karyawan diwajibkan mengganti password pada login pertama di aplikasi mobile.
+                  </p>
+               </div>
             </div>
 
-            <div className="space-y-5 pr-1">
-              {/* Fields sama seperti sebelumnya, hanya ganti warna */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Nama lengkap
-                  </label>
-                  <div className="group relative">
-                    <User size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#9BA4B4' }} />
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              
+              {/* --- BAGIAN KIRI: DATA PRIBADI --- */}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                  <div className="relative group">
+                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
                     <input
-                      className="w-full rounded-xl border py-2.5 pl-10 pr-3 text-xs text-white shadow-inner outline-none transition-colors"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                      placeholder="Nama karyawan"
+                      type="text"
+                      placeholder="Masukkan nama sesuai KTP"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
                       value={form.name}
                       onChange={(e) => handleChange('name', e.target.value)}
                       required
@@ -150,248 +110,184 @@ export default function AddEmployeeModal({
                   </div>
                 </div>
 
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    ID karyawan
-                  </label>
-                  <div className="group relative">
-                    <Briefcase size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#9BA4B4' }} />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Corporate</label>
+                  <div className="flex items-center">
+                    <div className="relative flex-1 group">
+                       <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                       <input
+                        type="text"
+                        placeholder="zainaril13"
+                        className="w-full h-14 bg-white border border-slate-200 rounded-l-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                        value={form.email}
+                        onChange={(e) => handleChange('email', e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                        required
+                      />
+                    </div>
+                    <div className="h-14 px-6 bg-slate-50 dark:bg-slate-900 border border-l-0 border-slate-200 dark:border-white/5 rounded-r-2xl flex items-center justify-center text-[10px] font-black text-slate-400 italic">
+                       @jne.mtp.com
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Telepon (WhatsApp)</label>
+                  <div className="relative group">
+                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
                     <input
-                      className="w-full rounded-xl border py-2.5 pl-10 pr-3 text-xs text-white shadow-inner outline-none transition-colors"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                      placeholder="JNE-XXX-000"
-                      value={form.employeeId}
-                      onChange={(e) => handleChange('employeeId', e.target.value)}
-                      required
+                      type="text"
+                      placeholder="+62 8XX XXXX XXXX"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      value={form.phone}
+                      onChange={(e) => handleChange('phone', e.target.value)}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="nama"
-                    value={form.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    required
-                  />
-                  <p className="ml-1 text-[9px] text-white/40">Otomatis @jne.mtp.com</p>
-                </div>
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="Min. 6 karakter"
-                    value={form.password}
-                    onChange={(e) => handleChange('password', e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Nomor telepon
-                  </label>
-                  <input
-                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="+62 ..."
-                    value={form.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Unit Kerja (Departemen)
-                  </label>
+              {/* --- BAGIAN KANAN: DATA PEKERJAAN --- */}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Employee ID (Generated)</label>
                   <div className="relative">
-                    <Building size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#9BA4B4' }} />
+                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-600" />
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-black text-slate-900 italic outline-none cursor-not-allowed"
+                      value={form.employeeId}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unit Kerja / Departemen</label>
+                  <div className="relative group">
+                    <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
                     <select
-                      className="w-full appearance-none rounded-xl border py-2.5 pl-10 pr-3 text-xs text-white shadow-inner outline-none transition-colors"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
                       value={form.department}
                       onChange={(e) => handleChange('department', e.target.value)}
                       required
                     >
-                      <option value="" disabled style={{ backgroundColor: '#1B2A4A' }}>Pilih unit kerja</option>
-                      {(departmentItems || []).map((d) => (
-                        <option key={d.id} value={d.name} style={{ backgroundColor: '#1B2A4A' }}>
-                          {d.name}
-                        </option>
+                      <option value="" disabled>Pilih Unit Kerja</option>
+                      {departmentItems.map((d) => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
-
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                       <ArrowRight size={14} className="rotate-90" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Jabatan Spesifik
-                  </label>
-                  <input
-                    className="w-full rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    placeholder="Contoh: Kurir Rider, Admin Inbound"
-                    value={form.position}
-                    onChange={(e) => handleChange('position', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Jam Kerja
-                  </label>
-
-                  <div className="relative">
-                    <Clock size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#9BA4B4' }} />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jabatan Spesifik</label>
+                  <div className="relative group">
+                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
                     <select
-                      className="w-full appearance-none rounded-xl border py-2.5 pl-10 pr-3 text-xs text-white shadow-inner outline-none transition-colors"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                      value={form.jamKerjaId}
-                      onChange={(e) => handleChange('jamKerjaId', e.target.value)}
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      value={form.position}
+                      onChange={(e) => handleChange('position', e.target.value)}
                       required
                     >
-                      <option value="" disabled style={{ backgroundColor: '#1B2A4A' }}>Pilih jam kerja</option>
-                      {(jamKerjas || []).map((s) => (
-                        <option key={s.id} value={s.id} style={{ backgroundColor: '#1B2A4A' }}>
-                          {s.name} [{s.checkInTime}-{s.checkOutTime}]
-                        </option>
-                      ))}
+                      <option value="" disabled>Pilih Jabatan</option>
+                      <option value="Kurir Rider (Motor)">Kurir Rider (Motor)</option>
+                      <option value="Kurir Driver (Mobil)">Kurir Driver (Mobil)</option>
+                      <option value="Staff Gudang Inbound">Staff Gudang Inbound</option>
+                      <option value="Staff Gudang Outbound">Staff Gudang Outbound</option>
+                      <option value="Admin Operasional">Admin Operasional</option>
+                      <option value="Sales Counter Officer">Sales Counter Officer</option>
+                      <option value="Staff Pick Up">Staff Pick Up</option>
+                      <option value="Staff Finance / Accounting">Staff Finance / Accounting</option>
                     </select>
-
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                       <ArrowRight size={14} className="rotate-90" />
+                    </div>
                   </div>
-
-                  {/* Table Shift Selection */}
-                  <div className="mt-2 rounded-xl border overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
-                          <th className="px-3 py-2 text-left font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4', fontSize: '9px' }}>
-                            Nama Jam Kerja
-                          </th>
-
-                          <th className="px-3 py-2 text-center font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4', fontSize: '9px' }}>
-                            Masuk
-                          </th>
-                          <th className="px-3 py-2 text-center font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4', fontSize: '9px' }}>
-                            Keluar
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(jamKerjas || []).map((s, i) => (
-                          <tr
-                            key={s.id}
-                            onClick={(e) => {
-                              handleChange('jamKerjaId', s.id);
-                              // Cool pop effect on click
-                              animate(e.currentTarget, {
-                                scale: [1, 1.02, 1],
-                                duration: 200,
-                                easing: 'outQuad'
-                              });
-                            }}
-                            className="cursor-pointer transition-colors"
-                            style={{
-                              backgroundColor: form.jamKerjaId === s.id
-                                ? 'rgba(56,99,195,0.15)'
-                                : i % 2 === 0
-                                ? 'rgba(255,255,255,0.02)'
-                                : 'transparent',
-                              borderTop: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <td className="px-3 py-2 font-medium" style={{ color: form.jamKerjaId === s.id ? '#3863C3' : '#E2E8F0' }}>
-                              {s.name}
-                            </td>
-                            <td className="px-3 py-2 text-center" style={{ color: '#9BA4B4' }}>
-                              {s.checkInTime}
-                            </td>
-                            <td className="px-3 py-2 text-center" style={{ color: '#9BA4B4' }}>
-                              {s.checkOutTime}
-                            </td>
-                          </tr>
-                        ))}
-
-                        {(jamKerjas || []).length === 0 && (
-                          <tr>
-                            <td colSpan={3} className="px-3 py-4 text-center" style={{ color: '#9BA4B4' }}>
-                              Tidak ada data jam kerja
-                            </td>
-                          </tr>
-                        )}
-
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="animate-field space-y-1.5">
-                  <label className="ml-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Status kontrak
-                  </label>
-                  <select
-                    className="w-full appearance-none rounded-xl border py-2.5 px-3 text-xs text-white shadow-inner outline-none transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
-                    value={form.contractType}
-                    onChange={(e) => handleChange('contractType', e.target.value)}
-                  >
-                    <option value="permanent" style={{ backgroundColor: '#1B2A4A' }}>Karyawan tetap</option>
-                    <option value="contract" style={{ backgroundColor: '#1B2A4A' }}>Kontrak</option>
-                    <option value="intern" style={{ backgroundColor: '#1B2A4A' }}>Magang</option>
-                  </select>
                 </div>
               </div>
+
             </div>
 
-            {/* Footer */}
-            <div className="mt-5 flex gap-3 border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onClose}
-                className="inline-flex flex-1 items-center justify-center rounded-xl border px-4 py-2.5 text-xs font-medium transition-colors"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: '#9BA4B4' }}
-              >
-                Batal
-              </motion.button>
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={!loading ? { scale: 1.02, y: -1 } : {}}
-                whileTap={!loading ? { scale: 0.97 } : {}}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white shadow-lg disabled:opacity-70"
-                style={{ backgroundColor: '#E04B3A' }}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Simpan karyawan</span>
-                    <Plus size={16} />
-                  </>
-                )}
-              </motion.button>
+            {/* --- SHIFT SELECTION: VISUAL BADGES --- */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                  <Clock size={14} /> Jam Kerja & Jadwal Operasional
+               </label>
+               <div className="grid grid-cols-3 gap-4">
+                  {jamKerjas.map((shift) => {
+                    const isSelected = form.jamKerjaId === shift.id;
+                    return (
+                      <button
+                        key={shift.id}
+                        type="button"
+                        onClick={() => handleChange('jamKerjaId', shift.id)}
+                        className={`p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                          isSelected 
+                            ? 'border-rose-600 bg-rose-600/5 shadow-md shadow-rose-600/5' 
+                            : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm'
+                        }`}
+                      >
+                         <div className="flex justify-between items-start mb-3">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                               <Clock size={16} />
+                            </div>
+                            <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
+                               shift.name.toLowerCase().includes('pagi') ? 'bg-amber-100 text-amber-600' :
+                               shift.name.toLowerCase().includes('sore') ? 'bg-emerald-100 text-emerald-600' :
+                               'bg-slate-900 text-white'
+                            }`}>
+                               {shift.name.split(' ')[0]}
+                            </span>
+                         </div>
+                         <p className={`text-xs font-black uppercase italic ${isSelected ? 'text-rose-600' : 'text-slate-900'}`}>{shift.name}</p>
+                         <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
+                            {shift.checkInTime} — {shift.checkOutTime}
+                         </p>
+                      </button>
+                    );
+                  })}
+               </div>
+            </div>
+
+            {/* --- FOOTER: SUBMIT ACTION --- */}
+            <div className="flex items-center justify-between pt-6">
+               <div className="flex flex-col">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Kontrak</p>
+                  <div className="flex gap-2 mt-2">
+                     {['permanent', 'contract', 'intern'].map((type) => (
+                       <button
+                         key={type}
+                         type="button"
+                         onClick={() => handleChange('contractType', type)}
+                         className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
+                           form.contractType === type ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-400 border-slate-200'
+                         }`}
+                       >
+                          {type}
+                       </button>
+                     ))}
+                  </div>
+               </div>
+               
+               <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-12 py-4 bg-rose-600 text-white rounded-[20px] text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-rose-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-3"
+                  >
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                    {loading ? 'Processing...' : 'Simpan Personil'}
+                  </button>
+               </div>
             </div>
           </motion.form>
         )}

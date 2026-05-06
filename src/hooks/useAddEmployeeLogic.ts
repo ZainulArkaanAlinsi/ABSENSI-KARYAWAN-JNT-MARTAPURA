@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { registerEmployee } from '@/lib/firestore';
+import { useState, useEffect } from 'react';
+import { registerEmployee, getNextEmployeeId } from '@/lib/firestore';
 import type { JamKerja, Department } from '@/types';
 
 export function useAddEmployeeLogic(onClose: () => void) {
@@ -8,7 +8,6 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '', // Password wajib untuk Admin
     phone: '',
     employeeId: '',
     department: '' as Department,
@@ -18,6 +17,14 @@ export function useAddEmployeeLogic(onClose: () => void) {
     joinDate: new Date().toISOString().split('T')[0],
     firstLogin: true,
   });
+
+  useEffect(() => {
+    const fetchNextId = async () => {
+      const nextId = await getNextEmployeeId();
+      setForm(prev => ({ ...prev, employeeId: nextId }));
+    };
+    fetchNextId();
+  }, []);
 
 
   const handleChange = (field: string, value: any) => {
@@ -47,29 +54,22 @@ export function useAddEmployeeLogic(onClose: () => void) {
     e.preventDefault();
 
     // Validasi lebih ketat
-    if (!form.name || !form.email || !form.password || !form.employeeId || !form.department || !form.jamKerjaId) {
-      alert('Semua field wajib harus diisi (termasuk Password)!');
-      return;
-    }
-
-    if (form.password.length < 6) {
-      alert('Password minimal 6 karakter!');
+    if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
+      alert('Semua field wajib harus diisi!');
       return;
     }
 
     setLoading(true);
     try {
-      // Kita panggil registerEmployee yang baru (Auth + Firestore)
-      const { password, ...employeeData } = form;
-      
+      // Kita panggil registerEmployee yang baru (Tanpa input password manual)
       await registerEmployee(
         {
-          ...employeeData,
+          ...form,
           role: 'employee',
           faceRegistered: false,
           isActive: true,
         },
-        password
+        '' // Password handled internally by registerEmployee
       );
 
       setSuccess(true);
@@ -78,7 +78,6 @@ export function useAddEmployeeLogic(onClose: () => void) {
         setForm({
           name: '',
           email: '',
-          password: '',
           phone: '',
           employeeId: '',
           department: '' as any,
@@ -93,7 +92,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
 
     } catch (err: any) {
       console.error('Gagal menambah karyawan:', err);
-      alert(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      alert(err.message || 'Terjadi kesalahan. Silahkan coba lagi.');
     } finally {
       setLoading(false);
     }

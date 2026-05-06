@@ -8,6 +8,8 @@ import {
   onSnapshot,
   getDocs,
   getCountFromServer,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firestore';
@@ -52,6 +54,7 @@ interface AnalyticsStats {
     absent: number;
   }[];
   recentActivities: RecentActivity[];
+  pendingRequests: any[]; // Changed from placeholder logic
 }
 
 export function useDashboardStats() {
@@ -74,10 +77,11 @@ export function useDashboardStats() {
         const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'), where('faceRegistered', '==', true));
         const pendingLeavesQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
 
-        const [empSnap, faceSnap, pendingLeavesSnap] = await Promise.all([
+        const [empSnap, faceSnap, pendingLeavesSnap, pendingDataSnap] = await Promise.all([
           getDocs(empQuery),
           getCountFromServer(faceQuery),
           getCountFromServer(pendingLeavesQuery),
+          getDocs(query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(5)))
         ]);
 
         const employees = empSnap.docs.map(d => ({ id: d.id, ...d.data() } as Employee));
@@ -172,6 +176,8 @@ export function useDashboardStats() {
               };
             });
 
+          const pendingRequests = pendingDataSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
           setData({
             totalEmployees,
             faceRegisteredCount,
@@ -193,6 +199,7 @@ export function useDashboardStats() {
             departmentDistribution,
             weeklyTrends,
             recentActivities,
+            pendingRequests,
           });
           setLoading(false);
         });

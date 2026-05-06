@@ -208,49 +208,76 @@ export default function EventModal({
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-2"
               >
-                <div className="flex items-center gap-2 mt-4">
-                  <Users size={13} style={{ color: '#34d399' }} />
-                  <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
-                    Karyawan yang diundang (Opsional)
-                  </label>
-                </div>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Cari nama karyawan..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full rounded-xl border px-4 py-2 text-xs outline-none"
-                    style={{ 
-                      background: 'var(--bg-input)', 
-                      borderColor: 'var(--border-primary)',
-                      color: 'var(--text-primary)'
-                    }}
-                  />
-                  <div className="max-h-[120px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                    {employees
-                      .filter((emp) => emp.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                      .map((emp) => {
-                        const active = form.attendees.includes(emp.id);
+                  <div className="space-y-1.5 mb-4">
+                    <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
+                      Target Unit / Departemen
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Rider Martapura', 'Inbound', 'Outbound', 'Office'].map((dept) => {
+                        const active = form.departments.includes(dept);
                         return (
                           <button
-                            key={emp.id}
+                            key={dept}
                             type="button"
-                            onClick={() => toggleEmployee(emp.id)}
-                            className="w-full flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-[11px] font-medium transition-all"
+                            onClick={() => toggleDept(dept)}
+                            className="flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-[11px] font-bold transition-all"
                             style={
                               active
-                                ? { background: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)', color: 'var(--color-success)' }
+                                ? { background: 'rgba(56, 99, 195, 0.15)', borderColor: 'rgba(56, 99, 195, 0.3)', color: '#3863C3' }
                                 : { background: 'var(--bg-input)', borderColor: 'var(--border-primary)', color: 'var(--text-muted)' }
                             }
                           >
-                            <span className="truncate">{emp.name} ({emp.department})</span>
-                            {active && <span className="text-[10px]">✓</span>}
+                            <div className={`w-3 h-3 rounded-full ${active ? 'bg-[#3863C3]' : 'bg-slate-700'}`} />
+                            <span className="truncate">{dept}</span>
                           </button>
                         );
                       })}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="flex items-center gap-2 mt-4">
+                    <Users size={13} style={{ color: '#34d399' }} />
+                    <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
+                      Karyawan yang diundang (Opsional)
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Cari nama karyawan..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full rounded-xl border px-4 py-2 text-xs outline-none"
+                      style={{ 
+                        background: 'var(--bg-input)', 
+                        borderColor: 'var(--border-primary)',
+                        color: 'var(--text-primary)'
+                      }}
+                    />
+                    <div className="max-h-[120px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {employees
+                        .filter((emp) => emp.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map((emp) => {
+                          const active = form.attendees.includes(emp.id);
+                          return (
+                            <button
+                              key={emp.id}
+                              type="button"
+                              onClick={() => toggleEmployee(emp.id)}
+                              className="w-full flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-[11px] font-medium transition-all"
+                              style={
+                                active
+                                  ? { background: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)', color: 'var(--color-success)' }
+                                  : { background: 'var(--bg-input)', borderColor: 'var(--border-primary)', color: 'var(--text-muted)' }
+                              }
+                            >
+                              <span className="truncate">{emp.name} ({emp.department})</span>
+                              {active && <span className="text-[10px]">✓</span>}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
 
                 {(form.departments.length > 0 || form.attendees.length > 0) && (
                   <div 

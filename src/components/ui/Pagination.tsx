@@ -26,34 +26,34 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 mt-12 mb-8">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-primary) bg-(--bg-card) text-(--text-secondary) hover:border-[#005596]/50 hover:text-[#005596] disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="First Page"
         >
-          <ChevronsLeft size={18} />
+          <ChevronsLeft size={16} />
         </button>
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-primary) bg-(--bg-card) text-(--text-secondary) hover:border-[#005596]/50 hover:text-[#005596] disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Previous Page"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={16} />
         </button>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5 mx-2">
         {pages.map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`h-10 min-w-10 px-2 flex items-center justify-center rounded-xl font-bold text-xs transition-all ${
+            className={`h-10 min-w-[40px] px-3 flex items-center justify-center rounded-xl text-xs font-black transition-all ${
               currentPage === page
-                ? 'bg-[#005596] text-white shadow-lg shadow-[#005596]/20'
-                : 'bg-(--bg-card) border border-(--border-primary) text-(--text-secondary) hover:border-[#005596]/50 hover:text-[#005596]'
+                ? 'bg-(--jne-rose) text-white shadow-lg shadow-rose-600/20'
+                : 'border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:border-(--jne-rose)/30 hover:text-(--jne-rose)'
             }`}
           >
             {page}
@@ -61,27 +61,23 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
         ))}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-primary) bg-(--bg-card) text-(--text-secondary) hover:border-[#005596]/50 hover:text-[#005596] disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Next Page"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={16} />
         </button>
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-primary) bg-(--bg-card) text-(--text-secondary) hover:border-[#005596]/50 hover:text-[#005596] disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Last Page"
         >
-          <ChevronsRight size={18} />
+          <ChevronsRight size={16} />
         </button>
-      </div>
-      
-      <div className="w-full text-center mt-4 text-[10px] font-black uppercase tracking-widest text-(--text-dim)">
-        Page {currentPage} of {totalPages}
       </div>
     </div>
   );

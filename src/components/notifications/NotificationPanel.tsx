@@ -35,10 +35,10 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-      className="w-[380px] bg-(--bg-card) border border-(--border-primary) shadow-2xl rounded-3xl overflow-hidden backdrop-blur-xl"
+      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+      className="w-[400px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden"
     >
       {/* Header */}
       <div className="px-6 py-5 border-b border-(--border-primary) bg-white/5 flex items-center justify-between">

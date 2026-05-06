@@ -38,6 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
       if (fbUser) {
+        // Set cookie for middleware
+        document.cookie = `jne_admin_session=${fbUser.uid}; path=/; max-age=86400; SameSite=Lax`;
+        
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
@@ -54,12 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               await firebaseSignOut(auth);
               setUser(null);
               setError('Akses ditolak. Akun ini tidak memiliki izin akses.');
+              document.cookie = 'jne_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             }
           } else {
             console.error('User document not found for UID:', fbUser.uid);
-            await firebaseSignOut(auth); // Sign out if no doc
+            await firebaseSignOut(auth);
             setUser(null);
             setError('Akun tidak ditemukan di database. Hubungi IT.');
+            document.cookie = 'jne_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           }
         } catch (err) {
           console.error('Error fetching user doc:', err);
@@ -68,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setUser(null);
+        document.cookie = 'jne_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       }
       setLoading(false);
     });
@@ -79,13 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
-      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedEmail = email.trim();
       
-      // 1. Firebase Auth Sign In
       const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const fbUser = userCredential.user;
 
-      // 2. Immediate Firestore Verification
       const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
       
       if (!userDoc.exists()) {
@@ -103,7 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      // 3. Set local state immediately for faster UI response
+      // Set cookie on success
+      document.cookie = `jne_admin_session=${fbUser.uid}; path=/; max-age=86400; SameSite=Lax`;
+
       setUser({
         uid: fbUser.uid,
         email: fbUser.email,
@@ -132,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await firebaseSignOut(auth);
     setUser(null);
+    document.cookie = 'jne_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   };
 
   return (
