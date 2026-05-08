@@ -81,6 +81,7 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     contractType: data.contractType || 'permanent',
     isActive: data.isActive ?? true,
     firstLogin: data.firstLogin ?? true,
+    allowRemoteAttendance: data.allowRemoteAttendance ?? (data.role === 'kurir' || data.role === 'driver'),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
   };
@@ -126,6 +127,25 @@ function mapLeave(id: string, data: DocumentData): LeaveRequest {
 }
 
 function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
+  // Handle nested (old) or flat (new Data Connect style) formats
+  const checkIn = data.checkIn || (data.checkInTime ? {
+    time: toDate(data.checkInTime),
+    latitude: data.checkInLatitude,
+    longitude: data.checkInLongitude,
+    distance: data.checkInDistance,
+    faceScore: data.checkInFaceScore,
+    photoUrl: data.checkInPhotoUrl,
+  } : undefined);
+
+  const checkOut = data.checkOut || (data.checkOutTime ? {
+    time: toDate(data.checkOutTime),
+    latitude: data.checkOutLatitude,
+    longitude: data.checkOutLongitude,
+    distance: data.checkOutDistance,
+    faceScore: data.checkOutFaceScore,
+    photoUrl: data.checkOutPhotoUrl,
+  } : undefined);
+
   return {
     id,
     userId: data.userId || '',
@@ -133,12 +153,10 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     employeeId: data.employeeId || '',
     department: data.department || '',
     jamKerjaId: data.jamKerjaId || '',
-
     date: data.date || '',
-
     status: data.status || 'absent',
-    checkIn: data.checkIn,
-    checkOut: data.checkOut,
+    checkIn,
+    checkOut,
     totalWorkMinutes: data.totalWorkMinutes,
     overtimeMinutes: data.overtimeMinutes,
     lateMinutes: data.lateMinutes,
@@ -147,6 +165,7 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     updatedAt: toDate(data.updatedAt),
   };
 }
+
 
 function mapNotification(id: string, data: DocumentData): AdminNotification {
   return {
@@ -242,7 +261,6 @@ export async function getNextEmployeeId(): Promise<string> {
   const count = snap.size + 1;
   return `JNE-MTP-${count.toString().padStart(3, '0')}`;
 }
-
 export async function registerEmployee(
   employeeData: Omit<Employee, 'id' | 'uid' | 'createdAt' | 'updatedAt'>,
   password: string
@@ -256,11 +274,12 @@ export async function registerEmployee(
     }
 
     // 2. Buat Secondary Auth agar Admin tidak ter-logout
-    secondaryApp = initializeApp(firebaseConfig, 'SecondaryAuth');
+    secondaryApp = getApps().find(app => app.name === 'SecondaryAuth') 
+      || initializeApp(firebaseConfig, 'SecondaryAuth');
     const secondaryAuth = getAuth(secondaryApp);
 
-    // 3. Buat User di Firebase Auth (Gunakan Password Default JNE123!)
-    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, 'JNE123!');
+    // 3. Buat User di Firebase Auth
+    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, password);
     const uid = userCred.user.uid;
 
     // 4. Buat Profil di Firestore dengan ID = UID
@@ -272,6 +291,7 @@ export async function registerEmployee(
       faceRegistered: false,
       isActive: true,
       firstLogin: true, // Menandai untuk ganti password di HP
+      allowRemoteAttendance: employeeData.allowRemoteAttendance ?? (employeeData.role === 'kurir' || employeeData.role === 'driver'),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -280,16 +300,9 @@ export async function registerEmployee(
   } catch (error: any) {
     console.error('Error registering employee:', error);
     
-    // Cleanup: Jika Auth berhasil tapi Firestore gagal, hapus akun Auth-nya biar tidak gantung
-    if (error.code !== 'auth/email-already-in-use') {
-       // Kita coba delete user yang baru dibuat kalau Firestore gagal
-       // Note: Ini butuh penanganan ekstra di secondaryApp
-    }
-
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.');
     }
-    
     throw error;
   } finally {
     if (secondaryApp) {
@@ -306,13 +319,31 @@ export async function updateEmployee(id: string, data: Partial<Employee>): Promi
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
-  await deleteDoc(doc(db, COLLECTIONS.USERS, id));
+  // 1. Ambil semua data absensi terkait
+  const attendanceQuery = query(collection(db, COLLECTIONS.ATTENDANCE), where('userId', '==', id));
+  const attendanceSnap = await getDocs(attendanceQuery);
+  const deleteAttendancePromises = attendanceSnap.docs.map(d => deleteDoc(d.ref));
+
+  // 2. Ambil semua data izin/cuti terkait
+  const leaveQuery = query(collection(db, COLLECTIONS.LEAVES), where('userId', '==', id));
+  const leaveSnap = await getDocs(leaveQuery);
+  const deleteLeavePromises = leaveSnap.docs.map(d => deleteDoc(d.ref));
+
+  // 3. Hapus dokumen user utama
+  const deleteUserPromise = deleteDoc(doc(db, COLLECTIONS.USERS, id));
+
+  // Jalankan semua proses hapus secara paralel
+  await Promise.all([
+    ...deleteAttendancePromises,
+    ...deleteLeavePromises,
+    deleteUserPromise
+  ]);
 }
 
 export function subscribeToEmployees(callback: (employees: Employee[]) => void) {
   const q = query(
     collection(db, COLLECTIONS.USERS),
-    where('role', '==', 'employee')
+    where('role', 'in', ['employee', 'kurir', 'driver'])
   );
   return onSnapshot(q, (snap) => {
     const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
@@ -381,6 +412,10 @@ export async function updateLeaveStatus(
   });
 }
 
+export async function deleteLeave(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.LEAVES, id));
+}
+
 export function subscribeToLeaves(
   status: LeaveStatus | 'all',
   callback: (leaves: LeaveRequest[]) => void
@@ -415,34 +450,40 @@ export async function getAttendanceByDate(date: string): Promise<AttendanceRecor
 export async function getAttendanceByRange(
   startDate: string,
   endDate: string,
-  userId?: string
+  userId?: string,
+  limitCount: number = 100
 ): Promise<AttendanceRecord[]> {
   const constraints: QueryConstraint[] = [
     where('date', '>=', startDate),
-    where('date', '<=', endDate)
+    where('date', '<=', endDate),
+    orderBy('date', 'desc'),
+    limit(limitCount)
   ];
   if (userId) constraints.push(where('userId', '==', userId));
   
   const q = query(collection(db, COLLECTIONS.ATTENDANCE), ...constraints);
   const snap = await getDocs(q);
-  const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
-  
-  // Sort by date descending then by name/id
-  return data.sort((a, b) => b.date.localeCompare(a.date));
+  return snap.docs.map((d) => mapAttendance(d.id, d.data()));
+}
+
+export async function deleteAttendance(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.ATTENDANCE, id));
 }
 
 export function subscribeToTodayAttendance(
   date: string,
-  callback: (records: AttendanceRecord[]) => void
+  callback: (records: AttendanceRecord[]) => void,
+  limitCount: number = 50
 ) {
   const q = query(
     collection(db, COLLECTIONS.ATTENDANCE),
-    where('date', '==', date)
+    where('date', '==', date),
+    orderBy('createdAt', 'desc'),
+    limit(limitCount)
   );
   return onSnapshot(q, (snap) => {
     const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
-    const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    callback(sorted);
+    callback(data);
   });
 }
 

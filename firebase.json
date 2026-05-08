@@ -39,6 +39,7 @@
     "rules": "storage.rules"
   },
   "hosting": {
+    "target": "admin",
     "public": "out",
     "cleanUrls": true,
     "ignore": [
@@ -67,16 +68,31 @@
       "enabled": true
     }
   },
-
-  "apphosting": {
-    "backendId": "admin-attendance-jne-mtrpr",
-    "rootDir": "/",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log",
-      "functions"
-    ]
+  "apphosting": [
+    {
+      "backendId": "admin-attendance-jne-mtrpr",
+      "rootDir": "/",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ]
+    },
+    {
+      "backendId": "admin-jne-martapura",
+      "rootDir": "/",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ]
+    }
+  ],
+  "dataconnect": {
+    "source": "dataconnect"
   }
 }

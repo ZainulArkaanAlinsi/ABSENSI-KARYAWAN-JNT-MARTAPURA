@@ -54,82 +54,82 @@ export default function EmployeesPage() {
   );
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-6 animate-in fade-in duration-700">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter italic">
-            Personnel <span className="text-rose-600">Archive</span>
+          <h1 className="text-2xl font-black text-(--text-primary) tracking-tighter italic">
+            Arsip <span className="text-cyan-600 dark:text-cyan-400">Personel</span>
           </h1>
-          <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.3em] mt-2 ml-1">Manajemen Sumber Daya Manusia JNE</p>
+          <p className="text-(--text-secondary) font-bold text-[10px] uppercase tracking-[0.3em] mt-1 ml-1">Manajemen Sumber Daya Manusia JNE</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button 
             onClick={() => setShowAddModal(true)}
-            className="h-12 px-8 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl shadow-rose-600/20 hover:scale-105 active:scale-95 transition-all"
+            className="h-10 px-6 bg-cyan-600 dark:bg-cyan-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center gap-2 shadow-lg shadow-cyan-600/10 hover:scale-105 active:scale-95 transition-all"
           >
-             <UserPlus size={18} />
-             Add Personnel
+             <UserPlus size={16} />
+             Tambah Karyawan
           </button>
         </div>
       </div>
 
       {/* ── METRICS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Force Total', val: employees.length, icon: Users, color: 'text-slate-500', bg: 'bg-slate-500/10' },
-          { label: 'Secure Scan', val: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Action Needed', val: employees.filter(e => !e.faceRegistered).length, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-600/10' },
-          { label: 'Filtered', val: filteredEmployees.length, icon: Filter, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+          { label: 'Total Personel', val: employees.length, icon: Users, color: 'text-(--metric-blue-text)', bg: 'bg-(--metric-blue-bg)' },
+          { label: 'Wajah Terdaftar', val: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-(--metric-green-text)', bg: 'bg-(--metric-green-bg)' },
+          { label: 'Butuh Tindakan', val: employees.filter(e => !e.faceRegistered).length, icon: AlertCircle, color: 'text-(--metric-peach-text)', bg: 'bg-(--metric-peach-bg)' },
+          { label: 'Hasil Filter', val: filteredEmployees.length, icon: Filter, color: 'text-(--metric-teal-text)', bg: 'bg-(--metric-teal-bg)' },
         ].map((m, i) => (
-          <div key={i} className="bento-card p-6! flex items-center justify-between group">
+          <div key={i} className={`bento-card p-4 flex items-center justify-between group ${m.bg}`}>
             <div className="space-y-0.5">
-              <p className="text-(--text-secondary) text-[9px] font-black uppercase tracking-widest">{m.label}</p>
-              <h3 className="text-2xl font-black text-(--text-primary) tracking-tight">{loading ? '...' : m.val}</h3>
+              <p className={`${m.color} opacity-70 text-[8px] font-black uppercase tracking-widest`}>{m.label}</p>
+              <h3 className={`text-xl font-black ${m.color} tracking-tight`}>{loading ? '...' : m.val}</h3>
             </div>
-            <div className={`w-12 h-12 ${m.bg} rounded-xl flex items-center justify-center ${m.color}`}>
-              <m.icon size={22} />
+            <div className={`w-10 h-10 bg-white/20 dark:bg-black/20 rounded-xl flex items-center justify-center ${m.color} shadow-sm`}>
+              <m.icon size={18} />
             </div>
           </div>
         ))}
       </div>
 
       {/* ── FILTER & SEARCH ── */}
-      <div className="bento-card p-6! flex flex-col lg:flex-row items-center gap-6">
+      <div className="bento-card p-4 flex flex-col lg:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input 
             type="text" 
-            placeholder="Search by name, ID, or department..." 
+            placeholder="Cari nama, ID, atau departemen..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-rose-600/30"
+            className="w-full bg-(--bg-main) border border-(--border-color) rounded-xl py-2.5 pl-10 pr-4 text-[11px] font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-cyan-600/30"
           />
         </div>
-        <div className="flex gap-4 w-full lg:w-auto">
+        <div className="flex gap-3 w-full lg:w-auto">
           <select 
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}
-            className="flex-1 lg:w-48 bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-3.5 text-[10px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
+            className="flex-1 lg:w-40 bg-(--bg-main) border border-(--border-color) rounded-xl px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
           >
-            <option value="all">All Units</option>
+            <option value="all">Semua Unit</option>
             {departmentItems.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
           <select 
             value={filterFace}
             onChange={(e) => setFilterFace(e.target.value as any)}
-            className="flex-1 lg:w-48 bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-3.5 text-[10px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
+            className="flex-1 lg:w-40 bg-(--bg-main) border border-(--border-color) rounded-xl px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
           >
-            <option value="all">Face Scan Status</option>
-            <option value="registered">Verified</option>
-            <option value="unregistered">Not Enrolled</option>
+            <option value="all">Status Wajah</option>
+            <option value="registered">Terverifikasi</option>
+            <option value="unregistered">Belum Terdaftar</option>
           </select>
         </div>
       </div>
 
       {/* ── EMPLOYEE GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence mode="popLayout">
           {loading ? (
             <div className="col-span-full py-20 flex justify-center"><PageLoader /></div>
@@ -143,52 +143,57 @@ export default function EmployeesPage() {
               transition={{ delay: idx * 0.02 }}
               className="bento-card group flex flex-col"
             >
-              <div className="flex items-start justify-between mb-8">
+              <div className="flex items-start justify-between mb-6">
                 <div className="relative">
-                  <div className="h-16 w-16 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center text-2xl font-black text-white italic shadow-lg shadow-black/20 uppercase">
+                  <div className="h-14 w-14 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center text-xl font-black text-white italic shadow-lg shadow-black/20 uppercase">
                     {emp.name.charAt(0)}
                   </div>
-                  <div className="absolute -bottom-2 -right-2 h-7 w-7 rounded-lg bg-white dark:bg-slate-900 border border-(--border-color) shadow-sm flex items-center justify-center">
-                    <ShieldCheck size={14} className={emp.faceRegistered ? 'text-emerald-500' : 'text-slate-300'} />
+                  <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg bg-white dark:bg-slate-900 border border-(--border-color) shadow-sm flex items-center justify-center">
+                    <ShieldCheck size={12} className={emp.faceRegistered ? 'text-emerald-500' : 'text-slate-300'} />
                   </div>
                 </div>
                 <div className="text-right">
                   <FaceBadge registered={emp.faceRegistered} />
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2">Level: {emp.contractType || 'P-1'}</p>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Kontrak: {emp.contractType || 'Tetap'}</p>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-2 mb-8">
-                <h3 className="text-xl font-black text-(--text-primary) uppercase tracking-tighter italic leading-none group-hover:text-rose-600 transition-colors">
+              <div className="flex-1 space-y-1.5 mb-6">
+                <h3 className="text-lg font-black text-(--text-primary) uppercase tracking-tighter italic leading-none group-hover:text-cyan-600 transition-colors">
                   {emp.name}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{emp.employeeId}</p>
-                  <div className="w-1 h-1 rounded-full bg-rose-600" />
-                  <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest italic">{emp.position || 'Courier'}</p>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{emp.employeeId}</p>
+                  <div className="w-1 h-1 rounded-full bg-cyan-600" />
+                  <p className="text-[8px] font-black text-cyan-600 uppercase tracking-widest italic">{emp.position || 'Courier'}</p>
                 </div>
-                <p className="text-[10px] font-medium text-slate-500 truncate mt-4">{emp.email}</p>
+                <p className="text-[9px] font-medium text-slate-500 truncate mt-3">{emp.email}</p>
               </div>
 
-              <div className="pt-6 border-t border-(--border-color) flex items-center justify-between">
+              <div className="pt-4 border-t border-(--border-color) flex items-center justify-between">
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Department</p>
-                  <div className="px-3 py-1 bg-slate-950 text-white text-[9px] font-black uppercase tracking-widest rounded-lg">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Departemen / Unit</p>
+                  <div className="px-2.5 py-1 bg-slate-950 text-white text-[8px] font-black uppercase tracking-widest rounded-lg">
                     {emp.department}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <button 
-                    onClick={() => deleteEmployee(emp.id)}
-                    className="w-10 h-10 rounded-xl bg-rose-600/10 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all active:scale-90"
+                    onClick={() => {
+                      if(confirm(`Hapus data ${emp.name} secara permanen? Tindakan ini tidak dapat dibatalkan.`)) {
+                        deleteEmployee(emp.id);
+                      }
+                    }}
+                    className="w-9 h-9 rounded-lg bg-slate-400/10 text-slate-400 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all active:scale-90"
+                    title="Hapus Karyawan"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                   <Link 
                     href={`/employees/detail?id=${emp.id}`}
-                    className="w-10 h-10 rounded-xl bg-slate-950 text-white flex items-center justify-center hover:bg-rose-600 transition-all active:scale-90 shadow-lg"
+                    className="w-9 h-9 rounded-lg bg-slate-950 text-white flex items-center justify-center hover:bg-cyan-600 transition-all active:scale-90 shadow-lg"
                   >
-                    <ChevronRight size={18} />
+                    <ChevronRight size={16} />
                   </Link>
                 </div>
               </div>

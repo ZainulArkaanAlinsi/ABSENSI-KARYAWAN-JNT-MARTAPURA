@@ -1,37 +1,68 @@
-type Employee @table {
+type Employee @table(key: ["id"]) {
+  id: String!
+  uid: String! @unique
   firstName: String!
   lastName: String!
-  employeeId: String!
-  department: Department!
-  role: String!
-  createdAt: Timestamp!
-  email: String
+  email: String! @unique
   phoneNumber: String
-  startDate: Date
+  employeeId: String! @unique
+  department: Department!
+  position: String
+  role: String!
+  faceRegistered: Boolean
+  photoUrl: String
+  isActive: Boolean
+  allowRemoteAttendance: Boolean
+  jamKerjaId: String
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
 }
 
-type Department @table {
-  name: String!
-  createdAt: Timestamp!
+type Department @table(key: ["id"]) {
+  id: String!
+  name: String! @unique
   description: String
+  color: String
+  isActive: Boolean
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
 }
 
 type AttendanceRecord @table {
+  id: UUID! @default(expr: "uuidV4()")
   employee: Employee!
   attendanceDate: Date!
-  checkInTime: Timestamp!
+  checkInTime: Timestamp
+  checkInLatitude: Float
+  checkInLongitude: Float
+  checkInDistance: Int
+  checkInPhotoUrl: String
+  checkInFaceScore: Float
   checkOutTime: Timestamp
+  checkOutLatitude: Float
+  checkOutLongitude: Float
+  checkOutDistance: Int
+  checkOutPhotoUrl: String
+  checkOutFaceScore: Float
   status: String
   notes: String
+  totalWorkMinutes: Int
+  lateMinutes: Int
+  overtimeMinutes: Int
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
 }
 
 type LeaveRequest @table {
+  id: UUID! @default(expr: "uuidV4()")
   employee: Employee!
   leaveType: String!
   startDate: Date!
   endDate: Date!
   status: String!
-  createdAt: Timestamp!
   reason: String
+  documentUrl: String
   approver: Employee
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
 }

@@ -31,7 +31,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <Loader2 size={40} className="animate-spin text-[#E31E24]" />
+        <Loader2 size={40} className="animate-spin text-cyan-600" />
         <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Menyusun Laporan Berkala...</p>
       </div>
     );
@@ -39,10 +39,10 @@ export default function ReportsPage() {
 
   // Pre-define summary cards with safe access
   const summaryCards = [
-    { label: 'Tepat Waktu', value: `${stats?.onTimeRate ?? 0}%`, icon: CheckCircle2, color: '#10B981', sub: 'Kedisiplinan' },
-    { label: 'Keterlambatan', value: stats?.lateCount ?? 0, icon: Clock, color: '#F59E0B', sub: 'Total Menit' },
-    { label: 'Mangkir (Alfa)', value: stats?.absentCount ?? 0, icon: AlertTriangle, color: '#E31E24', sub: 'Tanpa Keterangan' },
-    { label: 'Log Absensi', value: reports?.length ?? 0, icon: FileText, color: '#005596', sub: 'Bulan Berjalan' }
+    { label: 'Tepat Waktu', value: `${stats?.onTimeRate ?? 0}%`, icon: CheckCircle2, color: 'var(--metric-green-text)', bg: 'var(--metric-green-bg)', sub: 'Kedisiplinan' },
+    { label: 'Keterlambatan', value: stats?.lateCount ?? 0, icon: Clock, color: 'var(--metric-peach-text)', bg: 'var(--metric-peach-bg)', sub: 'Total Menit' },
+    { label: 'Mangkir (Alfa)', value: stats?.absentCount ?? 0, icon: AlertTriangle, color: 'var(--jne-rose)', bg: 'rgba(227, 30, 36, 0.05)', sub: 'Tanpa Keterangan' },
+    { label: 'Log Absensi', value: reports?.length ?? 0, icon: FileText, color: 'var(--metric-blue-text)', bg: 'var(--metric-blue-bg)', sub: 'Bulan Berjalan' }
   ];
 
   return (
@@ -75,13 +75,13 @@ export default function ReportsPage() {
       {/* ── Filter Bar ── */}
       <div className="bg-(--bg-card) p-6 rounded-4xl border border-(--border-primary) shadow-sm flex flex-col lg:flex-row gap-4 items-center">
          <div className="flex-1 relative w-full group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-(--text-dim) group-focus-within:text-[#005596] transition-colors" size={18} />
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-(--text-dim) group-focus-within:text-cyan-600 transition-colors" size={18} />
             <input 
                type="text" 
                placeholder="Cari nama karyawan atau unit..."
                value={search}
                onChange={(e) => setSearch(e.target.value)}
-               className="w-full pl-14 pr-6 py-4 rounded-2xl bg-white/5 border border-(--border-primary) outline-none focus:border-[#005596]/30 font-bold text-(--text-primary) transition-all shadow-sm"
+               className="w-full pl-14 pr-6 py-4 rounded-2xl bg-white/5 border border-(--border-primary) outline-none focus:border-cyan-600/30 font-bold text-(--text-primary) transition-all shadow-sm"
             />
          </div>
          <div className="flex items-center gap-4 w-full lg:w-auto">
@@ -96,7 +96,7 @@ export default function ReportsPage() {
             </div>
             <button 
                onClick={handleExport}
-               className="px-8 py-4 bg-[#E31E24] hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 transition-all shadow-lg shadow-red-600/20 active:scale-95"
+               className="px-8 py-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 transition-all shadow-lg shadow-cyan-600/20 active:scale-95"
             >
                <Download size={18} /> Export Data
             </button>
@@ -136,13 +136,13 @@ export default function ReportsPage() {
                            </div>
                         </td>
                         <td className="px-6 py-6">
-                           <span className="px-4 py-1.5 rounded-xl bg-[#005596]/10 text-[10px] font-black uppercase tracking-widest text-[#005596] border border-[#005596]/20">
+                           <span className="px-4 py-1.5 rounded-xl bg-cyan-600/5 text-[10px] font-black uppercase tracking-widest text-cyan-600 border border-cyan-600/20">
                               {report.department}
                            </span>
                         </td>
-                        <td className="px-6 py-6 text-center font-black text-[#005596]">{report.presentDays}</td>
+                        <td className="px-6 py-6 text-center font-black text-emerald-600">{report.presentDays}</td>
                         <td className="px-6 py-6 text-center font-black text-amber-500">{report.lateDays}</td>
-                        <td className="px-6 py-6 text-center font-black text-red-600">{report.absentDays}</td>
+                        <td className="px-6 py-6 text-center font-black text-rose-600">{report.absentDays}</td>
                         <td className="px-10 py-6 text-right">
                            <button className="h-9 w-9 rounded-xl bg-white/5 text-(--text-dim) hover:bg-(--text-primary) hover:text-(--bg-card) flex items-center justify-center transition-all">
                               <FileText size={18} />

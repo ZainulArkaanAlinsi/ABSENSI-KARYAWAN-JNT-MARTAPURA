@@ -39,6 +39,9 @@ export default function LoginPage() {
       <div className="fixed inset-0 z-0">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-linear-to-bl from-red-600/5 to-transparent rounded-full blur-3xl -mr-64 -mt-64" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-linear-to-tr from-[#005596]/5 to-transparent rounded-full blur-3xl -ml-48 -mb-48" />
+        
+        {/* Ambient Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(224,75,58,0.03),transparent_50%)]" />
       </div>
 
       <motion.div

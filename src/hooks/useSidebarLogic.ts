@@ -41,11 +41,10 @@ export function useSidebarLogic() {
     { label: 'Izin & Cuti', href: '/leaves', icon: FileText },
     { label: 'Kalender Kerja', href: '/calendar', icon: Calendar },
 
-    { isHeader: true, label: 'Penggajian & Aturan' },
+    { isHeader: true, label: 'Pengaturan & Aturan' },
     { label: 'Master Jam Kerja', href: '/jam-kerja', icon: ClipboardCheck },
     { label: 'Manajemen Shift', href: '/shifts', icon: Briefcase },
     { label: 'Laporan Bulanan', href: '/reports', icon: ClipboardCheck },
-    { label: 'Kalkulasi Gaji', href: '/salary', icon: Building2 },
 
     { isHeader: true, label: 'Konfigurasi' },
     { label: 'Pengaturan Sistem', href: '/settings', icon: Settings },

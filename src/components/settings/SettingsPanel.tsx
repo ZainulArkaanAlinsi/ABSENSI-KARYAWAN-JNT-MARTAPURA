@@ -97,7 +97,7 @@ export default function SettingsPanel({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white bg-rose-600 shadow-xl shadow-rose-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
+              className="flex items-center gap-3 ml-auto px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white bg-cyan-600 shadow-xl shadow-cyan-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
             >
               {saving ? (
                 <>

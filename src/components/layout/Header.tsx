@@ -15,45 +15,34 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="flex items-center justify-between h-20 px-8 bg-(--bg-card)/80 backdrop-blur-xl border border-(--border-color) rounded-[24px] shadow-sm transition-all duration-300">
+    <header className="flex items-center justify-between h-16 px-6 bg-(--bg-card)/60 backdrop-blur-md border border-(--border-color) rounded-2xl shadow-sm transition-all duration-300">
       {/* ── SEARCH BAR ── */}
       <div className="flex-1 max-w-md relative group">
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-(--text-secondary) group-focus-within:text-(--jne-rose) transition-colors" size={18} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
         <input 
           type="text" 
-          placeholder="Cari data personil..." 
-          className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl py-3 pl-14 pr-6 text-sm font-bold text-(--text-primary) placeholder:text-slate-400 outline-none focus:ring-4 focus:ring-rose-500/5 focus:border-(--jne-rose) transition-all"
+          placeholder="Quick search personnel..." 
+          className="w-full bg-(--bg-main)/50 border border-(--border-color) rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-(--text-primary) placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
         />
       </div>
 
       {/* ── ACTIONS ── */}
-      <div className="flex items-center gap-4">
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-(--bg-main) border border-(--border-color) text-(--text-primary) hover:text-(--jne-rose) transition-all"
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-
-        {/* Notifications */}
-        <button className="relative w-11 h-11 flex items-center justify-center rounded-2xl bg-(--bg-main) border border-(--border-color) text-(--text-secondary) hover:text-(--jne-rose) transition-all group">
-          <Bell size={18} />
-          <span className="absolute top-3 right-3 w-2 h-2 bg-(--jne-rose) rounded-full" />
-        </button>
-
+      <div className="flex items-center gap-3">
         {/* User Profile */}
-        <div className="flex items-center gap-4 pl-4 border-l border-(--border-color)">
-          <div className="text-right hidden lg:block">
-            <p className="text-[11px] font-black text-(--text-primary) leading-tight italic uppercase tracking-tighter">
-              {user?.name.split(' ')[0] || 'ADMIN'}
+        <div className="flex items-center gap-3 pl-4 border-l border-(--border-color)">
+          <div className="text-right hidden md:block">
+            <p className="text-[11px] font-black text-(--text-primary) leading-tight tracking-tighter uppercase italic">
+              {user?.name || 'ADMIN PERSONNEL'}
             </p>
-            <p className="text-[8px] font-black text-(--jne-rose) uppercase tracking-widest mt-1">
-              {user?.role || 'SYSTEM'}
-            </p>
+            <div className="flex items-center justify-end gap-1.5 mt-0.5">
+               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+               <p className="text-[9px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">
+                {user?.role || 'SYSTEM ADMIN'}
+              </p>
+            </div>
           </div>
-          <div className="w-11 h-11 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center text-white text-xs font-black italic shadow-lg">
-             {user?.name?.charAt(0) || 'A'}
+          <div className="w-10 h-10 bg-slate-950 dark:bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-white text-xs font-black italic shadow-xl shadow-black/20 group-hover:scale-105 transition-transform">
+             {user?.name?.charAt(0).toUpperCase() || 'A'}
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 // JNE MTP Admin Dashboard — TypeScript Type Definitions
 // ============================================================
 
-export type UserRole = 'admin' | 'superadmin' | 'employee';
+export type UserRole = 'admin' | 'superadmin' | 'employee' | 'kurir' | 'driver';
 
 export type AttendanceStatus =
   | 'present'
@@ -91,6 +91,7 @@ export interface Employee {
   contractType: 'permanent' | 'contract' | 'intern';
   isActive: boolean;
   firstLogin: boolean;
+  allowRemoteAttendance: boolean;
   createdAt: string;
   updatedAt: string;
 }

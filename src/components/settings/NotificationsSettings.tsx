@@ -16,7 +16,7 @@ export default function NotificationsSettings({ settings, update }: Notification
       {/* Real-time Alerts */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-rose-600/10 text-rose-600 flex items-center justify-center">
+           <div className="w-8 h-8 rounded-lg bg-cyan-600/10 text-cyan-600 flex items-center justify-center">
               <Radio size={18} />
            </div>
            <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white italic">Broadcast Protocol</h4>
@@ -49,9 +49,9 @@ export default function NotificationsSettings({ settings, update }: Notification
               icon: UserPlus
             },
           ].map((item) => (
-            <div key={item.key} className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-rose-600/30 transition-all group">
+            <div key={item.key} className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-cyan-600/30 transition-all group">
               <div className="flex items-center gap-4 mb-4">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-rose-600 transition-colors">
+                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 transition-colors">
                     <item.icon size={20} />
                  </div>
                  <div className="flex-1">
@@ -71,9 +71,9 @@ export default function NotificationsSettings({ settings, update }: Notification
 
       {/* External Channels */}
       <div className="pt-8 border-t border-(--border-color)">
-        <div className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-rose-600/30 transition-all group">
+        <div className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-cyan-600/30 transition-all group">
           <div className="flex items-center gap-4 mb-4">
-             <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-rose-600 transition-colors">
+             <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 transition-colors">
                 <Mail size={20} />
              </div>
              <div className="flex-1">
@@ -101,7 +101,7 @@ export default function NotificationsSettings({ settings, update }: Notification
                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="email"
-                      className="w-full h-14 bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-6 text-sm font-black text-(--text-primary) outline-none focus:border-rose-600/50 transition-all shadow-sm"
+                      className="w-full h-14 bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-6 text-sm font-black text-(--text-primary) outline-none focus:border-cyan-600/50 transition-all shadow-sm"
                       placeholder="admin.nexus@jne.mtp.com"
                       value={settings.adminEmail ?? ''}
                       onChange={(e) => update('notifications', 'adminEmail', e.target.value)}

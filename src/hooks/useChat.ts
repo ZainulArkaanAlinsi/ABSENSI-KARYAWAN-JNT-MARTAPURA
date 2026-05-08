@@ -137,5 +137,20 @@ export const useChat = (chatId: string | null) => {
     setIsTyping(typing);
   };
 
-  return { messages, loading, sending, sendMessage, scrollRef, scrollToBottom, isTyping, setTyping, otherUserTyping };
+  const deleteMessage = async (messageId: string) => {
+    if (!chatId) return;
+    try {
+      // In a real app, you might want to do a soft delete (e.g. set 'isDeleted: true')
+      // but for this request, we'll do a hard delete or set status
+      await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+        text: '🚫 Pesan telah dihapus',
+        imageUrl: null,
+        isDeleted: true
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  return { messages, loading, sending, sendMessage, deleteMessage, scrollRef, scrollToBottom, isTyping, setTyping, otherUserTyping };
 };

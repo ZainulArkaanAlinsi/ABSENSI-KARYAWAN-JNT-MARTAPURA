@@ -174,6 +174,48 @@ function EmployeeDetailContent() {
              </div>
           </div>
 
+          {/* Face History Gallery */}
+          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) p-8 shadow-sm">
+             <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-black italic tracking-tighter text-(--text-primary) uppercase">Galeri Riwayat Wajah</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-(--text-muted)">Bukti Visual Scan Absensi</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-cyan-600/10 border border-cyan-600/20 flex items-center justify-center">
+                  <User size={18} className="text-cyan-600" />
+                </div>
+             </div>
+
+             <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+                {attendance.filter(a => a.checkIn?.photoUrl).length === 0 ? (
+                  <div className="col-span-full py-10 text-center border-2 border-dashed border-(--border-primary) rounded-3xl">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tidak ada data visual</p>
+                  </div>
+                ) : (
+                  attendance.filter(a => a.checkIn?.photoUrl).map((rec, i) => (
+                    <motion.div 
+                      key={rec.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="group relative aspect-square rounded-2xl overflow-hidden border border-(--border-primary) cursor-pointer hover:border-cyan-600 transition-all shadow-sm"
+                      onClick={() => window.open(rec.checkIn?.photoUrl, '_blank')}
+                    >
+                       <img 
+                        src={rec.checkIn?.photoUrl} 
+                        alt={`Scan ${rec.date}`} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                       />
+                       <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                          <p className="text-[7px] font-black text-white uppercase truncate">{format(parseISO(rec.date), 'dd MMM')}</p>
+                          <p className="text-[6px] font-bold text-white/60 uppercase">{rec.checkIn?.time ? format(parseISO(rec.checkIn.time), 'HH:mm') : '--:--'}</p>
+                       </div>
+                    </motion.div>
+                  ))
+                )}
+             </div>
+          </div>
+
           {/* Table History */}
           <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) shadow-sm overflow-hidden flex flex-col">
              <div className="px-8 py-6 border-b border-(--border-primary) flex justify-between items-center bg-white/2">
@@ -191,14 +233,13 @@ function EmployeeDetailContent() {
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tanggal</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Masuk</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Pulang</th>
-                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Foto</th>
                      <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Status</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-(--border-primary)">
                    {attendance.length === 0 ? (
                      <tr>
-                       <td colSpan={5} className="px-8 py-16 text-center">
+                       <td colSpan={4} className="px-8 py-16 text-center">
                          <div className="flex flex-col items-center justify-center gap-3">
                             <Clock size={32} className="text-(--text-dim)" />
                             <p className="text-[11px] font-bold text-(--text-muted) uppercase tracking-widest">Belum Ada Riwayat Absensi</p>
@@ -222,13 +263,6 @@ function EmployeeDetailContent() {
                            <span className="text-sm font-bold text-(--text-primary)">
                              {record.checkOut?.time ? format(parseISO(record.checkOut.time), 'HH:mm') : '--:--'}
                            </span>
-                         </td>
-                         <td className="px-8 py-4 whitespace-nowrap">
-                           {record.checkIn?.photoUrl ? (
-                             <img src={record.checkIn.photoUrl} alt="Foto Absen" className="h-10 w-10 rounded-full object-cover border border-(--border-primary) shadow-sm" />
-                           ) : (
-                             <span className="text-xs text-(--text-muted)">-</span>
-                           )}
                          </td>
                          <td className="px-8 py-4 whitespace-nowrap">
                             {record.status === 'present' && <span className="inline-flex px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">Tepat Waktu</span>}

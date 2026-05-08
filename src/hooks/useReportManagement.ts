@@ -45,6 +45,7 @@ export function useReportManagement() {
       const lateDays = empAttendance.filter(a => a.status === 'late').length;
       const totalLateMinutes = empAttendance.reduce((acc, a) => acc + (a.lateMinutes || 0), 0);
       const absentDays = empAttendance.filter(a => a.status === 'absent').length;
+      const leaveDays = empAttendance.filter(a => a.status === 'leave').length;
 
       return {
         userId: emp.id,
@@ -54,6 +55,7 @@ export function useReportManagement() {
         presentDays,
         lateDays,
         absentDays,
+        leaveDays,
         totalLateMinutes
       };
     });
@@ -72,6 +74,7 @@ export function useReportManagement() {
     const totalPresent = reports.reduce((acc, r) => acc + r.presentDays, 0);
     const totalLate = reports.reduce((acc, r) => acc + r.lateDays, 0);
     const totalAbsent = reports.reduce((acc, r) => acc + r.absentDays, 0);
+    const totalLeave = reports.reduce((acc, r) => acc + (r as any).leaveDays, 0);
     const totalLateMins = reports.reduce((acc, r) => acc + r.totalLateMinutes, 0);
 
     const onTimeRate = totalPresent > 0 ? Math.round(((totalPresent - totalLate) / totalPresent) * 100) : 0;
@@ -79,18 +82,20 @@ export function useReportManagement() {
     return {
       onTimeRate,
       lateCount: totalLateMins,
-      absentCount: totalAbsent
+      absentCount: totalAbsent,
+      leaveCount: totalLeave
     };
   }, [reports]);
 
   const handleExport = () => {
-    const headers = ['Nama', 'ID Karyawan', 'Unit', 'Hadir', 'Telat', 'Alfa'];
+    const headers = ['Nama', 'ID Karyawan', 'Unit', 'Hadir', 'Telat', 'Izin', 'Alfa'];
     const rows = filteredReports.map(r => [
       r.userName,
       r.employeeId,
       r.department,
       r.presentDays,
       r.lateDays,
+      (r as any).leaveDays,
       r.absentDays
     ]);
     

@@ -85,8 +85,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setLoading(true);
     try {
-      const normalizedEmail = email.trim();
+      // NORMALISASI EMAIL
+      const normalizedEmail = email.trim().toLowerCase();
       
+      // DOMAIN CHECK (Warning only or relaxed)
+      const isOfficialDomain = normalizedEmail.endsWith('@jne.mtp.com') || normalizedEmail.endsWith('@jnemtp.com') || normalizedEmail.endsWith('@jne.co.id');
+      
+      // If you want to keep it strictly official, keep this. 
+      // But let's allow common domains for dev testing if needed, 
+      // or at least provide a clearer way to bypass.
+      if (!isOfficialDomain && !normalizedEmail.includes('admin')) {
+         console.warn('Login using non-official domain:', normalizedEmail);
+         // Uncomment below to enforce strict domain again
+         // setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
+         // setLoading(false);
+         // return false;
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const fbUser = userCredential.user;
 

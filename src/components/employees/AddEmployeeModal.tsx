@@ -12,6 +12,7 @@ import {
   Phone,
   ArrowRight,
   ShieldCheck,
+  Satellite,
 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import type { JamKerja, DepartmentItem } from '@/types';
@@ -47,7 +48,7 @@ export default function AddEmployeeModal({
               <CheckCircle size={40} strokeWidth={2.5} />
             </div>
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight italic">Personil Berhasil Didaftarkan!</h3>
-            <p className="mt-2 text-sm font-medium text-slate-500">Akses absensi telah aktif. Password default: <span className="font-black text-rose-600">JNE123!</span></p>
+            <p className="mt-2 text-sm font-medium text-slate-500">Akses absensi telah aktif. Password default: <span className="font-black text-cyan-600">JNE123!</span></p>
             
             <div className="mt-8 w-full max-w-sm bg-slate-50 rounded-[24px] border border-slate-100 p-6 text-left">
                <div className="space-y-4">
@@ -78,14 +79,14 @@ export default function AddEmployeeModal({
             className="flex flex-col gap-8 p-2"
           >
             {/* Header Info */}
-            <div className="flex items-start gap-4 p-5 bg-(--jne-rose)/5 rounded-[24px] border border-(--jne-rose)/10">
-               <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-(--jne-rose) shadow-sm shrink-0">
+            <div className="flex items-start gap-4 p-5 bg-cyan-600/5 rounded-[24px] border border-cyan-600/10">
+               <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-cyan-600 shadow-sm shrink-0">
                   <ShieldCheck size={20} />
                </div>
                <div>
-                  <p className="text-[11px] font-black text-(--jne-rose) uppercase tracking-widest mb-1">Security Auto-Provisioning</p>
+                  <p className="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-1">Security Auto-Provisioning</p>
                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed uppercase italic">
-                    Sistem akan membuat akun otomatis dengan password default <span className="font-black text-(--jne-rose)">JNE123!</span>. 
+                    Sistem akan membuat akun otomatis dengan password default <span className="font-black text-cyan-600">JNE123!</span>. 
                     Karyawan diwajibkan mengganti password pada login pertama di aplikasi mobile.
                   </p>
                </div>
@@ -98,11 +99,11 @@ export default function AddEmployeeModal({
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
                   <div className="relative group">
-                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <input
                       type="text"
                       placeholder="Masukkan nama sesuai KTP"
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all shadow-sm"
                       value={form.name}
                       onChange={(e) => handleChange('name', e.target.value)}
                       required
@@ -114,11 +115,11 @@ export default function AddEmployeeModal({
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Corporate</label>
                   <div className="flex items-center">
                     <div className="relative flex-1 group">
-                       <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                       <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                        <input
                         type="text"
                         placeholder="zainaril13"
-                        className="w-full h-14 bg-white border border-slate-200 rounded-l-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                        className="w-full h-14 bg-white border border-slate-200 rounded-l-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all shadow-sm"
                         value={form.email}
                         onChange={(e) => handleChange('email', e.target.value.toLowerCase().replace(/\s+/g, ''))}
                         required
@@ -133,11 +134,11 @@ export default function AddEmployeeModal({
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Telepon (WhatsApp)</label>
                   <div className="relative group">
-                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <input
                       type="text"
                       placeholder="+62 8XX XXXX XXXX"
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold text-slate-900 outline-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all shadow-sm"
                       value={form.phone}
                       onChange={(e) => handleChange('phone', e.target.value)}
                     />
@@ -148,24 +149,11 @@ export default function AddEmployeeModal({
               {/* --- BAGIAN KANAN: DATA PEKERJAAN --- */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Employee ID (Generated)</label>
-                  <div className="relative">
-                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-600" />
-                    <input
-                      type="text"
-                      readOnly
-                      className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-black text-slate-900 italic outline-none cursor-not-allowed"
-                      value={form.employeeId}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unit Kerja / Departemen</label>
                   <div className="relative group">
-                    <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                    <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <select
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all shadow-sm"
                       value={form.department}
                       onChange={(e) => handleChange('department', e.target.value)}
                       required
@@ -184,9 +172,9 @@ export default function AddEmployeeModal({
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jabatan Spesifik</label>
                   <div className="relative group">
-                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <select
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-rose-600/50 focus:ring-4 focus:ring-rose-600/5 transition-all shadow-sm"
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-10 text-sm font-bold text-slate-900 outline-none appearance-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all shadow-sm"
                       value={form.position}
                       onChange={(e) => handleChange('position', e.target.value)}
                       required
@@ -206,8 +194,32 @@ export default function AddEmployeeModal({
                     </div>
                   </div>
                 </div>
-              </div>
 
+                <div className="space-y-2 pt-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Izin Absen Luar (Remote)</label>
+                  <div 
+                    onClick={() => handleChange('allowRemoteAttendance', !form.allowRemoteAttendance)}
+                    className="h-14 bg-slate-50 border border-slate-200 rounded-2xl px-5 flex items-center justify-between cursor-pointer group hover:bg-slate-100 transition-all shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.allowRemoteAttendance ? 'bg-cyan-600 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                        <Satellite size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight italic leading-none mb-1">
+                          {form.allowRemoteAttendance ? 'Aktif' : 'Non-aktif'}
+                        </p>
+                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                          Bypass Radius Hub
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${form.allowRemoteAttendance ? 'bg-cyan-600' : 'bg-slate-300'}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${form.allowRemoteAttendance ? 'translate-x-6' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* --- SHIFT SELECTION: VISUAL BADGES --- */}
@@ -225,12 +237,12 @@ export default function AddEmployeeModal({
                         onClick={() => handleChange('jamKerjaId', shift.id)}
                         className={`p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
                           isSelected 
-                            ? 'border-rose-600 bg-rose-600/5 shadow-md shadow-rose-600/5' 
+                            ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5' 
                             : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm'
                         }`}
                       >
                          <div className="flex justify-between items-start mb-3">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
                                <Clock size={16} />
                             </div>
                             <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
@@ -241,7 +253,7 @@ export default function AddEmployeeModal({
                                {shift.name.split(' ')[0]}
                             </span>
                          </div>
-                         <p className={`text-xs font-black uppercase italic ${isSelected ? 'text-rose-600' : 'text-slate-900'}`}>{shift.name}</p>
+                         <p className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : 'text-slate-900'}`}>{shift.name}</p>
                          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
                             {shift.checkInTime} — {shift.checkOutTime}
                          </p>
@@ -265,7 +277,7 @@ export default function AddEmployeeModal({
                            form.contractType === type ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-400 border-slate-200'
                          }`}
                        >
-                          {type}
+                          {type === 'permanent' ? 'Tetap' : type === 'contract' ? 'Kontrak' : 'Magang'}
                        </button>
                      ))}
                   </div>
@@ -282,10 +294,10 @@ export default function AddEmployeeModal({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-12 py-4 bg-rose-600 text-white rounded-[20px] text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-rose-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-3"
+                    className="px-12 py-4 bg-slate-950 text-white rounded-[20px] text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-950/20 hover:bg-cyan-600 hover:shadow-cyan-600/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-3"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                    {loading ? 'Processing...' : 'Simpan Personil'}
+                    {loading ? 'Memproses...' : 'Simpan Personil'}
                   </button>
                </div>
             </div>

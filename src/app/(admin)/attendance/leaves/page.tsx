@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, addDoc } from 'firebase/firestore';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,15 +43,47 @@ export default function LeaveRequestsPage() {
   }, [filter]);
 
   const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
     if (!confirm(`Apakah Anda yakin ingin ${status === 'approved' ? 'menyetujui' : 'menolak'} pengajuan ini?`)) return;
     
     setProcessing(requestId);
     try {
+      // 1. Update Leave Status
       await updateDoc(doc(db, 'leaves', requestId), {
         status,
         updatedAt: new Date().toISOString(),
         reviewedAt: new Date().toISOString()
       });
+
+      // 2. If approved, create attendance records for the range
+      if (status === 'approved') {
+        const start = new Date(request.startDate);
+        const end = new Date(request.endDate);
+        const dayCount = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+        const attendanceRef = collection(db, 'attendance');
+        
+        for (let i = 0; i < dayCount; i++) {
+          const currentDate = new Date(start);
+          currentDate.setDate(start.getDate() + i);
+          const dateStr = format(currentDate, 'yyyy-MM-dd');
+
+          // Check if record already exists to avoid duplicates
+          await addDoc(attendanceRef, {
+            userId: request.userId,
+            employeeName: request.employeeName,
+            employeeId: request.employeeId,
+            department: request.department,
+            date: dateStr,
+            status: 'leave',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            type: 'system_leave'
+          });
+        }
+      }
     } catch (error) {
       console.error("Error updating leave request:", error);
       alert("Gagal memproses permintaan. Silakan coba lagi.");
@@ -61,8 +93,8 @@ export default function LeaveRequestsPage() {
   };
 
   const filtered = requests.filter(r => 
-    r.employeeName.toLowerCase().includes(search.toLowerCase()) ||
-    r.employeeId.toLowerCase().includes(search.toLowerCase())
+    (r.employeeName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (r.employeeId?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
@@ -73,31 +105,31 @@ export default function LeaveRequestsPage() {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => router.back()}
-            className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-(--border-color) flex items-center justify-center text-slate-500 hover:text-rose-600 transition-all shadow-sm"
+            className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-(--border-color) flex items-center justify-center text-slate-500 hover:text-cyan-600 transition-all shadow-sm"
           >
             <ChevronLeft size={20} />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">Personnel <span className="text-rose-600">Permissions</span></h1>
+            <h1 className="text-3xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">Personnel <span className="text-cyan-600">Permissions</span></h1>
             <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em] mt-1 ml-1">Manajemen Cuti, Sakit, & Izin JNE Martapura</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative group hidden md:block">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-600 transition-colors" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
             <input 
               type="text" 
               placeholder="Search personnel..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 h-12 bg-white dark:bg-slate-900 border border-(--border-color) rounded-xl pl-12 pr-4 text-xs font-bold outline-none focus:ring-4 focus:ring-rose-600/5 focus:border-rose-600/30 transition-all"
+              className="w-64 h-12 bg-white dark:bg-slate-900 border border-(--border-color) rounded-2xl pl-12 pr-4 text-xs font-bold outline-none focus:ring-4 focus:ring-cyan-600/5 focus:border-cyan-600/30 transition-all"
             />
           </div>
           <select 
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
-            className="h-12 px-5 bg-slate-950 text-white rounded-xl text-[10px] font-black uppercase tracking-widest outline-none shadow-xl shadow-slate-950/20"
+            className="h-12 px-5 bg-cyan-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none shadow-xl shadow-cyan-600/10"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -109,7 +141,7 @@ export default function LeaveRequestsPage() {
 
       {loading ? (
         <div className="py-32 flex flex-col items-center gap-4">
-           <Loader2 size={40} className="animate-spin text-rose-600" />
+           <Loader2 size={40} className="animate-spin text-cyan-600" />
            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Synchronizing Permission Logs...</p>
         </div>
       ) : filtered.length === 0 ? (
@@ -135,22 +167,22 @@ export default function LeaveRequestsPage() {
               >
                 <div className="flex justify-between items-start mb-8">
                   <div className="flex items-center gap-5">
-                    <div className="h-14 w-14 rounded-2xl bg-slate-950 flex items-center justify-center text-xl font-black text-white italic shadow-xl group-hover:bg-rose-600 transition-colors">
-                      {req.employeeName.charAt(0)}
+                    <div className="h-14 w-14 rounded-2xl bg-cyan-600 flex items-center justify-center text-xl font-black text-white italic shadow-xl group-hover:bg-cyan-500 transition-colors">
+                      {req.employeeName?.charAt(0) || '?'}
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-slate-950 dark:text-white italic uppercase tracking-tighter leading-tight group-hover:text-rose-600 transition-colors">{req.employeeName}</h3>
+                      <h3 className="text-xl font-black text-slate-950 dark:text-white italic uppercase tracking-tighter leading-tight group-hover:text-cyan-600 transition-colors">{req.employeeName}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{req.employeeId}</span>
                         <div className="w-1 h-1 rounded-full bg-slate-300" />
-                        <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest italic">{req.department}</span>
+                        <span className="text-[9px] font-black text-cyan-600 uppercase tracking-widest italic">{req.department}</span>
                       </div>
                     </div>
                   </div>
                   <div className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
                     req.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                     req.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                    'bg-rose-600/10 text-rose-600 border-rose-600/20'
+                    'bg-cyan-600/10 text-cyan-600 border-cyan-600/20'
                   }`}>
                     {req.status}
                   </div>
@@ -158,7 +190,7 @@ export default function LeaveRequestsPage() {
 
                 <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-(--border-color) mb-8 flex-1">
                    <div className="flex items-center gap-2 mb-4">
-                      <FileText size={14} className="text-rose-600" />
+                      <FileText size={14} className="text-[#FFAE92]" />
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Reason / Notes</span>
                    </div>
                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 italic leading-relaxed">"{req.reason}"</p>
@@ -176,7 +208,7 @@ export default function LeaveRequestsPage() {
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
                           <AlertCircle size={12} /> Permission Type
                         </p>
-                        <p className="text-[11px] font-black text-rose-600 uppercase tracking-widest italic">{req.type}</p>
+                        <p className="text-[11px] font-black text-cyan-600 uppercase tracking-widest italic">{req.type}</p>
                       </div>
                    </div>
                 </div>
@@ -186,7 +218,7 @@ export default function LeaveRequestsPage() {
                     <button
                       onClick={() => handleAction(req.id, 'rejected')}
                       disabled={!!processing}
-                      className="flex-1 h-14 bg-white dark:bg-slate-900 border border-(--border-color) text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/10 hover:text-rose-600 transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="flex-1 h-14 bg-white dark:bg-slate-900 border border-(--border-color) text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {processing === req.id ? <Loader2 size={16} className="animate-spin" /> : <X size={18} />}
                       Decline
@@ -194,7 +226,7 @@ export default function LeaveRequestsPage() {
                     <button
                       onClick={() => handleAction(req.id, 'approved')}
                       disabled={!!processing}
-                      className="flex-1 h-14 bg-slate-950 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 shadow-xl shadow-slate-950/20 transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="flex-1 h-14 bg-cyan-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-700 shadow-xl shadow-cyan-600/10 transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {processing === req.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />}
                       Approve

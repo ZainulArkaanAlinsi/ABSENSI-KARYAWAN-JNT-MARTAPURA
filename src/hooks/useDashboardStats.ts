@@ -59,6 +59,8 @@ interface AnalyticsStats {
 
 export function useDashboardStats() {
   const [data, setData] = useState<AnalyticsStats | null>(null);
+  const [sosAlerts, setSosAlerts] = useState<any[]>([]);
+  const sosAlertsRef = React.useRef<any[]>([]); // Use ref to avoid stale closure in onSnapshot
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,8 +75,9 @@ export function useDashboardStats() {
         const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
         // 1. Core Counts
-        const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
-        const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'), where('faceRegistered', '==', true));
+        const relevantRoles = ['employee', 'kurir', 'driver'];
+        const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', 'in', relevantRoles));
+        const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', 'in', relevantRoles), where('faceRegistered', '==', true));
         const pendingLeavesQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
 
         const [empSnap, faceSnap, pendingLeavesSnap, pendingDataSnap] = await Promise.all([
@@ -89,7 +92,16 @@ export function useDashboardStats() {
         const faceRegisteredCount = faceSnap.data().count;
         const pendingLeaves = pendingLeavesSnap.data().count;
 
-        // 2. Attendance & Department Distribution
+        // 2. Attendance & SOS Monitoring
+        const sosQuery = query(collection(db, 'sos_alerts'), where('status', '==', 'active'));
+        
+        const unsubSos = onSnapshot(sosQuery, (sosSnap) => {
+          const activeSos = sosSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'SOS' }));
+          sosAlertsRef.current = activeSos; // Update ref
+          setSosAlerts(activeSos);
+        });
+        unsubs.push(unsubSos);
+
         const attQuery = query(
           collection(db, COLLECTIONS.ATTENDANCE), 
           where('date', '>=', monthStart),
@@ -176,7 +188,15 @@ export function useDashboardStats() {
               };
             });
 
-          const pendingRequests = pendingDataSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          const pendingRequests = [
+            ...sosAlertsRef.current, // Use ref here
+            ...pendingDataSnap.docs.map(d => ({ id: d.id, ...d.data(), type: d.data().type || 'Leave' }))
+          ].sort((a, b) => {
+            // Prioritize SOS
+            if (a.type === 'SOS' && b.type !== 'SOS') return -1;
+            if (a.type !== 'SOS' && b.type === 'SOS') return 1;
+            return 0;
+          });
 
           setData({
             totalEmployees,

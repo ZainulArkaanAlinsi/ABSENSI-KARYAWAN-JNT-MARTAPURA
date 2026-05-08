@@ -8,6 +8,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    password: '', // Password wajib untuk Admin
     phone: '',
     employeeId: '',
     department: '' as Department,
@@ -16,6 +17,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
     contractType: 'permanent' as 'permanent' | 'contract' | 'intern',
     joinDate: new Date().toISOString().split('T')[0],
     firstLogin: true,
+    allowRemoteAttendance: false,
   });
 
   useEffect(() => {
@@ -31,18 +33,26 @@ export function useAddEmployeeLogic(onClose: () => void) {
     setForm((prev) => {
       const newForm = { ...prev, [field]: value };
       
-      // Auto-fill position if department changes and position is empty
-      if (field === 'department' && !prev.position) {
-        const deptNames: Record<string, string> = {
-          'rider_delivery': 'Kurir Motor (Rider)',
-          'driver_delivery': 'Kurir Mobil (Driver)',
-          'inbound_outbound': 'Staff Gudang',
-          'pick_up': 'Staff Pick Up',
-          'admin_support': 'Admin Operasional',
-          'accounting': 'Staff Finance',
-          'sales_sco': 'Sales Counter Officer',
-        };
-        newForm.position = deptNames[value] || '';
+      // Auto-fill position if department changes
+      if (field === 'department') {
+        const valLower = value.toLowerCase();
+        const isDelivery = valLower.includes('rider') || 
+                           valLower.includes('driver') || 
+                           valLower.includes('delivery') ||
+                           valLower === 'rider_delivery' ||
+                           valLower === 'driver_delivery';
+
+        // Auto-enable remote attendance for delivery roles
+        if (isDelivery) {
+          newForm.allowRemoteAttendance = true;
+          if (!prev.position) {
+            newForm.position = valLower.includes('motor') || valLower.includes('rider') 
+              ? 'Kurir Rider (Motor)' 
+              : 'Kurir Driver (Mobil)';
+          }
+        } else {
+          newForm.allowRemoteAttendance = false;
+        }
       }
       
       return newForm;
@@ -54,22 +64,39 @@ export function useAddEmployeeLogic(onClose: () => void) {
     e.preventDefault();
 
     // Validasi lebih ketat
-    if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
-      alert('Semua field wajib harus diisi!');
+    if (!form.name || !form.email || !form.password || !form.employeeId || !form.department || !form.jamKerjaId) {
+      alert('Semua field wajib harus diisi (termasuk Password)!');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      alert('Password minimal 6 karakter!');
       return;
     }
 
     setLoading(true);
     try {
-      // Kita panggil registerEmployee yang baru (Tanpa input password manual)
+      // Kita panggil registerEmployee yang baru (Auth + Firestore)
+      const { password, ...employeeData } = form;
+      
+      // Determine role based on department
+      const valLower = form.department.toLowerCase();
+      let dynamicRole: any = 'employee';
+      if (valLower.includes('rider') || valLower.includes('motor') || valLower === 'rider_delivery') {
+        dynamicRole = 'kurir';
+      } else if (valLower.includes('driver') || valLower.includes('mobil') || valLower === 'driver_delivery') {
+        dynamicRole = 'driver';
+      }
+
       await registerEmployee(
         {
-          ...form,
-          role: 'employee',
+          ...employeeData,
+          role: dynamicRole,
           faceRegistered: false,
           isActive: true,
+          allowRemoteAttendance: form.allowRemoteAttendance,
         },
-        '' // Password handled internally by registerEmployee
+        password
       );
 
       setSuccess(true);
@@ -78,6 +105,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
         setForm({
           name: '',
           email: '',
+          password: '',
           phone: '',
           employeeId: '',
           department: '' as any,
@@ -86,13 +114,14 @@ export function useAddEmployeeLogic(onClose: () => void) {
           contractType: 'permanent',
           joinDate: new Date().toISOString().split('T')[0],
           firstLogin: true,
+          allowRemoteAttendance: false,
         });
         onClose();
       }, 2000);
 
     } catch (err: any) {
       console.error('Gagal menambah karyawan:', err);
-      alert(err.message || 'Terjadi kesalahan. Silahkan coba lagi.');
+      alert(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }

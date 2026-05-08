@@ -149,3 +149,4 @@ export function fmtMinutes(minutes: number): string {
   if (m === 0) return `${h}j`;
   return `${h}j ${m}m`;
 }
+

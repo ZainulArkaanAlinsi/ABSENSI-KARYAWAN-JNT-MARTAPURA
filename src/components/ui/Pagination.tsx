@@ -30,7 +30,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-cyan-600 hover:border-cyan-600/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="First Page"
         >
           <ChevronsLeft size={16} />
@@ -38,7 +38,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-cyan-600 hover:border-cyan-600/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Previous Page"
         >
           <ChevronLeft size={16} />
@@ -52,8 +52,8 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
             onClick={() => onPageChange(page)}
             className={`h-10 min-w-[40px] px-3 flex items-center justify-center rounded-xl text-xs font-black transition-all ${
               currentPage === page
-                ? 'bg-(--jne-rose) text-white shadow-lg shadow-rose-600/20'
-                : 'border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:border-(--jne-rose)/30 hover:text-(--jne-rose)'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20'
+                : 'border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:border-cyan-600/30 hover:text-cyan-600'
             }`}
           >
             {page}
@@ -65,7 +65,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-cyan-600 hover:border-cyan-600/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Next Page"
         >
           <ChevronRight size={16} />
@@ -73,7 +73,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-(--jne-rose) hover:border-(--jne-rose)/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="h-10 w-10 flex items-center justify-center rounded-xl border border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:text-cyan-600 hover:border-cyan-600/30 disabled:opacity-30 disabled:pointer-events-none transition-all"
           title="Last Page"
         >
           <ChevronsRight size={16} />

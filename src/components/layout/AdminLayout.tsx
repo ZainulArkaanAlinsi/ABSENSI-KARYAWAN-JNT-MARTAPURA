@@ -8,19 +8,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="h-screen bg-[var(--bg-main)] flex overflow-hidden transition-colors duration-500">
+    <div className="h-screen bg-(--bg-main) flex overflow-hidden transition-colors duration-500">
       {/* SIDEBAR */}
       <Sidebar />
 
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* HEADER */}
-        <header className="px-8 pt-6">
+        {/* HEADER AREA */}
+        <div className="px-8 pt-6">
           <Header onMenuClick={() => {}} />
-        </header>
+        </div>
 
         {/* SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto no-scrollbar bg-[var(--bg-main)] p-8">
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-(--bg-main) p-8">
           <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
             {children}
           </div>

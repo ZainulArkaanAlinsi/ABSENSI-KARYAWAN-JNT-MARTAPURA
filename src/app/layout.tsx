@@ -22,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.className} bg-(--bg-main) text-(--text-primary) antialiased min-h-screen transition-colors duration-300`}>
+      <body 
+        suppressHydrationWarning
+        className={`${inter.className} bg-(--bg-main) text-(--text-primary) antialiased min-h-screen transition-colors duration-300`}
+      >
         {/* Background Grid & Decor */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />

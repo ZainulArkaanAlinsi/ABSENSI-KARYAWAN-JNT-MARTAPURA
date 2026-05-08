@@ -15,7 +15,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
         <div className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Office Identifier</label>
           <input
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-rose-600/30 focus:border-rose-600/50 transition-all shadow-sm"
+            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-cyan-600/30 focus:border-cyan-600/50 transition-all shadow-sm"
             placeholder="e.g. JNE Martapura Main Hub"
             value={settings.name ?? ''}
             onChange={(e) => update('office', 'name', e.target.value)}
@@ -24,7 +24,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
         <div className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Physical Address</label>
           <textarea
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-rose-600/30 focus:border-rose-600/50 transition-all shadow-sm min-h-[160px] resize-none"
+            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-cyan-600/30 focus:border-cyan-600/50 transition-all shadow-sm min-h-[160px] resize-none"
             placeholder="Full operational address..."
             value={settings.address ?? ''}
             onChange={(e) => update('office', 'address', e.target.value)}
@@ -41,7 +41,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               <input
                 type="number"
                 step="0.000001"
-                className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-rose-600/50 transition-all"
+                className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-cyan-600/50 transition-all"
                 value={settings.latitude ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -57,7 +57,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               <input
                 type="number"
                 step="0.000001"
-                className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-rose-600/50 transition-all"
+                className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-cyan-600/50 transition-all"
                 value={settings.longitude ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -82,7 +82,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               alert('Browser tidak mendukung deteksi lokasi.');
             }
           }}
-          className="w-full h-14 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl hover:bg-rose-600 transition-all active:scale-95 group"
+          className="w-full h-14 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl hover:bg-cyan-600 transition-all active:scale-95 group"
         >
           <Navigation size={18} className="group-hover:animate-bounce" /> Auto-Detect Current Location
         </button>
@@ -93,7 +93,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Geo-Fence Radius</label>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Maximum allowed distance (meters)</span>
             </div>
-            <div className="px-4 py-2 bg-rose-600 text-white text-xs font-black rounded-xl shadow-lg shadow-rose-600/20 italic">
+            <div className="px-4 py-2 bg-cyan-600 text-white text-xs font-black rounded-xl shadow-lg shadow-cyan-600/20 italic">
               {settings.radiusMeters ?? 0} M
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               min={50}
               max={1000}
               step={50}
-              className="absolute inset-0 w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent accent-rose-600 z-10"
+              className="absolute inset-0 w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent accent-cyan-600 z-10"
               value={settings.radiusMeters ?? 50}
               onChange={(e) => {
                 const val = e.target.value;
@@ -111,7 +111,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               }}
             />
             <div 
-              className="absolute top-0 left-0 h-full bg-rose-600 rounded-full"
+              className="absolute top-0 left-0 h-full bg-cyan-600 rounded-full"
               style={{ width: `${((settings.radiusMeters ?? 50) - 50) / (1000 - 50) * 100}%` }}
             />
           </div>
