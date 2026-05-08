@@ -1,27 +1,15 @@
 'use client';
 
-import {
-  Search,
-  Users,
-  ShieldCheck,
-  AlertCircle,
-  Filter,
-  Trash2,
-  ChevronRight,
-  UserPlus,
-  Command,
-  LayoutGrid,
-  MoreVertical
-} from 'lucide-react';
 import { FaceBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
-import { deleteEmployee } from '@/lib/firestore';
-import Link from 'next/link';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { InteractiveButton, GlassCard } from '@/components/ui/Interactive';
 import { Pagination } from '@/components/ui/Pagination';
+import { Trash2, ChevronRight, UserPlus, Search, Users, ShieldCheck, AlertCircle, Filter } from 'lucide-react';
 
 export default function EmployeesPage() {
   const {
@@ -38,6 +26,7 @@ export default function EmployeesPage() {
     departmentItems,
     jamKerjas,
     filteredEmployees,
+    deleteEmployeeOptimistic,
   } = useEmployeeManagement();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +34,7 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filterDept, filterFace]);
+  }, [filteredEmployees]);
 
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const paginatedEmployees = filteredEmployees.slice(
@@ -54,146 +43,159 @@ export default function EmployeesPage() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="space-y-10 animate-in fade-in duration-700">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-black text-(--text-primary) tracking-tighter italic">
-            Arsip <span className="text-cyan-600 dark:text-cyan-400">Personel</span>
+          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">
+            Personnel <span className="text-cyan-600">Archive</span>
           </h1>
-          <p className="text-(--text-secondary) font-bold text-[10px] uppercase tracking-[0.3em] mt-1 ml-1">Manajemen Sumber Daya Manusia JNE</p>
+          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mt-2 ml-1">Manajemen Sumber Daya Manusia JNE Martapura</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
+        <div className="flex items-center gap-3">
+          <InteractiveButton 
             onClick={() => setShowAddModal(true)}
-            className="h-10 px-6 bg-cyan-600 dark:bg-cyan-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center gap-2 shadow-lg shadow-cyan-600/10 hover:scale-105 active:scale-95 transition-all"
+            className="h-14 px-10 bg-slate-950 dark:bg-cyan-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-2xl hover:bg-cyan-600 dark:hover:bg-cyan-500"
           >
-             <UserPlus size={16} />
-             Tambah Karyawan
-          </button>
+             <UserPlus size={18} />
+             Add Operative
+          </InteractiveButton>
         </div>
       </div>
 
       {/* ── METRICS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Total Personel', val: employees.length, icon: Users, color: 'text-(--metric-blue-text)', bg: 'bg-(--metric-blue-bg)' },
-          { label: 'Wajah Terdaftar', val: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-(--metric-green-text)', bg: 'bg-(--metric-green-bg)' },
-          { label: 'Butuh Tindakan', val: employees.filter(e => !e.faceRegistered).length, icon: AlertCircle, color: 'text-(--metric-peach-text)', bg: 'bg-(--metric-peach-bg)' },
-          { label: 'Hasil Filter', val: filteredEmployees.length, icon: Filter, color: 'text-(--metric-teal-text)', bg: 'bg-(--metric-teal-bg)' },
+          { label: 'Total Personnel', val: employees.length, icon: Users, color: 'text-cyan-600', bg: 'bg-cyan-600/5' },
+          { label: 'Face Verified', val: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
+          { label: 'Action Required', val: employees.filter(e => !e.faceRegistered).length, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/5' },
+          { label: 'Filtered Result', val: filteredEmployees.length, icon: Filter, color: 'text-slate-950 dark:text-white', bg: 'bg-slate-950 text-white!' },
         ].map((m, i) => (
-          <div key={i} className={`bento-card p-4 flex items-center justify-between group ${m.bg}`}>
-            <div className="space-y-0.5">
-              <p className={`${m.color} opacity-70 text-[8px] font-black uppercase tracking-widest`}>{m.label}</p>
-              <h3 className={`text-xl font-black ${m.color} tracking-tight`}>{loading ? '...' : m.val}</h3>
+          <GlassCard key={i} className={`p-6 flex items-center justify-between group border-none ${m.bg}`}>
+            <div className="space-y-1">
+              <p className={`${m.color} opacity-60 text-[9px] font-black uppercase tracking-widest leading-none`}>{m.label}</p>
+              <h3 className={`text-2xl font-black ${m.color} tracking-tighter italic`}>{loading ? '...' : m.val}</h3>
             </div>
-            <div className={`w-10 h-10 bg-white/20 dark:bg-black/20 rounded-xl flex items-center justify-center ${m.color} shadow-sm`}>
-              <m.icon size={18} />
+            <div className={`w-12 h-12 bg-white/20 dark:bg-black/20 rounded-2xl flex items-center justify-center ${m.color} shadow-sm group-hover:scale-110 transition-transform`}>
+              <m.icon size={22} />
             </div>
-          </div>
+          </GlassCard>
         ))}
       </div>
 
       {/* ── FILTER & SEARCH ── */}
-      <div className="bento-card p-4 flex flex-col lg:flex-row items-center gap-4">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+      <GlassCard className="p-4 flex flex-col lg:flex-row items-center gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="relative flex-1 w-full group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" size={16} />
           <input 
             type="text" 
-            placeholder="Cari nama, ID, atau departemen..." 
+            placeholder="Search by name, ID, or unit..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-xl py-2.5 pl-10 pr-4 text-[11px] font-bold text-(--text-primary) outline-none focus:ring-1 focus:ring-cyan-600/30"
+            className="w-full h-14 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl py-2.5 pl-12 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-cyan-600/5 focus:border-cyan-600/30 transition-all"
           />
         </div>
         <div className="flex gap-3 w-full lg:w-auto">
           <select 
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}
-            className="flex-1 lg:w-40 bg-(--bg-main) border border-(--border-color) rounded-xl px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
+            className="h-14 flex-1 lg:w-48 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl px-5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:border-cyan-600/30 transition-all appearance-none cursor-pointer"
           >
-            <option value="all">Semua Unit</option>
+            <option value="all">All Units</option>
             {departmentItems.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
           <select 
             value={filterFace}
             onChange={(e) => setFilterFace(e.target.value as any)}
-            className="flex-1 lg:w-40 bg-(--bg-main) border border-(--border-color) rounded-xl px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-(--text-primary) outline-none"
+            className="h-14 flex-1 lg:w-48 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl px-5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:border-cyan-600/30 transition-all appearance-none cursor-pointer"
           >
-            <option value="all">Status Wajah</option>
-            <option value="registered">Terverifikasi</option>
-            <option value="unregistered">Belum Terdaftar</option>
+            <option value="all">Verification Status</option>
+            <option value="registered">Verified</option>
+            <option value="unregistered">Unregistered</option>
           </select>
         </div>
-      </div>
+      </GlassCard>
 
       {/* ── EMPLOYEE GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
           {loading ? (
-            <div className="col-span-full py-20 flex justify-center"><PageLoader /></div>
+            <div className="col-span-full py-40 flex flex-col items-center gap-6">
+              <PageLoader />
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Scanning Bio-Matrix...</p>
+            </div>
           ) : paginatedEmployees.map((emp, idx) => (
             <motion.div
               key={emp.id}
               layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: idx * 0.02 }}
-              className="bento-card group flex flex-col"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+              transition={{ 
+                type: 'spring', 
+                damping: 20, 
+                stiffness: 300,
+                layout: { duration: 0.4 }
+              }}
+              className="bento-card group flex flex-col bg-white dark:bg-slate-900 overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex items-start justify-between mb-8">
                 <div className="relative">
-                  <div className="h-14 w-14 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center text-xl font-black text-white italic shadow-lg shadow-black/20 uppercase">
+                  <div className="h-16 w-16 rounded-[24px] bg-slate-950 border border-white/10 flex items-center justify-center text-2xl font-black text-white italic shadow-2xl group-hover:rotate-6 transition-transform uppercase">
                     {emp.name.charAt(0)}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg bg-white dark:bg-slate-900 border border-(--border-color) shadow-sm flex items-center justify-center">
-                    <ShieldCheck size={12} className={emp.faceRegistered ? 'text-emerald-500' : 'text-slate-300'} />
+                  <div className={`absolute -bottom-1 -right-1 h-7 w-7 rounded-xl border-4 border-white dark:border-slate-900 shadow-lg flex items-center justify-center ${emp.faceRegistered ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-800'}`}>
+                    <ShieldCheck size={14} className="text-white" />
                   </div>
+                  {emp.isOnline && (
+                    <div className="absolute -top-1 -left-1 h-4 w-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  )}
                 </div>
                 <div className="text-right">
                   <FaceBadge registered={emp.faceRegistered} />
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Kontrak: {emp.contractType || 'Tetap'}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Class: {emp.contractType || 'Permanent'}</p>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-1.5 mb-6">
-                <h3 className="text-lg font-black text-(--text-primary) uppercase tracking-tighter italic leading-none group-hover:text-cyan-600 transition-colors">
+              <div className="flex-1 space-y-2 mb-8">
+                <h3 className="text-xl font-black text-slate-950 dark:text-white uppercase tracking-tighter italic leading-none group-hover:text-cyan-600 transition-colors">
                   {emp.name}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{emp.employeeId}</p>
-                  <div className="w-1 h-1 rounded-full bg-cyan-600" />
-                  <p className="text-[8px] font-black text-cyan-600 uppercase tracking-widest italic">{emp.position || 'Courier'}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{emp.employeeId}</p>
+                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
+                  <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest italic">{emp.position || 'Operative'}</p>
                 </div>
-                <p className="text-[9px] font-medium text-slate-500 truncate mt-3">{emp.email}</p>
+                <p className="text-[10px] font-bold text-slate-500 truncate mt-4 opacity-0 group-hover:opacity-100 transition-opacity">{emp.email}</p>
               </div>
 
-              <div className="pt-4 border-t border-(--border-color) flex items-center justify-between">
+              <div className="pt-6 border-t border-(--border-color) flex items-center justify-between">
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Departemen / Unit</p>
-                  <div className="px-2.5 py-1 bg-slate-950 text-white text-[8px] font-black uppercase tracking-widest rounded-lg">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Node / Unit</p>
+                  <div className="px-3 py-1.5 bg-slate-950 dark:bg-slate-800 text-white text-[9px] font-black uppercase tracking-widest rounded-xl">
                     {emp.department}
                   </div>
                 </div>
-                <div className="flex gap-1.5">
-                  <button 
+                <div className="flex gap-2">
+                  <InteractiveButton 
+                    stopPropagation
                     onClick={() => {
-                      if(confirm(`Hapus data ${emp.name} secara permanen? Tindakan ini tidak dapat dibatalkan.`)) {
-                        deleteEmployee(emp.id);
+                      if(confirm(`TERMINATE: Are you sure you want to remove ${emp.name} from the system?`)) {
+                        deleteEmployeeOptimistic(emp.id);
                       }
                     }}
-                    className="w-9 h-9 rounded-lg bg-slate-400/10 text-slate-400 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all active:scale-90"
-                    title="Hapus Karyawan"
+                    className="w-11 h-11 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center"
+                    title="Terminate Access"
                   >
-                    <Trash2 size={14} />
-                  </button>
-                  <Link 
-                    href={`/employees/detail?id=${emp.id}`}
-                    className="w-9 h-9 rounded-lg bg-slate-950 text-white flex items-center justify-center hover:bg-cyan-600 transition-all active:scale-90 shadow-lg"
-                  >
-                    <ChevronRight size={16} />
+                    <Trash2 size={18} />
+                  </InteractiveButton>
+                  <Link href={`/employees/detail?id=${emp.id}`}>
+                    <InteractiveButton 
+                      className="w-11 h-11 rounded-xl bg-slate-950 dark:bg-cyan-600 text-white flex items-center justify-center shadow-lg"
+                    >
+                      <ChevronRight size={20} />
+                    </InteractiveButton>
                   </Link>
                 </div>
               </div>

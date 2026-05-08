@@ -6,19 +6,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'jne-header': '#0D1B35',
-        'jne-bg': '#1A1F2E',
-        'jne-card': '#1B2A4A',
-        'jne-text': '#FFFFFF',
-        'jne-subtext': '#9BA4B4',
-        
-        'jne-primary': '#E04B3A', // Important Button
-        'jne-success': '#16A34A', // Attendance
-        'jne-warning': '#D97706', // Permission
-        'jne-danger': '#C0392B',  // Lateness/Rejection
-        'jne-overtime': '#3D5280', 
-        'jne-info': '#3863C3',    // Notification
+        // ✨ NEW PREMIUM PALETTE
+        accent: {
+          pink: '#F26B8A',
+          mint: '#5FA89B',
+          mustard: '#F2B544',
+          'pink-dark': '#C94F6D',
+          'yellow-dark': '#D9A63C',
+        },
+        brand: {
+          cream: '#F7F3E8',
+          dark: '#121212',
+          'green-glass': '#1F4D46',
+        }
       },
+      borderRadius: {
+        '4xl': '2rem',
+        '5xl': '3rem',
+      },
+      fontFamily: {
+        outfit: ['var(--font-outfit)', 'sans-serif'],
+        inter: ['var(--font-inter)', 'sans-serif'],
+      },
+      backdropBlur: {
+        'premium': '40px',
+      }
     },
   },
   plugins: [],

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSettings, updateSettings } from '@/lib/firestore/settings';
+import { useDebounce } from './useDebounce';
 import type { Settings } from '@/types';
 
 export const TABS = [
@@ -53,6 +54,7 @@ export function useSettingsManagement() {
       if (!prev) return prev;
       return {
         ...prev,
+        Section: section, // For tracking
         [section]: {
           ...prev[section],
           [field]: value
@@ -75,6 +77,17 @@ export function useSettingsManagement() {
       setSaving(false);
     }
   }, [settings]);
+
+  const debouncedSettings = useDebounce(settings, 1000);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (debouncedSettings && mounted.current) {
+      handleSave();
+    } else {
+      mounted.current = true;
+    }
+  }, [debouncedSettings, handleSave]);
 
   return {
     activeTab,

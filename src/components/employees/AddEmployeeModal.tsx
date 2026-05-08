@@ -97,7 +97,9 @@ export default function AddEmployeeModal({
               {/* --- BAGIAN KIRI: DATA PRIBADI --- */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                    Nama Lengkap <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative group">
                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <input
@@ -112,7 +114,9 @@ export default function AddEmployeeModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Corporate</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                    Email Corporate <span className="text-red-500">*</span>
+                  </label>
                   <div className="flex items-center">
                     <div className="relative flex-1 group">
                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
@@ -149,7 +153,9 @@ export default function AddEmployeeModal({
               {/* --- BAGIAN KANAN: DATA PEKERJAAN --- */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unit Kerja / Departemen</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                    Unit Kerja / Departemen <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative group">
                     <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <select
@@ -170,7 +176,9 @@ export default function AddEmployeeModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jabatan Spesifik</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                    Jabatan Spesifik <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative group">
                     <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
                     <select
@@ -225,7 +233,7 @@ export default function AddEmployeeModal({
             {/* --- SHIFT SELECTION: VISUAL BADGES --- */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                  <Clock size={14} /> Jam Kerja & Jadwal Operasional
+                  <Clock size={14} /> Jam Kerja & Jadwal Operasional <span className="text-red-500">*</span>
                </label>
                <div className="grid grid-cols-3 gap-4">
                   {jamKerjas.map((shift) => {

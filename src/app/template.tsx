@@ -8,11 +8,9 @@ export default function Template({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 400);
-
-    return () => clearTimeout(timer);
+    // Reduced from 400ms to 0ms for sub-navigations to eliminate "buggy" delay feel
+    // Template re-runs on every route change, so 400ms was being added to EVERY click.
+    setLoading(false);
   }, []);
 
   return (

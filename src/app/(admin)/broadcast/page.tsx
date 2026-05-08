@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
   Users, 
@@ -11,10 +11,15 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Smartphone,
+  Globe,
+  Zap,
+  Clock
 } from 'lucide-react';
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { GlassCard, InteractiveButton } from '@/components/ui/Interactive';
 
 export default function BroadcastPage() {
   const [target, setTarget] = useState<'all' | 'specific'>('all');
@@ -24,6 +29,7 @@ export default function BroadcastPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [recentBroadcasts, setRecentBroadcasts] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -31,7 +37,15 @@ export default function BroadcastPage() {
       const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setUsers(usersList);
     };
+    
+    const fetchRecent = async () => {
+      const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(5));
+      const snap = await getDocs(q);
+      setRecentBroadcasts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+
     fetchUsers();
+    fetchRecent();
   }, []);
 
   const handleSend = async (e: React.FormEvent) => {
@@ -42,24 +56,59 @@ export default function BroadcastPage() {
     setStatus('idle');
 
     try {
-      // Simulation of sending push notification
-      // In a real app, this would trigger a Firebase Cloud Function or FCM directly
-      await addDoc(collection(db, 'adminNotifications'), {
+      const payload = {
         title,
         message,
+        createdAt: serverTimestamp(),
+        sender: 'Admin JNE Martapura Hub',
         type: 'broadcast',
-        target: target === 'all' ? 'everyone' : selectedUser,
-        targetName: target === 'all' ? 'All Couriers' : users.find(u => u.id === selectedUser)?.name || 'Specific User',
-        timestamp: serverTimestamp(),
-        sender: 'Admin JNE Martapura',
-        isRead: false
-      });
+        priority: 'high'
+      };
+
+      if (target === 'all') {
+        // 1. Send Global Broadcast
+        await addDoc(collection(db, 'broadcasts'), payload);
+        
+        // 2. Also notify all admins
+        await addDoc(collection(db, 'adminNotifications'), {
+          ...payload,
+          target: 'all',
+          sender: 'System (Broadcast Engine)'
+        });
+
+        // 3. Also log to admin history
+        await addDoc(collection(db, 'adminLogs'), {
+          action: 'BROADCAST_SENT',
+          details: `Broadcast sent to all couriers: ${title}`,
+          timestamp: serverTimestamp()
+        });
+      } else {
+        // Send Specific Notification to User
+        await addDoc(collection(db, 'userNotifications'), {
+          ...payload,
+          userId: selectedUser,
+          isRead: false
+        });
+
+        // Also notify admins that a specific message was sent
+        await addDoc(collection(db, 'adminNotifications'), {
+          ...payload,
+          target: selectedUser,
+          sender: 'System (Directed Message)'
+        });
+      }
 
       // Clear form
       setTitle('');
       setMessage('');
       setSelectedUser('');
       setStatus('success');
+      
+      // Refresh recent
+      const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(5));
+      const snap = await getDocs(q);
+      setRecentBroadcasts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err) {
       console.error(err);
@@ -70,178 +119,223 @@ export default function BroadcastPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 py-4">
-      {/* ── HEADER ── */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-500 rounded-xl text-white">
-            <Megaphone size={24} />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Broadcast Center</h1>
-        </div>
-        <p className="text-slate-500 font-medium ml-12">Kirim informasi dan instruksi penting ke semua kurir atau personel tertentu.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* ── FORM SECTION ── */}
-        <div className="md:col-span-8">
-          <form onSubmit={handleSend} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 space-y-6">
-            
-            {/* Target Selection */}
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Penerima</label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setTarget('all')}
-                  className={`flex items-center justify-center gap-3 py-4 rounded-2xl border-2 transition-all ${
-                    target === 'all' 
-                      ? 'border-rose-500 bg-rose-50 text-rose-600' 
-                      : 'border-slate-100 bg-slate-50 text-slate-400 grayscale hover:grayscale-0'
-                  }`}
-                >
-                  <Users size={20} />
-                  <span className="font-black uppercase text-xs">Semua Kurir</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTarget('specific')}
-                  className={`flex items-center justify-center gap-3 py-4 rounded-2xl border-2 transition-all ${
-                    target === 'specific' 
-                      ? 'border-rose-500 bg-rose-50 text-rose-600' 
-                      : 'border-slate-100 bg-slate-50 text-slate-400 grayscale hover:grayscale-0'
-                  }`}
-                >
-                  <User size={20} />
-                  <span className="font-black uppercase text-xs">User Spesifik</span>
-                </button>
-              </div>
+    <div className="flex flex-col gap-8 -m-10 min-h-screen overflow-hidden">
+      
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
+        
+        {/* ── HEADER ── */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+               <div className="px-3 py-1 rounded-full bg-orange-600/10 border border-orange-600/20 text-orange-600 text-[9px] font-black uppercase tracking-widest animate-pulse">Broadcast Engine</div>
+               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Nexus Communications</span>
             </div>
+            <h1 className="text-5xl font-black text-slate-950 dark:text-white tracking-tighter uppercase italic leading-none">
+              Communication <span className="text-orange-600">Hub</span>
+            </h1>
+          </div>
+        </div>
 
-            {/* Specific User Dropdown */}
-            {target === 'specific' && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-2"
-              >
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih User</label>
-                <div className="relative">
-                  <select
-                    value={selectedUser}
-                    onChange={(e) => setSelectedUser(e.target.value)}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-rose-500"
-                  >
-                    <option value="">-- Pilih Nama Kurir --</option>
-                    {users.map(u => (
-                      <option key={u.id} value={u.id}>{u.name || u.email}</option>
-                    ))}
-                  </select>
-                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <Search size={18} />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+          
+          {/* ── FORM SECTION ── */}
+          <div className="xl:col-span-8">
+            <GlassCard className="p-8 md:p-12 border-none bg-white/5 dark:bg-slate-900/40 relative overflow-hidden group">
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-600/5 blur-[100px] rounded-full group-hover:bg-orange-600/10 transition-all duration-1000" />
+              
+              <form onSubmit={handleSend} className="space-y-10 relative z-10">
+                {/* Target Selection */}
+                <div className="space-y-6">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Target Audience</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <button
+                      type="button"
+                      onClick={() => setTarget('all')}
+                      className={`flex items-center gap-6 p-6 rounded-2xl border-2 transition-all duration-500 ${
+                        target === 'all' 
+                          ? 'border-orange-600 bg-orange-600/10 text-orange-600 shadow-xl shadow-orange-600/10 scale-[1.02]' 
+                          : 'border-white/5 bg-black/20 text-slate-500 hover:text-white hover:bg-black/40'
+                      }`}
+                    >
+                      <div className={`p-4 rounded-xl ${target === 'all' ? 'bg-orange-600 text-white' : 'bg-white/5'}`}>
+                        <Users size={24} />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-black uppercase text-[11px] tracking-widest">Broadcast Global</p>
+                        <p className="text-[9px] font-bold opacity-60">Semua Kurir & Personnel</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTarget('specific')}
+                      className={`flex items-center gap-6 p-6 rounded-2xl border-2 transition-all duration-500 ${
+                        target === 'specific' 
+                          ? 'border-orange-600 bg-orange-600/10 text-orange-600 shadow-xl shadow-orange-600/10 scale-[1.02]' 
+                          : 'border-white/5 bg-black/20 text-slate-500 hover:text-white hover:bg-black/40'
+                      }`}
+                    >
+                      <div className={`p-4 rounded-xl ${target === 'specific' ? 'bg-orange-600 text-white' : 'bg-white/5'}`}>
+                        <User size={24} />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-black uppercase text-[11px] tracking-widest">Pesan Spesifik</p>
+                        <p className="text-[9px] font-bold opacity-60">Pilih Individu Kurir</p>
+                      </div>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
-            )}
 
-            {/* Title & Message */}
-            <div className="space-y-6 pt-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Judul Notifikasi</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Info Rapat Koordinasi"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pesan / Konten</label>
-                <textarea
-                  placeholder="Tuliskan pesan lengkap disini..."
-                  rows={5}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-rose-500 resize-none"
-                />
-              </div>
-            </div>
+                <AnimatePresence mode="wait">
+                  {target === 'specific' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4"
+                    >
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Pilih Penerima</label>
+                      <div className="relative">
+                        <select
+                          value={selectedUser}
+                          onChange={(e) => setSelectedUser(e.target.value)}
+                          className="w-full bg-black/20 border border-white/10 rounded-2xl py-5 px-8 text-sm font-black text-white appearance-none focus:ring-4 focus:ring-orange-600/20 transition-all cursor-pointer outline-none uppercase italic"
+                        >
+                          <option value="" className="bg-slate-900">-- PILIH NAMA KURIR --</option>
+                          {users.map(u => (
+                            <option key={u.id} value={u.id} className="bg-slate-900">{u.name || u.email}</option>
+                          ))}
+                        </select>
+                        <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                          <Search size={18} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-            {/* Action Button */}
-            <button
-              disabled={loading || !title || !message || (target === 'specific' && !selectedUser)}
-              className="w-full bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all shadow-lg shadow-rose-200"
-            >
-              {loading ? (
-                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Send size={18} />
-                  Blast Notification Now
-                </>
-              )}
-            </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Judul Pesan</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: BRIEFING PAGI"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full bg-black/20 border border-white/10 rounded-2xl py-5 px-8 text-sm font-black text-white placeholder:opacity-20 focus:ring-4 focus:ring-orange-600/20 transition-all outline-none uppercase italic"
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Priority Level</label>
+                    <div className="flex gap-4">
+                       <div className="flex-1 py-4 bg-orange-600/10 border border-orange-600/20 rounded-2xl flex items-center justify-center gap-3 text-orange-600">
+                          <Zap size={16} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">High Priority</span>
+                       </div>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Status Messages */}
-            {status === 'success' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
-                <CheckCircle2 size={18} />
-                <span className="text-xs font-bold uppercase tracking-tight">Broadcast Berhasil Terkirim ke {target === 'all' ? 'Semua Kurir' : 'User Terpilih'}!</span>
-              </motion.div>
-            )}
-            {status === 'error' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100">
-                <AlertCircle size={18} />
-                <span className="text-xs font-bold uppercase tracking-tight">Gagal mengirim broadcast. Periksa koneksi Anda.</span>
-              </motion.div>
-            )}
-          </form>
-        </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Konten Pesan</label>
+                  <textarea
+                    placeholder="Tuliskan instruksi atau informasi penting disini..."
+                    rows={6}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-2xl py-6 px-8 text-sm font-black text-white placeholder:opacity-20 focus:ring-4 focus:ring-orange-600/20 transition-all resize-none outline-none leading-relaxed italic"
+                  />
+                </div>
 
-        {/* ── INFO SIDEBAR ── */}
-        <div className="md:col-span-4 space-y-6">
-          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
-            <h3 className="text-lg font-black uppercase tracking-tight mb-4">Informasi Push</h3>
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="h-8 w-8 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Bell size={16} className="text-rose-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Instant Alert</p>
-                  <p className="text-[10px] text-slate-300 leading-relaxed">Notifikasi akan langsung muncul di HP kurir dalam hitungan detik.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="h-8 w-8 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                  <ShieldCheck size={16} className="text-rose-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Verified Sender</p>
-                  <p className="text-[10px] text-slate-300 leading-relaxed">Pesan dikirim atas nama Hub Martapura dan akan tersimpan di riwayat user.</p>
-                </div>
-              </div>
-            </div>
+                <InteractiveButton
+                  disabled={loading || !title || !message || (target === 'specific' && !selectedUser)}
+                  className="w-full h-20 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-6 transition-all shadow-2xl shadow-orange-600/40 hover:-translate-y-1 active:scale-95 disabled:bg-slate-800 disabled:shadow-none disabled:text-slate-500 group"
+                >
+                  {loading ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full" />
+                  ) : (
+                    <>
+                      <Send size={20} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                      Kirim Notifikasi Push
+                    </>
+                  )}
+                </InteractiveButton>
+
+                <AnimatePresence>
+                  {status === 'success' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-3 p-5 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20">
+                      <CheckCircle2 size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Pesan Berhasil Dipublikasikan ke Nexus App & Web!</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </form>
+            </GlassCard>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Preview Notifikasi</h3>
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 shadow-inner">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-6 w-6 bg-rose-500 rounded-md flex items-center justify-center">
-                   <div className="text-[8px] font-black text-white">JNE</div>
-                </div>
-                <div className="flex-1">
-                   <p className="text-[10px] font-bold text-slate-900 truncate">{title || 'Judul Notifikasi'}</p>
-                   <p className="text-[8px] font-medium text-slate-500 uppercase">Baru Saja • JNE Martapura</p>
-                </div>
-              </div>
-              <p className="text-[10px] text-slate-600 line-clamp-2 italic">{message || 'Teks pesan akan muncul disini sebagai gambaran tampilan di perangkat mobile user...'}</p>
-            </div>
+          {/* ── SIDEBAR INFO ── */}
+          <div className="xl:col-span-4 space-y-8">
+            <GlassCard className="p-10 border-none bg-orange-600 text-white relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-[80px] -mr-20 -mt-20" />
+               <h3 className="text-lg font-black italic uppercase tracking-tighter mb-8 relative">Push Engine</h3>
+               <div className="space-y-8 relative">
+                  <div className="flex gap-5">
+                    <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/10">
+                      <Smartphone size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Nexus Mobile</p>
+                      <p className="text-[11px] font-black italic leading-tight">Notifikasi akan muncul di lockscreen HP kurir secara instan.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-5">
+                    <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/10">
+                      <Globe size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Nexus Web</p>
+                      <p className="text-[11px] font-black italic leading-tight">Dashboard web akan memunculkan banner notifikasi real-time.</p>
+                    </div>
+                  </div>
+               </div>
+            </GlassCard>
+
+            <GlassCard className="p-8 border-none bg-white/5 dark:bg-slate-900/40">
+               <div className="flex items-center gap-3 mb-8">
+                  <Clock size={18} className="text-orange-600" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-white italic">Recent Broadcasts</h3>
+               </div>
+               <div className="space-y-4">
+                  {recentBroadcasts.map((b, i) => (
+                    <div key={i} className="p-5 rounded-2xl bg-black/20 border border-white/5 hover:bg-black/40 transition-all">
+                       <p className="text-[11px] font-black text-white uppercase italic truncate">{b.title}</p>
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                          {b.createdAt ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
+                       </p>
+                    </div>
+                  ))}
+                  {recentBroadcasts.length === 0 && (
+                    <p className="text-center py-10 text-[10px] font-black uppercase tracking-widest text-slate-600 italic">No history yet</p>
+                  )}
+               </div>
+            </GlassCard>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }

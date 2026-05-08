@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 import { getEmployees } from '@/lib/firestore';
+import { db } from '@/lib/firebase';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import EventListPanel from '@/components/calendar/EventListPanel';
@@ -11,6 +13,8 @@ import EventModal from '@/components/calendar/EventModal';
 import { getMonthWeeks } from '@/utils/calendarHelpers';
 import { scheduleMeetingNotifications } from '@/lib/firestore';
 import type { CalendarEvent } from '@/types';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function CalendarPage() {
   const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarManagement();
@@ -22,6 +26,7 @@ export default function CalendarPage() {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [employees, setEmployees] = useState<any[]>([]);
+  const router = useRouter();
 
   // State untuk data libur dari API
   const [holidaysMap, setHolidaysMap] = useState<Record<string, string[]>>({});
@@ -52,12 +57,34 @@ export default function CalendarPage() {
     fetchHolidays();
   }, [currentYear]);
 
-  // Fetch employees
+  // State for attendance heatmap
+  const [attendanceHeatmap, setAttendanceHeatmap] = useState<Record<string, number>>({});
+  const [totalEmployeesCount, setTotalEmployeesCount] = useState(0);
+
+  // Fetch employees and attendance for heatmap
   useEffect(() => {
-    getEmployees().then(setEmployees);
+    getEmployees().then(list => {
+      setEmployees(list);
+      setTotalEmployeesCount(list.length);
+    });
+
+    const attQuery = query(collection(db, 'attendance'));
+    const unsub = onSnapshot(attQuery, (snap) => {
+      const map: Record<string, number> = {};
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        const date = data.attendanceDate;
+        if (date) {
+          map[date] = (map[date] || 0) + 1;
+        }
+      });
+      setAttendanceHeatmap(map);
+    });
+
+    return () => unsub();
   }, []);
 
-  // Generate minggu untuk bulan aktif
+  // Generate weeks for active month
   const monthWeeks = useMemo(() => {
     return getMonthWeeks(currentYear, currentMonthIndex);
   }, [currentYear, currentMonthIndex]);
@@ -168,6 +195,29 @@ export default function CalendarPage() {
     }
   };
 
+  const handleQuickAction = (type: 'notif' | 'chat' | 'global' | 'maps') => {
+    const dateLabel = selectedDayDetails ? format(parseISO(selectedDayDetails.date), 'dd MMM') : '';
+    
+    switch (type) {
+      case 'notif':
+        toast.info(`Membuka panel broadcast untuk ${dateLabel}`);
+        router.push(`/broadcast?date=${selectedDateStr}`);
+        break;
+      case 'chat':
+        toast.info(`Membuka chat grup agenda ${dateLabel}`);
+        router.push(`/chat?ref=${selectedDateStr}`);
+        break;
+      case 'global':
+        toast.info(`Menampilkan ringkasan kehadiran ${dateLabel}`);
+        router.push('/analytics');
+        break;
+      case 'maps':
+        toast.info(`Melacak lokasi personel untuk ${dateLabel}`);
+        router.push('/attendance/live');
+        break;
+    }
+  };
+
   if (loading || loadingHolidays) return <div className="h-full flex items-center justify-center"><PageLoader /></div>;
 
   return (
@@ -188,6 +238,8 @@ export default function CalendarPage() {
             setEditingEvent(null);
             setModalOpen(true);
           }}
+          attendanceHeatmap={attendanceHeatmap}
+          totalEmployees={totalEmployeesCount}
         />
 
         <EventListPanel
@@ -201,6 +253,7 @@ export default function CalendarPage() {
             setModalOpen(true);
           }}
           onDeleteEvent={handleDeleteEvent}
+          onQuickAction={handleQuickAction}
         />
       </div>
 

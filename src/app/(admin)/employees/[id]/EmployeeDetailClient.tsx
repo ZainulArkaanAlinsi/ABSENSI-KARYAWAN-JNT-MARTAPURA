@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
+import Image from 'next/image';
+
 import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format, subDays, parseISO } from 'date-fns';
@@ -126,7 +128,14 @@ export default function EmployeeDetailClient({ params }: { params: Promise<{ id:
              <div className="flex flex-col items-center">
                 <div className="h-40 w-40 rounded-4xl bg-zinc-900 border-4 border-white/5 p-1 mb-8 relative group/photo overflow-hidden">
                   {employee.photoUrl ? (
-                    <img src={employee.photoUrl} alt={employee.name} className="w-full h-full object-cover rounded-3xl group-hover/photo:scale-110 transition-transform duration-700" />
+                    <Image 
+                      src={employee.photoUrl} 
+                      alt={employee.name} 
+                      width={160}
+                      height={160}
+                      priority
+                      className="w-full h-full object-cover rounded-3xl group-hover/photo:scale-110 transition-transform duration-700" 
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-700">
                       <User size={64} />

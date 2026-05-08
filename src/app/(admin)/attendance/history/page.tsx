@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getAttendanceByRange, getEmployees } from '@/lib/firestore';
-import type { AttendanceRecord, Employee } from '@/types';
+import { getAttendanceByRange } from '@/lib/firestore';
+import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { 
@@ -10,9 +10,6 @@ import {
   Calendar, 
   Filter, 
   ArrowLeft, 
-  Download, 
-  Clock, 
-  User, 
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -20,28 +17,23 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock3,
-  XCircle
+  XCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AdminLayout from '@/components/layout/AdminLayout';
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-    present:  { label: 'Hadir',      color: '#10B981', bg: 'rgba(16, 185, 129, 0.08)', icon: CheckCircle2 },
-    late:     { label: 'Terlambat',  color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.08)', icon: Clock3 },
-    absent:   { label: 'Alpa',       color: '#EF4444', bg: 'rgba(239, 68, 68, 0.08)', icon: XCircle },
-    leave:    { label: 'Izin/Cuti',  color: '#6366F1', bg: 'rgba(99, 102, 241, 0.08)', icon: AlertCircle },
-    overtime: { label: 'Lembur',     color: '#06B6D4', bg: 'rgba(6, 182, 212, 0.08)', icon: History },
+function StatusChip({ status }: { status: string }) {
+  const map: Record<string, { label: string; color: string; bg: string }> = {
+    present:  { label: 'Hadir',      color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-400/10' },
+    late:     { label: 'Terlambat',  color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-400/10' },
+    absent:   { label: 'Alpa',       color: 'text-rose-600 dark:text-rose-400',    bg: 'bg-rose-50 dark:bg-rose-400/10' },
+    leave:    { label: 'Izin',       color: 'text-blue-600 dark:text-blue-400',  bg: 'bg-blue-50 dark:bg-blue-400/10' },
+    overtime: { label: 'Lembur',     color: 'text-cyan-600 dark:text-cyan-400',    bg: 'bg-cyan-50 dark:bg-cyan-400/10' },
   };
   const s = map[status] || map.absent;
-  const Icon = s.icon;
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-[inset_0_0_12px_rgba(255,255,255,0.02)] backdrop-blur-sm transition-all hover:scale-105"
-      style={{ background: s.bg, color: s.color, borderColor: `${s.color}30` }}
-    >
-      <Icon size={12} className="opacity-80" />
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${s.bg} ${s.color} border border-transparent`}>
       {s.label}
     </span>
   );
@@ -108,208 +100,165 @@ export default function AttendanceHistoryPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `History_Absensi_${month}_${deptFilter}.csv`;
+    link.download = `History_Absensi_${month}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="dash-root space-y-8 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-[1400px] mx-auto space-y-6 pb-10">
       
-      {/* ── Header Area ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-             <button 
-              onClick={() => router.back()}
-              className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
-             >
-               <ArrowLeft size={16} className="text-slate-400 group-hover:text-white transition-colors" />
-             </button>
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-600">Archive Explorer</span>
-          </div>
-          <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
-            Attendance <span className="text-cyan-600">History</span>
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 hover:text-slate-950 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft size={14} />
+            Kembali
+          </button>
+          <h1 className="text-3xl font-black text-slate-950 dark:text-white tracking-tighter uppercase italic leading-none">
+            Registry <span className="text-blue-600 dark:text-blue-400">Archive</span>
           </h1>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-            Menampilkan data absensi berdasar rentang waktu & unit operasional
-          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-           <div className="relative group">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-600 transition-colors" size={16} />
+        <div className="flex items-center gap-2">
+           <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
               <input 
                 type="month" 
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3.5 text-xs font-black uppercase text-white outline-none focus:border-cyan-600/50 transition-all w-full sm:w-48"
+                className="bg-transparent border-none text-[11px] font-black text-slate-800 dark:text-slate-200 outline-none w-32 cursor-pointer uppercase tracking-widest"
               />
            </div>
            <button 
              onClick={handleExport}
-             className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all shadow-lg shadow-cyan-600/20 active:scale-95"
+             className="h-10 px-5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:opacity-90 transition-all shadow-sm"
            >
-              <Download size={16} />
-              Export CSV
+              <FileSpreadsheet size={14} />
+              Export
            </button>
         </div>
       </div>
 
-      {/* ── Filter Bar ── */}
-      <div className="bg-slate-900/50 backdrop-blur-md border border-white/5 p-4 rounded-3xl flex flex-col md:flex-row gap-4">
-         <div className="relative flex-1 group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-600 transition-colors" size={18} />
+      {/* ── FILTERS ── */}
+      <div className="flex flex-col md:flex-row gap-3">
+         <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input 
               type="text" 
-              placeholder="Cari Nama atau ID Karyawan..."
+              placeholder="Cari..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/2 border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-sm font-medium text-white outline-none focus:border-cyan-600/30 focus:bg-white/5 transition-all"
+              className="w-full h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 text-xs font-bold text-slate-950 dark:text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
             />
          </div>
-         <div className="flex items-center gap-3">
-            <div className="relative group min-w-[200px]">
-               <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-600 transition-colors" size={16} />
-               <select 
-                  value={deptFilter}
-                  onChange={(e) => setDeptFilter(e.target.value)}
-                  className="w-full bg-white/2 border border-white/5 rounded-2xl pl-12 pr-10 py-4 text-[11px] font-black uppercase tracking-widest text-white outline-none focus:border-cyan-600/30 appearance-none cursor-pointer"
-               >
-                  <option value="all" className="bg-slate-900 text-white">Semua Unit</option>
-                  <option value="Rider Martapura" className="bg-slate-900 text-white">Rider Martapura</option>
-                  <option value="Inbound" className="bg-slate-900 text-white">Inbound</option>
-                  <option value="Outbound" className="bg-slate-900 text-white">Outbound</option>
-                  <option value="Office" className="bg-slate-900 text-white">Office</option>
-               </select>
-               <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Filter size={14} className="text-slate-600" />
-               </div>
-            </div>
+         <div className="flex items-center gap-2 px-4 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+            <Building2 size={14} className="text-blue-600 dark:text-blue-400" />
+            <select 
+               value={deptFilter}
+               onChange={(e) => setDeptFilter(e.target.value)}
+               className="bg-transparent text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 outline-none appearance-none cursor-pointer pr-8 min-w-[140px] tracking-widest"
+            >
+               <option value="all" className="bg-white dark:bg-slate-950">Semua Unit</option>
+               <option value="Rider Martapura" className="bg-white dark:bg-slate-950">Rider Martapura</option>
+               <option value="Inbound" className="bg-white dark:bg-slate-950">Inbound</option>
+               <option value="Outbound" className="bg-white dark:bg-slate-950">Outbound</option>
+               <option value="Office" className="bg-white dark:bg-slate-950">Office</option>
+            </select>
+            <Filter size={12} className="text-slate-400 -ml-6 pointer-events-none" />
          </div>
       </div>
 
-      {/* ── Results Table ── */}
-      <div className="bg-slate-900/40 border border-white/5 rounded-[32px] overflow-hidden backdrop-blur-xl shadow-2xl">
+      {/* ── TABLE ── */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full border-separate border-spacing-0">
+            <table className="w-full text-left">
                <thead>
-                  <tr className="bg-white/[0.03]">
-                     <th className="px-8 py-7 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Karyawan</th>
-                     <th className="px-6 py-7 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Unit</th>
-                     <th className="px-6 py-7 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Tanggal</th>
-                     <th className="px-6 py-7 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Status</th>
-                     <th className="px-6 py-7 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Masuk</th>
-                     <th className="px-6 py-7 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Pulang</th>
-                     <th className="px-8 py-7 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-b border-white/5">Aksi</th>
+                  <tr className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                     <th className="px-6 py-4">Personnel</th>
+                     <th className="px-6 py-4">Unit</th>
+                     <th className="px-6 py-4">Waktu Absen</th>
+                     <th className="px-6 py-4">Status</th>
+                     <th className="px-6 py-4 text-right">Opsi</th>
                   </tr>
                </thead>
-               <tbody className="divide-y divide-white/5">
+               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loading ? (
                     Array.from({ length: 8 }).map((_, i) => (
-                      <tr key={i}>
-                        <td colSpan={7} className="px-8 py-4">
-                          <div className="h-12 w-full bg-white/2 animate-pulse rounded-2xl" />
-                        </td>
-                      </tr>
+                      <tr key={i}><td colSpan={5} className="px-6 py-5"><div className="h-3 w-full bg-slate-50 dark:bg-slate-800 animate-pulse rounded" /></td></tr>
                     ))
                   ) : filteredAttendance.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-8 py-32 text-center">
-                         <div className="flex flex-col items-center gap-4 opacity-30 text-white">
-                            <History size={64} strokeWidth={1} />
-                            <p className="text-xs font-black uppercase tracking-[0.3em]">Arsip tidak ditemukan</p>
+                      <td colSpan={5} className="py-24 text-center">
+                         <div className="flex flex-col items-center gap-3 opacity-20 text-slate-900 dark:text-white">
+                            <History size={48} />
+                            <p className="text-xs font-black uppercase tracking-widest">Arsip Kosong</p>
                          </div>
                       </td>
                     </tr>
                   ) : (
-                    <AnimatePresence>
-                      {filteredAttendance.map((rec, idx) => (
-                        <motion.tr 
-                          key={rec.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.02 }}
-                          className="hover:bg-white/3 transition-colors group"
-                        >
-                           <td className="px-8 py-5">
-                              <div className="flex items-center gap-4">
-                                 <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-cyan-600 text-xs">
-                                    {rec.employeeName.charAt(0)}
-                                 </div>
-                                 <div>
-                                    <p className="text-sm font-black text-white leading-none mb-1">{rec.employeeName}</p>
-                                    <p className="text-[10px] font-bold text-slate-500 tracking-wider">{rec.employeeId}</p>
-                                 </div>
-                              </div>
-                           </td>
-                           <td className="px-6 py-5">
-                              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-                                 {rec.department}
-                              </span>
-                           </td>
-                           <td className="px-6 py-5">
-                              <p className="text-[12px] font-bold text-white leading-none mb-1">
-                                 {format(parseISO(rec.date), 'dd MMM yyyy', { locale: localeId })}
-                              </p>
-                              <p className="text-[10px] font-medium text-slate-500 uppercase tracking-tighter">
-                                 {format(parseISO(rec.date), 'EEEE', { locale: localeId })}
-                              </p>
-                           </td>
-                           <td className="px-6 py-5">
-                              <StatusBadge status={rec.status} />
-                           </td>
-                           <td className="px-6 py-5 text-center font-mono text-xs font-bold text-slate-300">
-                              {rec.checkIn?.time ? format(new Date(rec.checkIn.time), 'HH:mm:ss') : '—'}
-                           </td>
-                           <td className="px-6 py-5 text-center font-mono text-xs font-bold text-slate-300">
-                              {rec.checkOut?.time ? format(new Date(rec.checkOut.time), 'HH:mm:ss') : '—'}
-                           </td>
-                           <td className="px-8 py-5 text-right">
-                              <button className="p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-cyan-600 transition-all">
-                                 <Search size={16} />
-                              </button>
-                           </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
+                    filteredAttendance.map((rec) => (
+                      <tr key={rec.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                         <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                               <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase border border-slate-200 dark:border-slate-800">
+                                  {rec.employeeName.charAt(0)}
+                               </div>
+                               <div>
+                                  <p className="text-xs font-black text-slate-950 dark:text-white tracking-tight leading-none mb-1 uppercase italic">{rec.employeeName}</p>
+                                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{rec.employeeId}</p>
+                               </div>
+                            </div>
+                         </td>
+                         <td className="px-6 py-4">
+                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest px-2 py-1 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800">{rec.department}</span>
+                         </td>
+                         <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                               <p className="text-[11px] font-black text-slate-800 dark:text-slate-200 italic uppercase">
+                                  {format(parseISO(rec.date), 'dd MMM yyyy', { locale: localeId })}
+                               </p>
+                               <div className="flex items-center gap-1.5 mt-0.5 opacity-60">
+                                  <Clock3 size={10} className="text-blue-600 dark:text-blue-400" />
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                     {rec.checkIn?.time ? format(new Date(rec.checkIn.time), 'HH:mm:ss') : '—'}
+                                  </span>
+                               </div>
+                            </div>
+                         </td>
+                         <td className="px-6 py-4">
+                            <StatusChip status={rec.status} />
+                         </td>
+                         <td className="px-6 py-4 text-right">
+                            <button className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                               <Search size={16} />
+                            </button>
+                         </td>
+                      </tr>
+                    ))
                   )}
                </tbody>
             </table>
          </div>
-      </div>
 
-      {/* ── Pagination Footer (Mockup for Infinite Scroll/Pagination) ── */}
-      <div className="flex items-center justify-between px-6">
-         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-            Total <span className="text-white">{filteredAttendance.length}</span> Records Detected
-         </p>
-         <div className="flex items-center gap-2">
-            <button className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-500 hover:text-white transition-all disabled:opacity-20" disabled>
-               <ChevronLeft size={18} />
-            </button>
-            <button className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-500 hover:text-white transition-all">
-               <ChevronRight size={18} />
-            </button>
+         {/* ── PAGINATION ── */}
+         <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <p className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+               Total <span className="text-slate-950 dark:text-white">{filteredAttendance.length}</span> registry records
+            </p>
+            <div className="flex items-center gap-2">
+               <button className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-blue-600 disabled:opacity-30 transition-all" disabled>
+                  <ChevronLeft size={18} />
+               </button>
+               <button className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-blue-600 transition-all">
+                  <ChevronRight size={18} />
+               </button>
+            </div>
          </div>
       </div>
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-          height: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
     </div>
   );
 }

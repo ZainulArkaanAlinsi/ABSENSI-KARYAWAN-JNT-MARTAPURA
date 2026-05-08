@@ -37,14 +37,14 @@ export function StatusBadge({ status, size = 'md' }: BadgeProps) {
   const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[8px]' : 'px-3 py-1.5 text-[9px]';
   
   const configMap: Record<string, { bg: string; text: string; dot: string }> = {
-    present:  { bg: 'bg-emerald-500/10', text: 'text-emerald-500', dot: 'bg-emerald-500' },
-    late:     { bg: 'bg-amber-500/10',   text: 'text-amber-500',   dot: 'bg-amber-500' },
-    absent:   { bg: 'bg-red-500/10',     text: 'text-red-600',     dot: 'bg-red-600' },
-    leave:    { bg: 'bg-blue-500/10',    text: 'text-blue-600',    dot: 'bg-blue-600' },
-    overtime: { bg: 'bg-indigo-500/10',  text: 'text-indigo-600',  dot: 'bg-indigo-600' },
-    pending:  { bg: 'bg-amber-500/10',   text: 'text-amber-500',   dot: 'bg-amber-500' },
-    approved: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', dot: 'bg-emerald-500' },
-    rejected: { bg: 'bg-red-500/10',     text: 'text-red-600',     dot: 'bg-red-600' },
+    present:  { bg: 'bg-emerald-500/10', text: 'text-emerald-700', dot: 'bg-emerald-600' },
+    late:     { bg: 'bg-amber-500/10',   text: 'text-amber-700',   dot: 'bg-amber-600' },
+    absent:   { bg: 'bg-red-500/10',     text: 'text-red-700',     dot: 'bg-red-700' },
+    leave:    { bg: 'bg-blue-500/10',    text: 'text-blue-700',    dot: 'bg-blue-700' },
+    overtime: { bg: 'bg-indigo-500/10',  text: 'text-indigo-700',  dot: 'bg-indigo-700' },
+    pending:  { bg: 'bg-amber-500/10',   text: 'text-amber-700',   dot: 'bg-amber-600' },
+    approved: { bg: 'bg-emerald-500/10', text: 'text-emerald-700', dot: 'bg-emerald-600' },
+    rejected: { bg: 'bg-red-500/10',     text: 'text-red-700',     dot: 'bg-red-700' },
   };
 
   const config = configMap[status] || { bg: 'bg-slate-500/10', text: 'text-slate-500', dot: 'bg-slate-500' };
@@ -59,8 +59,8 @@ export function StatusBadge({ status, size = 'md' }: BadgeProps) {
 
 export function FaceBadge({ registered }: { registered: boolean }) {
   const config = registered 
-    ? { bg: 'bg-blue-500/10', text: 'text-blue-600', dot: 'bg-blue-600', label: 'VERIFIED' } 
-    : { bg: 'bg-red-500/10', text: 'text-red-600', dot: 'bg-red-600', label: 'UNVERIFIED' };
+    ? { bg: 'bg-blue-500/10', text: 'text-blue-700', dot: 'bg-blue-700', label: 'VERIFIED' } 
+    : { bg: 'bg-red-500/10', text: 'text-red-700', dot: 'bg-red-700', label: 'UNVERIFIED' };
 
   return (
     <span className={`inline-flex items-center gap-2 ${config.bg} ${config.text} px-3 py-1.5 text-[9px] font-black rounded-lg uppercase tracking-widest border border-transparent hover:border-current/10 transition-all`}>
@@ -72,9 +72,9 @@ export function FaceBadge({ registered }: { registered: boolean }) {
 
 export function ContractBadge({ type }: { type: string }) {
   const configMap: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-    permanent: { label: 'TETAP',   bg: 'bg-emerald-500/10', text: 'text-emerald-500', icon: UserCheck },
-    contract:  { label: 'KONTRAK', bg: 'bg-blue-500/10',    text: 'text-blue-600',    icon: Clock },
-    intern:    { label: 'MAGANG',  bg: 'bg-indigo-500/10',  text: 'text-indigo-600',  icon: Zap },
+    permanent: { label: 'TETAP',   bg: 'bg-emerald-500/10', text: 'text-emerald-700', icon: UserCheck },
+    contract:  { label: 'KONTRAK', bg: 'bg-blue-500/10',    text: 'text-blue-700',    icon: Clock },
+    intern:    { label: 'MAGANG',  bg: 'bg-indigo-500/10',  text: 'text-indigo-700',  icon: Zap },
   };
 
   const config = configMap[type] || { label: type.toUpperCase(), bg: 'bg-slate-500/10', text: 'text-slate-500', icon: null };

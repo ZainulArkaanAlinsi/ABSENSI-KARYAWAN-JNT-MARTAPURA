@@ -8,7 +8,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '', // Password wajib untuk Admin
+    password: 'JNE123!', // Auto-provisioned default password for new employees
     phone: '',
     employeeId: '',
     department: '' as Department,
@@ -63,14 +63,14 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi lebih ketat
-    if (!form.name || !form.email || !form.password || !form.employeeId || !form.department || !form.jamKerjaId) {
-      alert('Semua field wajib harus diisi (termasuk Password)!');
+    // Strict Validation: Remove password from mandatory manual check as it is auto-filled
+    if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
+      alert('Semua field bertanda * wajib diisi!');
       return;
     }
 
     if (form.password.length < 6) {
-      alert('Password minimal 6 karakter!');
+      alert('Password sistem tidak valid. Gunakan minimal 6 karakter.');
       return;
     }
 
@@ -92,6 +92,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
         {
           ...employeeData,
           role: dynamicRole,
+          isOnline: false,
           faceRegistered: false,
           isActive: true,
           allowRemoteAttendance: form.allowRemoteAttendance,
@@ -105,7 +106,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
         setForm({
           name: '',
           email: '',
-          password: '',
+          password: 'JNE123!',
           phone: '',
           employeeId: '',
           department: '' as any,

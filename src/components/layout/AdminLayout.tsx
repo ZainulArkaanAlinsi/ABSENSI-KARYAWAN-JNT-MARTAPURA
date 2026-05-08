@@ -15,13 +15,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER AREA */}
-        <div className="px-8 pt-6">
+        <div className="px-10 pt-8">
           <Header onMenuClick={() => {}} />
         </div>
 
         {/* SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto no-scrollbar bg-(--bg-main) p-8">
-          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-(--bg-main) p-10">
+          <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
             {children}
           </div>
         </main>

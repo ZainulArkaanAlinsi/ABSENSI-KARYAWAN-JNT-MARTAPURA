@@ -20,6 +20,8 @@ type CalendarGridProps = {
   onNextMonth: () => void;
   onToday: () => void;
   onAddEvent: () => void;
+  attendanceHeatmap?: Record<string, number>;
+  totalEmployees?: number;
 };
 
 export default function CalendarGrid({
@@ -34,6 +36,8 @@ export default function CalendarGrid({
   onNextMonth,
   onToday,
   onAddEvent,
+  attendanceHeatmap = {},
+  totalEmployees = 1,
 }: CalendarGridProps) {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const gridRef = useRef<HTMLDivElement>(null);
@@ -54,8 +58,19 @@ export default function CalendarGrid({
     const sysEvents = holidaysMap[day.date] || [];
     const uiCategory = sysEvents.length > 0 ? 'holiday' : 'normal';
     const uiColorHint = sysEvents.length > 0
-      ? { bg: '#F97316', text: '#FFFFFF', accent: '#FDBA74' }
-      : { bg: '#F8FAFC', text: '#1E293B', accent: '#CBD5E1' };
+      ? { bg: 'var(--accent-info)', text: '#FFFFFF', accent: 'var(--accent-info)' }
+      : { bg: 'transparent', text: 'var(--text-primary)', accent: 'var(--border-color)' };
+
+    // Heatmap Logic
+    const presentCount = attendanceHeatmap[day.date] || 0;
+    const attendanceRate = presentCount / totalEmployees;
+    let heatColor = 'transparent';
+    
+    if (presentCount > 0) {
+      if (attendanceRate >= 0.8) heatColor = 'rgba(16, 185, 129, 0.15)'; 
+      else if (attendanceRate <= 0.4) heatColor = 'rgba(244, 63, 94, 0.15)'; 
+      else heatColor = 'rgba(234, 179, 8, 0.15)'; 
+    }
 
     return {
       ...day,
@@ -63,38 +78,40 @@ export default function CalendarGrid({
       userEvents: userEvts,
       uiCategory,
       uiColorHint,
+      heatColor,
+      presentCount
     };
   };
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      {/* Header Controls - sangat kecil */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
+      {/* Header Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4">
+        <h2 className="text-xl font-black italic tracking-tighter text-(--text-primary) flex items-center gap-4 uppercase">
           {format(new Date(currentYear, currentMonthIndex - 1, 1), 'MMMM yyyy')}
           <button
             onClick={onToday}
-            className="text-[11px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded text-slate-400 transition-colors"
+            className="text-[10px] font-black uppercase tracking-widest bg-(--bg-card) hover:bg-(--accent-info) hover:text-white px-4 py-2 rounded-xl text-(--text-secondary) transition-all border border-(--border-color)"
           >
             Hari Ini
           </button>
         </h2>
 
-        <div className="flex items-center gap-1">
-          <div className="flex items-center bg-white/5 rounded-md p-0.5 border border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-(--bg-card) rounded-xl p-1 border border-(--border-color)">
             <button
               onClick={onPrevMonth}
-              className="p-1 hover:bg-white/10 rounded text-slate-300 disabled:opacity-20"
+              className="p-2 hover:bg-(--bg-main) rounded-lg text-(--text-primary) transition-all"
               disabled={currentYear <= 2000}
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
-            <div className="w-0.5 h-3 bg-white/5 mx-0.5" />
+            <div className="w-px h-4 bg-(--border-color) mx-1" />
             <button
               onClick={onNextMonth}
-              className="p-1 hover:bg-white/10 rounded text-slate-300"
+              className="p-2 hover:bg-(--bg-main) rounded-lg text-(--text-primary) transition-all"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </div>
 
@@ -102,21 +119,21 @@ export default function CalendarGrid({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onAddEvent}
-            className="bg-jne-red hover:bg-red-500 text-white px-3 py-1.5 rounded-md text-[11px] font-semibold flex items-center gap-1 shadow-lg shadow-red-900/20"
+            className="bg-(--accent-info) text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-(--accent-info)/20"
           >
-            <Plus size={12} />
-            <span className="hidden sm:inline">Acara Baru</span>
+            <Plus size={14} />
+            <span>Acara Baru</span>
           </motion.button>
         </div>
       </div>
 
-      {/* Tabel Kalender - sangat kecil */}
-      <div className="bg-[#1A1C23]/60 backdrop-blur-xl border border-white/5 rounded-xl overflow-hidden flex-1 flex flex-col shadow-2xl">
+      {/* Tabel Kalender */}
+      <div className="bg-(--bg-card) border border-(--border-color) rounded-2xl overflow-hidden flex-1 flex flex-col shadow-2xl">
         {/* Header Hari */}
-        <div className="grid grid-cols-7 border-b border-white/5 bg-white/2">
+        <div className="grid grid-cols-7 border-b border-(--border-color) bg-(--bg-main)/30">
           {daysOfWeek.map((day) => (
-            <div key={day} className="py-2 text-center">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <div key={day} className="py-4 text-center">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary) opacity-60">
                 {day.substring(0, 3)}
               </span>
             </div>
@@ -158,23 +175,19 @@ export default function CalendarGrid({
         <div className="p-3 border-t border-white/5 bg-white/2">
           <div className="flex flex-wrap gap-4 items-center">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Info size={14} /> Legenda:
+              <Info size={14} /> Heatmap Presensi:
             </span>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#F97316]" />
-              <span className="text-xs text-slate-400">Libur</span>
+              <div className="w-3 h-3 rounded-sm bg-emerald-500/30" />
+              <span className="text-xs text-slate-400">Padat (&gt;80%)</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#3B82F6]" />
-              <span className="text-xs text-slate-400">Kerja</span>
+              <div className="w-3 h-3 rounded-sm bg-yellow-500/30" />
+              <span className="text-xs text-slate-400">Normal</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#A855F7]" />
-              <span className="text-xs text-slate-400">Pribadi</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#EAB308]" />
-              <span className="text-xs text-slate-400">Ingat</span>
+              <div className="w-3 h-3 rounded-sm bg-rose-500/30" />
+              <span className="text-xs text-slate-400">Sepi (&lt;40%)</span>
             </div>
           </div>
         </div>
@@ -193,26 +206,22 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
         onSelectDate(day.date);
         play();
       }}
-      className={`calendar-day-cell relative min-h-[70px] p-2 border-r border-b border-white/5 cursor-pointer transition-all duration-300 group
-        ${isSelected ? 'z-10 ring-1 ring-inset ring-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : ''}
+      className={`calendar-day-cell relative min-h-[90px] p-3 border-r border-b border-(--border-color) cursor-pointer transition-all duration-500 group
+        ${isSelected ? 'z-10 bg-(--accent-info)/5 ring-1 ring-inset ring-(--accent-info)/30 shadow-2xl shadow-(--accent-info)/10' : ''}
       `}
       style={{
-        backgroundColor: isSelected ? 'rgba(255,255,255,0.05)' : details.uiColorHint.bg + '11',
+        backgroundColor: isSelected ? undefined : details.heatColor,
       }}
     >
       <div className="flex justify-between items-start">
         <div
           className={`
-            w-8 h-8 rounded flex items-center justify-center text-sm font-bold
-            ${isTodayActive ? 'bg-jne-red text-white shadow-lg shadow-jne-red/30' : ''}
-            ${!isTodayActive && details.uiCategory !== 'normal' ? 'bg-white/5 text-white ring-1 ring-white/10' : ''}
-            ${!isTodayActive && details.uiCategory === 'normal' ? 'text-slate-400 group-hover:text-white' : ''}
-            ${isSelected && !isTodayActive ? 'ring-2 ring-white/20 scale-110' : ''}
+            w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all
+            ${isTodayActive ? 'bg-(--accent-info) text-white shadow-xl shadow-(--accent-info)/30 rotate-3' : ''}
+            ${!isTodayActive && details.uiCategory !== 'normal' ? 'bg-(--accent-info)/10 text-(--accent-info) ring-1 ring-(--accent-info)/20' : ''}
+            ${!isTodayActive && details.uiCategory === 'normal' ? 'text-(--text-primary) opacity-40 group-hover:opacity-100 group-hover:bg-(--bg-main) group-hover:scale-110' : ''}
+            ${isSelected && !isTodayActive ? 'bg-(--accent-info) text-white scale-110 rotate-6 shadow-xl shadow-(--accent-info)/20' : ''}
           `}
-          style={{
-            backgroundColor: !isTodayActive && details.uiCategory !== 'normal' ? details.uiColorHint.bg : undefined,
-            color: !isTodayActive && details.uiCategory !== 'normal' ? details.uiColorHint.text : undefined,
-          }}
         >
           {day.date.split('-')[2]}
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Users,
   Clock,
@@ -8,333 +8,200 @@ import {
   TrendingUp,
   FileText,
   Clock8,
-  MapPin,
-  Filter,
   ChevronRight,
-  CheckCircle2
+  Activity,
+  Zap,
+  ArrowUpRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import { motion } from 'framer-motion';
+
+const AttendanceChart = dynamic(() => import('@/components/dashboard/AttendanceChart'), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-slate-50 dark:bg-slate-900/50 animate-pulse rounded-2xl" />
+});
+
+function CompactStat({ title, value, sub, icon: Icon, colorClass, iconColor }: any) {
+  return (
+    <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all group">
+      <div className="flex items-start justify-between mb-3">
+        <div className={`p-2.5 rounded-lg ${colorClass} bg-opacity-10 dark:bg-opacity-20 transition-colors group-hover:bg-opacity-30`}>
+          <Icon size={18} className={iconColor} />
+        </div>
+        <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-400/10 px-2 py-0.5 rounded-lg border border-emerald-100 dark:border-emerald-400/20">
+          <TrendingUp size={10} />
+          <span>+2.4%</span>
+        </div>
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">{title}</p>
+        <h3 className="text-2xl font-black text-slate-950 dark:text-white tracking-tight">{value || 0}</h3>
+        <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest italic">{sub}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: stats, weeklyData, loading } = useDashboardStats();
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const { data: stats, loading } = useDashboardStats();
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const weeklyData = useMemo(() => {
+    return stats?.weeklyTrends || [];
+  }, [stats]);
 
   if (loading) {
-    // respect layout, jangan full-screen lagi
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950 rounded-(--radius-apple)">
-        <div className="w-12 h-12 border-4 border-cyan-600/10 border-t-cyan-600 dark:border-t-cyan-400 rounded-full animate-spin" />
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-slate-200 border-t-blue-600 dark:border-t-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 bg-(--bg-main) transition-colors duration-500">
-      {/* ROW 1: CORE METRICS */}
-      <div className="grid grid-cols-12 gap-4">
-        {[
-          { label: 'Total Personel', value: stats?.totalEmployees, sub: 'Aktif di Martapura', icon: Users, color: '--metric-blue' },
-          { label: 'Hadir Hari Ini', value: stats?.presentToday, sub: `${stats?.absentToday} Belum Absen`, icon: UserCheck, color: '--metric-green' },
-          { label: 'Ketepatan Waktu', value: `${stats?.punctualityRate}%`, sub: 'Tepat Waktu', icon: Clock, color: '--metric-teal' },
-          { label: 'Permintaan Pending', value: stats?.pendingLeaves, sub: 'Izin & Lembur', icon: FileText, color: '--metric-peach' },
-        ].map((card, i) => (
-          <div 
-            key={i} 
-            className="col-span-3 bento-card p-5! flex items-center gap-4"
-            style={{ backgroundColor: `var(${card.color}-bg)` }}
-          >
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/30 dark:bg-black/20"
-              style={{ color: `var(${card.color}-text)` }}
-            >
-              <card.icon size={22} />
-            </div>
-            <div>
-              <p 
-                className="text-[10px] font-black opacity-70 uppercase tracking-tight leading-none mb-1"
-                style={{ color: `var(${card.color}-text)` }}
-              >
-                {card.label}
-              </p>
-              <h3 
-                className="text-2xl font-black tracking-tighter italic"
-                style={{ color: `var(${card.color}-text)` }}
-              >
-                {card.value}
-              </h3>
-              <p 
-                className="text-[9px] font-bold opacity-60 uppercase mt-0.5"
-                style={{ color: `var(${card.color}-text)` }}
-              >
-                {card.sub}
-              </p>
-            </div>
+    <div className="max-w-[1400px] mx-auto space-y-6 pb-10">
+      
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
+            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Enterprise Nexus / Online</span>
           </div>
-        ))}
-      </div>
-
-      {/* MAIN SECTION: share height, scroll di dalam */}
-      <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
-        {/* LEFT COLUMN (Trend + Live Board) */}
-        <div className="col-span-8 flex flex-col gap-4 min-h-0">
-          {/* WEEKLY PERFORMANCE TREND */}
-          <section className="bento-card flex flex-col flex-3 min-h-0">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-sm font-black text-(--text-primary) uppercase tracking-tight italic">
-                  Vektor Kehadiran
-                </h3>
-                <p className="text-[10px] font-bold text-(--text-secondary) uppercase tracking-tight mt-1">
-                  Tren kehadiran personil 7 hari terakhir
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-xl">
-                <TrendingUp size={14} />
-                <span className="text-[10px] font-bold uppercase">+12.4% Stability</span>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={weeklyData}>
-                  <defs>
-                    <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--sidebar-bg)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--sidebar-bg)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="currentColor"
-                    className="opacity-5"
-                  />
-                  <XAxis
-                    dataKey="day"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--text-secondary)' }}
-                  />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '16px',
-                      backgroundColor: 'var(--bg-card)',
-                      border: '1px solid var(--border-color)',
-                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      color: 'var(--text-primary)',
-                    }}
-                    itemStyle={{ color: 'var(--text-primary)' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="present"
-                    stroke="var(--sidebar-bg)"
-                    strokeWidth={4}
-                    fillOpacity={1}
-                    fill="url(#colorPresent)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          {/* LIVE OPERATIONAL BOARD */}
-          <section className="bento-card flex flex-col flex-2 min-h-0">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h3 className="text-sm font-black text-(--text-primary) uppercase tracking-tight italic">
-                  Papan Operasional Langsung
-                </h3>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 rounded-full">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-black text-emerald-500 uppercase">
-                    Roster Langsung
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => router.push('/attendance/live')}
-                  className="p-2.5 bg-(--bg-card) text-(--text-secondary) rounded-xl hover:text-cyan-600 transition-all border border-(--border-color)"
-                >
-                  <Filter size={16} />
-                </button>
-                <button 
-                  onClick={() => alert('Feature: Generating enterprise report...')}
-                  className="px-6 py-2.5 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-600 dark:hover:bg-cyan-400 transition-all shadow-lg"
-                >
-                  Cetak Laporan
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-(--border-color)">
-                    <th className="pb-4 text-[9px] font-black text-(--text-secondary) uppercase tracking-widest">
-                      Nama Personel
-                    </th>
-                    <th className="pb-4 text-[9px] font-black text-(--text-secondary) uppercase tracking-widest">
-                      Waktu Absen
-                    </th>
-                    <th className="pb-4 text-[9px] font-black text-(--text-secondary) uppercase tracking-widest">
-                      Status GPS
-                    </th>
-                    <th className="pb-4 text-[9px] font-black text-(--text-secondary) uppercase tracking-widest">
-                      Performa
-                    </th>
-                    <th className="pb-4 text-[9px] font-black text-(--text-secondary) uppercase tracking-widest text-right">
-                      Verifikasi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-(--border-color)">
-                  {(stats?.recentActivities || []).slice(0, 3).map((act: any, i: number) => (
-                    <tr
-                      key={i}
-                      className="group hover:bg-(--bg-main) transition-all"
-                    >
-                      <td className="py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-(--border-color) flex items-center justify-center text-[10px] font-black italic text-(--text-primary)">
-                            {act.userName.charAt(0)}
-                          </div>
-                          <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-tight">
-                            {act.userName}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <div className="flex items-center gap-2 text-(--text-secondary)">
-                          <Clock8 size={12} />
-                          <span className="text-[10px] font-bold">{act.checkIn}</span>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                          <MapPin size={12} />
-                          <span className="text-[9px] font-black uppercase">Terverifikasi</span>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <span
-                          className={`text-[9px] font-black uppercase ${
-                            act.status === 'late'
-                              ? 'text-cyan-600'
-                              : 'text-emerald-600 dark:text-emerald-400'
-                          }`}
-                        >
-                          {act.status === 'late' ? 'Terlambat' : 'Tepat Waktu'}
-                        </span>
-                      </td>
-                      <td className="py-4 text-right">
-                        <button 
-                          onClick={() => router.push('/attendance/history')}
-                          className="p-2 bg-(--bg-main) text-(--text-secondary) rounded-lg hover:text-cyan-600 transition-all border border-(--border-color)"
-                        >
-                          <ChevronRight size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <h1 className="text-3xl font-black text-slate-950 dark:text-white tracking-tighter uppercase italic leading-none">
+            Dashboard <span className="text-orange-600 font-light">Overview</span>
+          </h1>
         </div>
 
-        {/* RIGHT COLUMN (Action Queue) */}
-        <aside className="col-span-4 bento-card flex flex-col min-h-0">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-black text-(--text-primary) uppercase tracking-tight italic">
-              Antrean Tindakan
-            </h3>
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1 bg-cyan-600 dark:bg-cyan-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
-                {stats?.pendingLeaves || 0} Baru
-              </div>
+        <div className="flex items-center gap-2">
+           <button 
+             onClick={() => router.push('/broadcast')}
+             className="h-10 px-5 bg-orange-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:brightness-110 transition-all shadow-lg shadow-orange-600/20"
+           >
+              <Zap size={14} />
+              Broadcast
+           </button>
+        </div>
+      </div>
+
+      {/* ── SOS ALERT ── */}
+      {stats?.pendingRequests.some((r: any) => r.type === 'SOS') && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-600 p-4 rounded-2xl flex items-center justify-between text-white shadow-xl shadow-red-600/20 relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-white/5 animate-pulse" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+              <Zap size={20} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-tight italic">Emergency SOS Active</h2>
+              <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.2em]">Immediate Dispatch Required</p>
             </div>
           </div>
+          <button 
+            onClick={() => router.push('/requests')}
+            className="px-6 h-10 bg-white text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm relative z-10"
+          >
+            Take Action
+          </button>
+        </motion.div>
+      )}
 
-          <div className="flex-1 overflow-y-auto no-scrollbar space-y-4">
-            {(!stats?.pendingRequests || stats.pendingRequests.length === 0) ? (
-              <div className="py-20 flex flex-col items-center text-center px-6">
-                <div className="w-16 h-16 bg-(--bg-main) rounded-full flex items-center justify-center text-(--text-secondary) mb-4 border border-(--border-color)">
-                  <CheckCircle2 size={32} />
+      {/* ── STATS GRID ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CompactStat title="Personel" value={stats?.totalEmployees} sub={`${stats?.onlineNowCount || 0} Aktif saat ini`} icon={Users} colorClass="bg-blue-600" iconColor="text-blue-600 dark:text-blue-400" />
+        <CompactStat title="Hadir" value={stats?.presentToday} sub={`${stats?.absentToday} Belum absen`} icon={UserCheck} colorClass="bg-emerald-600" iconColor="text-emerald-600 dark:text-emerald-400" />
+        <CompactStat title="On-Time Rate" value={`${stats?.punctualityRate}%`} sub="Daily Performance" icon={Clock} colorClass="bg-indigo-600" iconColor="text-indigo-600 dark:text-indigo-400" />
+        <CompactStat title="Pending" value={stats?.pendingLeaves} sub="Approval needed" icon={FileText} colorClass="bg-amber-600" iconColor="text-amber-600 dark:text-amber-400" />
+      </div>
+
+      {/* ── MAIN CONTENT ── */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+             <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-2">
+                   <Activity size={18} className="text-blue-600 dark:text-blue-400" />
+                   <h3 className="font-black text-xs text-slate-950 dark:text-white uppercase tracking-widest italic">Attendance Vector</h3>
                 </div>
-                <h3 className="text-xs font-black text-(--text-primary) uppercase tracking-widest">Nexus Bersih</h3>
-                <p className="text-[10px] font-medium text-(--text-secondary) mt-2 italic leading-relaxed">Semua permohonan telah diproses. Tidak ada antrean tindakan.</p>
-              </div>
-            ) : stats.pendingRequests.map((req: any) => (
-              <div
-                key={req.id}
-                className="p-5 bg-(--bg-main) rounded-3xl border border-(--border-color) hover:border-cyan-600/20 transition-all group"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-(--bg-card) flex items-center justify-center shadow-sm text-(--text-primary) font-black text-xs italic border border-(--border-color)">
-                      {req.employeeName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-tight">
-                        {req.employeeName}
-                      </p>
-                      <p className="text-[8px] font-bold text-(--text-secondary) uppercase tracking-widest">
-                        {req.department} • Hub MTP
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[8px] font-black text-cyan-600 dark:text-cyan-400 uppercase bg-cyan-600/5 px-2 py-1 rounded-md border border-cyan-600/10">
-                    {req.type}
-                  </span>
+                <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-100 dark:border-slate-800">
+                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Weekly Trend</span>
                 </div>
-                <p className="text-[10px] text-(--text-secondary) font-medium leading-relaxed mb-4 italic">
-                  "{req.reason}"
-                </p>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => router.push(`/attendance/leaves?id=${req.id}`)}
-                    className="flex-1 py-3 bg-(--bg-card) border border-(--border-color) rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-cyan-600 transition-all"
-                  >
-                    Tinjau
-                  </button>
-                  <button 
-                    onClick={() => router.push(`/attendance/leaves?id=${req.id}`)}
-                    className="flex-1 py-3 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-950 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-cyan-600 transition-all"
-                  >
-                    Proses
-                  </button>
-                </div>
-              </div>
-            ))}
+             </div>
+             <div className="h-[320px] w-full">
+                <AttendanceChart data={weeklyData} />
+             </div>
           </div>
 
-          <button 
-            onClick={() => router.push('/attendance/leaves')}
-            className="mt-4 w-full py-4 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-950 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            Kelola Semua Permohonan
-          </button>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <Clock8 size={18} className="text-slate-400" />
+                   <h3 className="font-black text-xs text-slate-950 dark:text-white uppercase tracking-widest italic">Recent Registry</h3>
+                </div>
+                <button className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] hover:underline" onClick={() => router.push('/attendance')}>Monitor All</button>
+             </div>
+             <table className="w-full text-left">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                   {(stats?.recentActivities || []).slice(0, 5).map((act: any, i: number) => (
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                         <td className="px-6 py-4">
+                            <div className="flex items-center gap-4">
+                               <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase italic">
+                                  {act.userName.charAt(0)}
+                               </div>
+                               <p className="text-xs font-black text-slate-950 dark:text-white tracking-tight uppercase italic">{act.userName}</p>
+                            </div>
+                         </td>
+                         <td className="px-6 py-4">
+                            <p className="text-[10px] font-medium text-slate-500 italic truncate">&ldquo;{act.actionLabel}&rdquo;</p>
+                         </td>
+                         <td className="px-6 py-4 text-right">
+                            <button className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                               <ArrowUpRight size={16} />
+                            </button>
+                         </td>
+                      </tr>
+                   ))}
+                </tbody>
+             </table>
+          </div>
+        </div>
+
+        <aside className="col-span-12 lg:col-span-4">
+           <div className="bg-slate-950 dark:bg-black rounded-2xl p-6 text-white shadow-xl h-full min-h-[450px] flex flex-col relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                 <Zap size={120} />
+              </div>
+              
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Queue Notifications</h3>
+                 <span className="px-2 py-0.5 bg-orange-600 text-white rounded text-[8px] font-bold uppercase">{stats?.pendingRequests.length}</span>
+              </div>
+              
+              <div className="flex-1 space-y-3 relative z-10 overflow-y-auto pr-2 custom-scrollbar">
+                 {(stats?.pendingRequests || []).slice(0, 6).map((req: any, i: number) => (
+                    <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                       <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-black tracking-tight uppercase italic">{req.employeeName}</p>
+                          <span className="text-[9px] font-black text-orange-500 uppercase italic">{req.type}</span>
+                       </div>
+                       <p className="text-[10px] text-slate-500 line-clamp-1 mb-3 italic font-medium">Registry request pending approval...</p>
+                       <button 
+                          onClick={() => router.push('/requests')}
+                          className="w-full py-2.5 bg-white text-slate-950 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all shadow-lg"
+                       >
+                          Review Now
+                       </button>
+                    </div>
+                 ))}
+              </div>
+           </div>
         </aside>
       </div>
     </div>

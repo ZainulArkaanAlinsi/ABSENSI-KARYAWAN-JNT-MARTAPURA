@@ -70,7 +70,7 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     jamKerjaId: data.jamKerjaId || '',
 
     role: data.role || 'employee',
-
+    isOnline: data.isOnline ?? false,
     faceRegistered: data.faceRegistered ?? false,
     fcmToken: data.fcmToken,
     deviceId: data.deviceId,
@@ -127,8 +127,23 @@ function mapLeave(id: string, data: DocumentData): LeaveRequest {
 }
 
 function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
+  // Helper to safely extract time as string from various formats
+  const extractTime = (obj: any) => {
+    if (!obj) return undefined;
+    if (typeof obj === 'string') return obj;
+    if (obj.time) {
+      if (typeof obj.time === 'string') return obj.time;
+      if (obj.time.toDate) return obj.time.toDate().toISOString();
+    }
+    if (obj.toDate) return obj.toDate().toISOString();
+    return undefined;
+  };
+
   // Handle nested (old) or flat (new Data Connect style) formats
-  const checkIn = data.checkIn || (data.checkInTime ? {
+  const checkIn = data.checkIn ? {
+    ...data.checkIn,
+    time: extractTime(data.checkIn)
+  } : (data.checkInTime ? {
     time: toDate(data.checkInTime),
     latitude: data.checkInLatitude,
     longitude: data.checkInLongitude,
@@ -137,7 +152,10 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     photoUrl: data.checkInPhotoUrl,
   } : undefined);
 
-  const checkOut = data.checkOut || (data.checkOutTime ? {
+  const checkOut = data.checkOut ? {
+    ...data.checkOut,
+    time: extractTime(data.checkOut)
+  } : (data.checkOutTime ? {
     time: toDate(data.checkOutTime),
     latitude: data.checkOutLatitude,
     longitude: data.checkOutLongitude,

@@ -180,39 +180,39 @@ export default function MaintenanceSettings() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Seeding Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Zap className="text-[#005596]" size={20} />
-            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Mock Data Generator</h4>
+          <div className="flex items-center gap-3 text-(--accent-info)">
+            <Zap size={20} />
+            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Generator Data Simulasi</h4>
           </div>
-          <p className="text-xs text-(--text-muted) leading-relaxed">
+          <p className="text-xs text-(--text-secondary) leading-relaxed opacity-70">
             Isi database dengan riwayat absensi otomatis selama 30 hari terakhir untuk melihat visualisasi dashboard yang lengkap.
           </p>
           <button
             onClick={seedAttendance}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-[#005596]/10 text-[#005596] border border-[#005596]/20 font-black text-[10px] uppercase tracking-widest hover:bg-[#005596] hover:text-white transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-(--accent-info)/10 text-(--accent-info) border border-(--accent-info)/20 font-black text-[10px] uppercase tracking-widest hover:bg-(--accent-info) hover:text-white transition-all disabled:opacity-50"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />}
-            Generate 30 Days History
+            Hasilkan Riwayat 30 Hari
           </button>
         </div>
 
         {/* Cleanup Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Trash2 className="text-red-600" size={20} />
-            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Database Cleanup</h4>
+          <div className="flex items-center gap-3 text-red-500">
+            <Trash2 size={20} />
+            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Pembersihan Database</h4>
           </div>
-          <p className="text-xs text-(--text-muted) leading-relaxed">
+          <p className="text-xs text-(--text-secondary) leading-relaxed opacity-70">
             Bersihkan semua riwayat absensi untuk memulai dari awal. Data yang dihapus tidak dapat dikembalikan.
           </p>
           <button
             onClick={clearAttendance}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-600/10 text-red-600 border border-red-600/20 font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-            Clear All History
+            Hapus Semua Riwayat
           </button>
         </div>
       </div>
@@ -233,9 +233,9 @@ export default function MaintenanceSettings() {
           </div>
           
           {loading && (
-            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-(--bg-main) rounded-full overflow-hidden border border-(--border-color)">
               <motion.div 
-                className="h-full bg-[#005596]" 
+                className="h-full bg-(--accent-info)" 
                 animate={{ width: `${progress}%` }} 
               />
             </div>

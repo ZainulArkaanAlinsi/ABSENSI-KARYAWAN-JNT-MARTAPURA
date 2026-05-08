@@ -5,25 +5,41 @@ import {
   Search, 
   User,
   Sun,
-  Moon
+  Moon,
+  ChevronLeft
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isDashboard = pathname === '/dashboard';
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-(--bg-card)/60 backdrop-blur-md border border-(--border-color) rounded-2xl shadow-sm transition-all duration-300">
-      {/* ── SEARCH BAR ── */}
-      <div className="flex-1 max-w-md relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
-        <input 
-          type="text" 
-          placeholder="Quick search personnel..." 
-          className="w-full bg-(--bg-main)/50 border border-(--border-color) rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-(--text-primary) placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
-        />
+      {/* ── BACK BUTTON & SEARCH ── */}
+      <div className="flex items-center gap-4 flex-1 max-w-md">
+        {!isDashboard && (
+          <button 
+            onClick={() => router.back()}
+            className="w-10 h-10 shrink-0 bg-(--bg-main) border border-(--border-color) rounded-xl flex items-center justify-center text-(--text-secondary) hover:text-(--accent-primary) hover:border-(--accent-primary)/50 transition-all shadow-sm group/back"
+          >
+            <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+        )}
+        <div className="flex-1 relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
+          <input 
+            type="text" 
+            placeholder="Quick search personnel..." 
+            className="w-full bg-(--bg-main)/50 border border-(--border-color) rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-(--text-primary) placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
+          />
+        </div>
       </div>
 
       {/* ── ACTIONS ── */}

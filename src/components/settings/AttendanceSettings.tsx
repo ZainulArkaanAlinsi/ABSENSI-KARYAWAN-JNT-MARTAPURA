@@ -16,26 +16,26 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
         {/* Face Recognition Protocol */}
         <div className="space-y-6">
            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-cyan-600/10 text-cyan-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-(--accent-info)/10 text-(--accent-info) flex items-center justify-center">
                  <UserCheck size={18} />
               </div>
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white italic">Biometric Protocol</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-(--text-primary) italic">Protokol Biometrik</h4>
            </div>
 
            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Recognition Threshold</label>
-                <div className="px-4 py-1.5 bg-cyan-600 text-white text-[10px] font-black rounded-xl shadow-lg shadow-cyan-600/20 italic">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Ambang Batas Pengenalan (Threshold)</label>
+                <div className="px-4 py-1.5 bg-(--accent-info) text-white text-[10px] font-black rounded-xl shadow-lg shadow-(--accent-info)/20 italic">
                   {settings.faceSimilarityThreshold ?? 60}%
                 </div>
               </div>
-              <div className="relative h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full">
+              <div className="relative h-2 w-full bg-(--bg-main) rounded-full border border-(--border-color)">
                 <input
                   type="range"
                   min={60}
                   max={99}
                   step={1}
-                  className="absolute inset-0 w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent accent-cyan-600 z-10"
+                  className="absolute inset-0 w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent accent-(--accent-info) z-10"
                   value={settings.faceSimilarityThreshold ?? 60}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -43,25 +43,25 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
                   }}
                 />
                 <div 
-                  className="absolute top-0 left-0 h-full bg-cyan-600 rounded-full shadow-[0_0_10px_rgba(8,145,178,0.3)]"
+                  className="absolute top-0 left-0 h-full bg-(--accent-info) rounded-full shadow-[0_0_10px_rgba(14,116,144,0.3)]"
                   style={{ width: `${((settings.faceSimilarityThreshold ?? 60) - 60) / (99 - 60) * 100}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-slate-400">
-                <span>Fast Sync (60%)</span>
-                <span>High Precision (99%)</span>
+              <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-(--text-secondary) opacity-50">
+                <span>Sinkronisasi Cepat (60%)</span>
+                <span>Presisi Tinggi (99%)</span>
               </div>
            </div>
 
            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Security Retry Limit</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Batas Percobaan Keamanan</label>
               <div className="relative group">
-                <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-secondary) opacity-40 group-focus-within:text-(--accent-info) transition-colors" />
                 <input
                   type="number"
                   min={1}
                   max={10}
-                  className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-cyan-600/50 transition-all shadow-sm"
+                  className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-(--accent-info)/50 transition-all shadow-sm"
                   value={settings.maxFaceAttempts ?? 1}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -69,8 +69,8 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
                   }}
                 />
               </div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">
-                Device akan mengunci fitur absensi jika gagal melewati batas ini.
+              <p className="text-[9px] font-bold text-(--text-secondary) opacity-50 uppercase tracking-widest italic">
+                Sistem akan mengunci fitur absensi jika gagal melewati batas ini.
               </p>
            </div>
         </div>
@@ -78,36 +78,36 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
 
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-slate-950 text-white flex items-center justify-center">
+           <div className="w-8 h-8 rounded-lg bg-(--accent-success)/10 text-(--accent-success) flex items-center justify-center">
               <ShieldCheck size={18} />
            </div>
-           <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white italic">Operational Logic</h4>
+           <h4 className="text-[11px] font-black uppercase tracking-widest text-(--text-primary) italic">Logika Operasional</h4>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
           {[
             {
               key: 'allowOfflineAttendance',
-              label: 'Sync Archive Protocol',
-              desc: 'Izinkan penyimpanan data lokal saat koneksi terputus.',
+              label: 'Sinkronisasi Arsip Offline',
+              desc: 'Simpan data lokal saat koneksi terputus.',
               icon: Zap
             },
             {
               key: 'courierBypassGeofence',
-              label: 'Field Mobility Bypass',
-              desc: 'Kurir tidak terikat radius GPS untuk efisiensi lapangan.',
+              label: 'Bypass Lokasi Kurir',
+              desc: 'Kurir bebas absen di mana saja untuk efisiensi.',
               icon: Eye
             },
             {
               key: 'overtimeCalculation',
-              label: 'Automated Overtime Sync',
-              desc: 'Hitung lembur secara real-time berdasarkan jam pulang.',
+              label: 'Kalkulasi Lembur Otomatis',
+              desc: 'Hitung lembur real-time berdasarkan jam pulang.',
               icon: Clock
             },
           ].map((item) => (
-            <div key={item.key} className="p-5 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-cyan-600/30 transition-all group">
+            <div key={item.key} className="p-5 rounded-2xl border border-(--border-color) bg-(--bg-main) hover:border-(--accent-info)/30 transition-all group">
               <div className="flex items-center gap-4 mb-4">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 transition-colors">
+                 <div className="w-10 h-10 rounded-xl bg-(--bg-card) flex items-center justify-center text-(--text-secondary) opacity-40 group-hover:text-(--accent-info) group-hover:opacity-100 transition-all">
                     <item.icon size={20} />
                  </div>
                  <div className="flex-1">

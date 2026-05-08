@@ -1,9 +1,8 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { animate } from 'animejs';
 
 interface ModalProps {
   isOpen: boolean;
@@ -14,74 +13,61 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = 560 }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = 'var(--removed-scroll-width, 0px)';
-      
-      // AnimeJS Pop Entry
-      if (modalRef.current) {
-        animate(modalRef.current, {
-          scale: [0.9, 1],
-          opacity: [0, 1],
-          translateY: [20, 0],
-          duration: 600,
-          easing: 'easeOutElastic(1, .8)'
-        });
-      }
     } else {
       document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
     }
     return () => {
       document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
     };
   }, [isOpen]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center overflow-y-auto px-4 py-8 md:py-20 backdrop-blur-sm transition-all duration-300"
-          style={{ backgroundColor: 'rgba(10, 20, 30, 0.7)' }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
-          }}
-        >
-          <div
-            ref={modalRef}
-            className="relative w-full glass-card rounded-2xl border border-white/10 shadow-2xl my-auto shrink-0 opacity-0"
-            style={{
-              maxWidth,
-              boxShadow: 'var(--shadow-premium)',
-            }}
-          >
-            {/* Header dengan garis aksen */}
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-primary" />
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
+          />
 
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-black text-white uppercase tracking-tighter">{title}</h2>
+          {/* Modal Content */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+            className="relative w-full overflow-hidden bg-white dark:bg-slate-900 rounded-[32px] border border-white/20 dark:border-white/10 shadow-2xl"
+            style={{ maxWidth }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Accent */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-indigo-600" />
+
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
+                  {title}
+                </h2>
                 <button
                   onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/50 transition-all hover:border-primary/30 hover:bg-primary/10 hover:text-white"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all active:scale-90"
                 >
-                  <X size={18} strokeWidth={2.5} />
+                  <X size={20} strokeWidth={3} />
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="custom-scrollbar">
+              <div className="max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
                 {children}
               </div>
             </div>
-
-            {/* Dekorasi tambahan */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
-          </div>
+          </motion.div>
         </div>
       )}
     </AnimatePresence>

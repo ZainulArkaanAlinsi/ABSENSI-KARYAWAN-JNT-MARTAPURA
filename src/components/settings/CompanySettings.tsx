@@ -19,10 +19,10 @@ export default function CompanySettings({ settings, update }: CompanySettingsPro
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {fields.map((field) => (
         <div key={field.key} className="space-y-3">
-          <label className="text-[11px] font-bold text-(--text-secondary) uppercase tracking-widest">{field.label}</label>
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">{field.label}</label>
           <input
             type={field.type}
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-xl px-4 py-3 text-sm font-semibold text-(--text-primary) outline-none focus:border-(--jne-rose) focus:ring-4 focus:ring-rose-500/10 transition-all placeholder:text-slate-400"
+            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-(--accent-info)/50 transition-all shadow-sm placeholder:text-(--text-secondary) placeholder:opacity-30"
             placeholder={field.placeholder}
             value={(settings as any)[field.key] ?? ''}
             onChange={(e) => update('company', field.key, e.target.value)}

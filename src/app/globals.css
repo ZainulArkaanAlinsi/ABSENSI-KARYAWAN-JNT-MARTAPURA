@@ -1,90 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --bg-main: #F8FAFC; 
-  --bg-card: #FFFFFF;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
-  --text-dim: #CBD5E1;
-  --border-color: rgba(0,0,0,0.05);
-  --border-primary: rgba(0,0,0,0.08);
-  --radius-apple: 16px;
+  /* 🎨 Enterprise Pro - Light Mode (Clean & Sharp) */
+  --bg-main: #F8FAFC; /* Slate 50 - Very clean */
+  --bg-card: #FFFFFF; /* Pure White */
+  --accent-primary: #3B82F6; /* Professional Blue */
+  --accent-success: #10B981; /* Emerald */
+  --accent-warning: #F59E0B; /* Amber */
+  --accent-danger: #EF4444;  /* Red */
+  --text-primary: #0F172A;   /* Slate 900 */
+  --text-secondary: #64748B; /* Slate 500 */
+  --border-color: #E2E8F0;   /* Slate 200 */
   
-  /* Sidebar & Brand */
-  --sidebar-bg: #4F46E5; /* Indigo primary */
-  --sidebar-text: #FFFFFF;
-  --jne-orange: #FF6B00;
-  
-  /* Semantic Metric Colors (Light Mode) */
-  --metric-blue-bg: #DBEAFE; --metric-blue-text: #1E40AF;
-  --metric-green-bg: #D1FAE5; --metric-green-text: #065F46;
-  --metric-peach-bg: #FFEDD5; --metric-peach-text: #9A3412;
-  --metric-teal-bg: #CFFAFE; --metric-teal-text: #0E7490;
+  --radius-bento: 16px;
+  --sidebar-bg: #0F172A; /* Keep sidebar dark for contrast */
+  --sidebar-text: #F8FAFC;
 }
 
 [data-theme="dark"] {
-  --bg-main: #121826;
-  --bg-card: #1E293B;
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-dim: #475569;
-  --border-color: rgba(255,255,255,0.05);
-  --border-primary: rgba(255,255,255,0.1);
+  /* 🌙 Enterprise Pro - Dark Mode (Deep Depth) */
+  --bg-main: #020617; /* Slate 950 - Deep Navy Black */
+  --bg-card: #0F172A; /* Slate 900 - Card Depth */
+  --accent-primary: #60A5FA; /* Lighter Blue */
+  --accent-success: #34D399; 
+  --accent-warning: #FBBF24;
+  --accent-danger: #F87171;
+  --text-primary: #F8FAFC;   /* Slate 50 */
+  --text-secondary: #94A3B8; /* Slate 400 */
+  --border-color: #1E293B;   /* Slate 800 */
   
-  /* Sidebar */
-  --sidebar-bg: #1E293B;
-  --sidebar-text: #F1F5F9;
+  --sidebar-bg: #000000;
+}
 
-  /* Semantic Metric Colors (Dark Mode) */
-  --metric-blue-bg: #1E3A8A; --metric-blue-text: #BFDBFE;
-  --metric-green-bg: #064E3B; --metric-green-text: #D1FAE5;
-  --metric-peach-bg: #7C2D12; --metric-peach-text: #FFEDD5;
-  --metric-teal-bg: #164E63; --metric-teal-text: #CFFAFE;
+* {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
-  letter-spacing: -0.02em;
-  line-height: 1.5;
+  font-family: 'Inter', 'Outfit', sans-serif;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── UTILITIES ── */
 @layer components {
-  .bento-card {
-    @apply bg-(--bg-card)/80 backdrop-blur-md rounded-(--radius-apple) p-5 transition-all duration-300 border-(--border-color);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  .glass-card {
+    @apply bg-(--bg-card) border border-(--border-color) shadow-sm;
   }
-
-  .bento-card:hover {
-    @apply shadow-xl border-(--border-color);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    transform: translateY(-4px);
-  }
-
-  .glass-header {
-    @apply sticky top-0 z-40 bg-(--bg-card)/60 dark:bg-(--bg-card)/60 backdrop-blur-xl;
-  }
-
-  .sidebar-solid {
-    @apply h-screen w-[72px] bg-(--sidebar-bg) flex flex-col items-center py-6 z-50 transition-colors duration-500;
-  }
-
-  .nav-link-premium {
-    @apply w-12 h-12 flex items-center justify-center rounded-[24px] text-(--sidebar-text)/60 transition-all duration-500 hover:bg-(--sidebar-text)/10 hover:text-(--sidebar-text) mb-3;
-  }
-
-  .nav-link-premium.active {
-    @apply bg-white dark:bg-slate-50 text-(--sidebar-bg) dark:text-slate-900 shadow-lg shadow-black/5;
+  
+  .text-title {
+    @apply text-slate-900 dark:text-white font-black tracking-tight;
   }
 }
 
-/* ── CUSTOM UTILS ── */
-.text-gradient-brand {
-  @apply bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-blue-500;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
 
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}

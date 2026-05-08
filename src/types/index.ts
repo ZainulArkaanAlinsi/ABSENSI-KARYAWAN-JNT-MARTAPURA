@@ -81,6 +81,7 @@ export interface Employee {
   employeeId: string;
   jamKerjaId: string;
   role: UserRole;
+  isOnline: boolean;
   faceRegistered: boolean;
   fcmToken?: string;
   deviceId?: string;

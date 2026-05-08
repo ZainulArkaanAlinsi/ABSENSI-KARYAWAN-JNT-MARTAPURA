@@ -26,7 +26,9 @@ export default function AdminGroupLayout({
   // Menentukan judul berdasarkan path
   const getPageTitle = () => {
     if (pathname.includes('/employees')) return 'Manajemen Karyawan';
-    if (pathname.includes('/attendance')) return 'Riwayat Absensi';
+    if (pathname === '/attendance') return 'Control Tower';
+    if (pathname.includes('/attendance/history')) return 'Archive Registry';
+    if (pathname.includes('/attendance/live')) return 'Tactical Map';
     if (pathname.includes('/leaves')) return 'Izin & Cuti';
     if (pathname.includes('/reports')) return 'Laporan Bulanan';
     return 'Dashboard';
@@ -43,7 +45,7 @@ export default function AdminGroupLayout({
   return (
     <NotificationProvider>
       <AdminLayout>
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false}>
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 10 }}
