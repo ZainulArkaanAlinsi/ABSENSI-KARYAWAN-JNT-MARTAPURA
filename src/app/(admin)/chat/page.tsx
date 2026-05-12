@@ -1,334 +1,447 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Send, 
-  Search, 
-  MoreVertical, 
-  Paperclip, 
-  Smile, 
-  Image as ImageIcon, 
-  Loader2, 
-  Trash2, 
-  Check, 
-  CheckCheck,
-  Phone,
-  Video,
-  User,
-  MoreHorizontal,
-  MessageSquare
+import {
+  Send, Search, MoreVertical, Paperclip, Smile,
+  Image as ImageIcon, Loader2, Trash2, Check, CheckCheck,
+  Phone, Video, MessageSquare,
 } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlassCard, InteractiveButton } from '@/components/ui/Interactive';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
+
+// ── DESIGN SYSTEM ─────────────────────────────────────────
+// accent     : #16A34A  (green-600)
+// accent-lt  : #DCFCE7  (green-100)
+// bg-page    : #F8FAFC  (slate-50)
+// bg-card    : #FFFFFF
+// border     : #E2E8F0  (slate-200)
+// text-head  : #0F172A  (slate-900)  — 15-16px font-bold
+// text-body  : #475569  (slate-600)  — 13px font-normal
+// text-cap   : #94A3B8  (slate-400)  — 11px font-medium
+// ──────────────────────────────────────────────────────────
+
+const ACCENT     = '#16A34A';
+const ACCENT_LT  = '#F0FDF4';
+
+const getChatId = (a: string, b: string) => [a, b].sort().join('_');
+
+// ── AVATAR ──
+
+const Avatar = ({
+  name, size = 40, active = false,
+}: { name: string; size?: number; active?: boolean }) => (
+  <div
+    style={{ width: size, height: size, backgroundColor: active ? ACCENT : '#0F172A' }}
+    className="rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 select-none"
+  >
+    {name.charAt(0).toUpperCase()}
+  </div>
+);
+
+// ── CONTACT ITEM ──
+
+const ContactItem = ({
+  emp, isActive, lastTime, onClick,
+}: { emp: any; isActive: boolean; lastTime?: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition-all text-left ${
+      isActive
+        ? 'bg-green-50 border border-green-100'
+        : 'hover:bg-slate-50 border border-transparent'
+    }`}
+  >
+    <div className="relative shrink-0">
+      <Avatar name={emp.name} size={42} active={isActive} />
+      {emp.isOnline && (
+        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+      )}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-between mb-0.5">
+        <p className={`text-[13px] font-semibold truncate ${isActive ? 'text-green-700' : 'text-slate-900'}`}>
+          {emp.name}
+        </p>
+        {lastTime && (
+          <span className="text-[11px] text-slate-400 shrink-0 ml-2">{lastTime}</span>
+        )}
+      </div>
+      <p className="text-[12px] text-slate-400 truncate">{emp.department}</p>
+    </div>
+  </button>
+);
+
+// ── MESSAGE BUBBLE ──
+
+const Bubble = ({
+  msg, isMe, showAvatar, peerName, onDelete,
+}: { msg: any; isMe: boolean; showAvatar: boolean; peerName: string; onDelete: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25 }}
+    className={`flex items-end gap-2.5 ${isMe ? 'flex-row-reverse ml-auto' : ''} max-w-[75%]`}
+  >
+    {/* Avatar placeholder for alignment */}
+    <div className="w-8 shrink-0">
+      {!isMe && showAvatar && (
+        <Avatar name={peerName} size={32} />
+      )}
+    </div>
+
+    <div className={`group flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+      <div className={`px-4 py-3 rounded-2xl ${
+        isMe
+          ? 'bg-green-600 text-white rounded-br-sm'
+          : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm shadow-sm'
+      }`}>
+        {msg.imageUrl && (
+          <img
+            src={msg.imageUrl}
+            alt="attachment"
+            className="rounded-xl mb-2 max-w-full h-auto"
+          />
+        )}
+        {msg.text && (
+          <p className="text-[13px] leading-relaxed">{msg.text}</p>
+        )}
+      </div>
+
+      <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+        <span className="text-[11px] text-slate-400">
+          {msg.createdAt ? format(msg.createdAt.toDate(), 'HH:mm') : '--:--'}
+        </span>
+        {isMe && (
+          <span className={msg.isRead ? 'text-green-500' : 'text-slate-300'}>
+            {msg.isRead ? <CheckCheck size={12} strokeWidth={2.5} /> : <Check size={12} strokeWidth={2.5} />}
+          </span>
+        )}
+        {isMe && (
+          <button
+            onClick={onDelete}
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-400 ml-1"
+          >
+            <Trash2 size={11} />
+          </button>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
+
+// ── EMPTY STATE ──
+
+const EmptyState = ({ icon: Icon, title, desc }: { icon: any; title: string; desc?: string }) => (
+  <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
+    <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-300">
+      <Icon size={28} />
+    </div>
+    <div>
+      <p className="text-desc font-semibold text-slate-500">{title}</p>
+      {desc && <p className="text-[12px] text-slate-400 mt-1">{desc}</p>}
+    </div>
+  </div>
+);
+
+// ── ICON BUTTON ──
+
+const IconBtn = ({ onClick, children, className = '' }: { onClick?: () => void; children: React.ReactNode; className?: string }) => (
+  <button
+    onClick={onClick}
+    className={`w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ${className}`}
+  >
+    {children}
+  </button>
+);
+
+// ── MAIN PAGE ──
 
 export default function ChatPage() {
+  const { user }                                 = useAuth();
+  const adminId                                  = user?.uid ?? '';
   const { employees, loading: loadingEmployees } = useEmployeeManagement();
-  const [selectedCourier, setSelectedCourier] = useState<any>(null);
-  const [inputText, setInputText] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCourier, setSelectedCourier]   = useState<any>(null);
+  const [inputText, setInputText]               = useState('');
+  const [selectedImage, setSelectedImage]       = useState<File | null>(null);
+  const [searchQuery, setSearchQuery]           = useState('');
+  const [chatMeta, setChatMeta]                 = useState<Record<string, string>>({});
+  const { confirm }                             = useConfirm();
 
-  const currentAdminId = 'admin_jne_mtp'; 
-  const getChatId = (adminId: string, courierId: string) => [adminId, courierId].sort().join('_');
-  const chatId = selectedCourier ? getChatId(currentAdminId, selectedCourier.id) : null;
+  // ── Listen to chats collection for last message timestamps ──
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'chats'), snap => {
+      const meta: Record<string, string> = {};
+      snap.docs.forEach(d => {
+        const ts = d.data().lastTimestamp;
+        if (ts) {
+          try {
+            meta[d.id] = format(ts.toDate(), 'HH:mm');
+          } catch { /* ignore */ }
+        }
+      });
+      setChatMeta(meta);
+    });
+    return () => unsub();
+  }, []);
 
-  const { 
-    messages, 
-    loading, 
-    sending, 
-    sendMessage, 
-    scrollRef, 
-    setTyping, 
-    otherUserTyping, 
-    deleteMessage 
+  const chatId = selectedCourier && adminId
+    ? getChatId(adminId, selectedCourier.uid)
+    : null;
+
+  const {
+    messages, loading, sending, sendMessage,
+    scrollRef, setTyping, otherUserTyping, deleteMessage,
   } = useChat(chatId);
 
   useEffect(() => {
-    if (employees.length > 0 && !selectedCourier) {
-      setSelectedCourier(employees[0]);
-    }
+    if (employees.length > 0 && !selectedCourier) setSelectedCourier(employees[0]);
   }, [employees]);
 
   useEffect(() => {
     if (inputText.length > 0) {
       setTyping(true);
-      const timeout = setTimeout(() => setTyping(false), 2000);
-      return () => clearTimeout(timeout);
-    } else {
-      setTyping(false);
+      const t = setTimeout(() => setTyping(false), 2000);
+      return () => clearTimeout(t);
     }
+    setTyping(false);
   }, [inputText]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!inputText.trim() && !selectedImage) || !selectedCourier) return;
-    await sendMessage(inputText, selectedCourier.id, selectedImage || undefined);
+    await sendMessage(inputText, selectedCourier.uid, selectedImage ?? undefined);
     setInputText('');
     setSelectedImage(null);
   };
 
-  const filteredEmployees = employees.filter(emp => 
+  const filtered = employees.filter(emp =>
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="h-[calc(100vh-140px)] flex gap-6 overflow-hidden animate-in fade-in duration-700">
-      
-      {/* ── SIDEBAR: CONTACTS ── */}
-      <div className="w-80 flex flex-col bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden shadow-xl shrink-0">
-        <div className="p-6 border-b border-slate-100 dark:border-white/5 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Pesan</h2>
-            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-cyan-600 transition-colors cursor-pointer">
-              <MoreHorizontal size={18} />
-            </div>
+    <div className="h-[calc(100vh-140px)] flex gap-5 overflow-hidden">
+
+      {/* ─────────────────────────────────────────────────────
+          SIDEBAR
+      ───────────────────────────────────────────────────── */}
+      <div className="w-72 shrink-0 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+
+        {/* Header */}
+        <div className="px-5 pt-5 pb-4 border-b border-slate-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[16px] font-bold text-slate-900">Pesan</h2>
+            <IconBtn><MoreVertical size={16} /></IconBtn>
           </div>
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input 
-              type="text" 
-              placeholder="Cari kurir atau unit..." 
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Cari kurir..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-cyan-600/20 transition-all placeholder:text-slate-400"
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-[13px] text-slate-700 placeholder:text-slate-400 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all"
             />
           </div>
         </div>
-        
-        <div className="flex-1 overflow-y-auto no-scrollbar py-4 px-3 space-y-1">
+
+        {/* Contact list */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
           {loadingEmployees ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="animate-spin text-cyan-600" size={24} />
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Memuat Kurir...</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Loader2 className="animate-spin text-green-500" size={22} />
+              <p className="text-[12px] text-slate-400">Memuat kontak...</p>
             </div>
-          ) : filteredEmployees.map((emp) => {
-            const isActive = selectedCourier?.id === emp.id;
-            return (
-              <motion.div 
-                key={emp.id} 
-                whileHover={{ x: 4 }}
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-[12px] text-slate-400 py-8">Tidak ditemukan</p>
+          ) : (
+            filtered.map(emp => (
+              <ContactItem
+                key={emp.id}
+                emp={emp}
+                isActive={selectedCourier?.id === emp.id}
+                lastTime={adminId ? chatMeta[getChatId(adminId, emp.uid)] : undefined}
                 onClick={() => setSelectedCourier(emp)}
-                className={`p-4 flex items-center gap-4 cursor-pointer rounded-3xl transition-all relative group ${
-                  isActive ? 'bg-cyan-600 shadow-xl shadow-cyan-600/20' : 'hover:bg-slate-50 dark:hover:bg-white/5'
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black italic text-sm shrink-0 uppercase transition-all ${
-                  isActive ? 'bg-white text-cyan-600 rotate-3' : 'bg-slate-900 text-white group-hover:rotate-3'
-                }`}>
-                  {emp.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className={`text-xs font-black truncate uppercase tracking-tight ${isActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                      {emp.name}
-                    </p>
-                    <span className={`text-[8px] font-bold ${isActive ? 'text-white/60' : 'text-slate-400'}`}>12:45</span>
-                  </div>
-                  <p className={`text-[10px] font-bold truncate tracking-tight ${isActive ? 'text-white/70' : 'text-slate-500'}`}>
-                    Unit: {emp.department}
-                  </p>
-                </div>
-                {emp.isOnline && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
-                )}
-              </motion.div>
-            );
-          })}
+              />
+            ))
+          )}
         </div>
       </div>
 
-      {/* ── MAIN CHAT AREA ── */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden shadow-2xl relative">
-        
-        {/* WALLPAPER OVERLAY */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none dark:invert" style={{ backgroundImage: 'url("https://www.toptal.com/designers/subtlepatterns/uploads/double_lined.png")' }} />
+      {/* ─────────────────────────────────────────────────────
+          CHAT AREA
+      ───────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm min-w-0">
 
-        {/* CHAT HEADER */}
-        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10">
+        {/* Chat header */}
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           {selectedCourier ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-12 h-12 bg-cyan-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-cyan-600/20 uppercase text-lg">
-                  {selectedCourier.name.charAt(0)}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-emerald-500 border-4 border-white dark:border-slate-900" />
+                <Avatar name={selectedCourier.name} size={42} active />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none mb-1">{selectedCourier.name}</h3>
-                <div className="flex items-center gap-2">
-                   <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Online</p>
-                   {otherUserTyping && (
-                     <p className="text-[10px] font-black text-cyan-600 animate-pulse uppercase tracking-tighter">• Mengetik...</p>
-                   )}
-                </div>
+                <h3 className="text-desc font-semibold text-slate-900 leading-tight">
+                  {selectedCourier.name}
+                </h3>
+                <p className="text-[12px] text-slate-400 leading-tight mt-0.5">
+                  {otherUserTyping ? (
+                    <span className="text-green-500">Sedang mengetik...</span>
+                  ) : (
+                    'Online'
+                  )}
+                </p>
               </div>
             </div>
           ) : (
-             <div className="h-12 flex items-center text-xs font-black text-slate-400 uppercase tracking-widest italic">Pilih Operatif JNE</div>
+            <p className="text-desc text-slate-400">Pilih kontak untuk memulai</p>
           )}
-          
-          <div className="flex items-center gap-2">
-            <div className="hidden md:flex gap-2 mr-4">
-              <InteractiveButton className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-cyan-600 transition-all">
-                <Phone size={18} />
-              </InteractiveButton>
-              <InteractiveButton className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-cyan-600 transition-all">
-                <Video size={18} />
-              </InteractiveButton>
-            </div>
-            <InteractiveButton className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
-              <Search size={18} />
-            </InteractiveButton>
-            <InteractiveButton className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
-              <MoreVertical size={18} />
-            </InteractiveButton>
+
+          <div className="flex items-center gap-1">
+            <IconBtn><Phone size={17} /></IconBtn>
+            <IconBtn><Video size={17} /></IconBtn>
+            <IconBtn><Search size={17} /></IconBtn>
+            <IconBtn><MoreVertical size={17} /></IconBtn>
           </div>
         </div>
 
-        {/* MESSAGES */}
-        <div 
+        {/* Messages */}
+        <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-8 space-y-8 no-scrollbar relative z-0"
+          className="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-slate-50/50"
         >
           {loading ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 opacity-50">
-               <Loader2 className="animate-spin text-cyan-600" size={32} />
-               <p className="text-[10px] font-black uppercase tracking-[0.4em]">Enkripsi Pesan...</p>
+            <div className="flex flex-col items-center justify-center h-full gap-3 opacity-60">
+              <Loader2 className="animate-spin text-green-500" size={28} />
+              <p className="text-[13px] text-slate-400">Memuat pesan...</p>
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-300 dark:text-slate-700 gap-6 opacity-30">
-              <div className="w-24 h-24 rounded-4xl border-4 border-dashed border-current flex items-center justify-center">
-                <MessageSquare size={48} />
-              </div>
-              <p className="text-xs font-black uppercase tracking-[0.5em] italic">No Logs Found</p>
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="Belum ada pesan"
+              desc="Mulai percakapan dengan kurir ini"
+            />
           ) : (
             <AnimatePresence>
               {messages.map((msg, idx) => {
-                const isMe = msg.senderId === currentAdminId;
-                const showAvatar = idx === 0 || messages[idx-1]?.senderId !== msg.senderId;
-                
+                const isMe = msg.senderId === adminId;
+                const showAvatar = idx === 0 || messages[idx - 1]?.senderId !== msg.senderId;
                 return (
-                  <motion.div 
-                    key={msg.id} 
-                    initial={{ opacity: 0, x: isMe ? 20 : -20, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    className={`flex items-end gap-3 max-w-[85%] ${isMe ? 'flex-row-reverse ml-auto' : ''}`}
-                  >
-                    {!isMe && (
-                      <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-[10px] shrink-0 shadow-lg">
-                        {selectedCourier?.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className={`group flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                      <div className={`p-4 rounded-[1.8rem] shadow-sm relative overflow-hidden ${
-                        isMe 
-                        ? 'bg-cyan-600 text-white rounded-br-none' 
-                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none border border-slate-100 dark:border-white/5'
-                      }`}>
-                        {msg.imageUrl && (
-                          <img src={msg.imageUrl} alt="attachment" className="rounded-2xl mb-3 max-w-full h-auto border border-white/10 hover:scale-[1.02] transition-transform cursor-zoom-in" />
-                        )}
-                        {msg.text && (
-                          <p className="text-[13px] font-semibold leading-relaxed tracking-tight">
-                            {msg.text}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className={`flex items-center gap-2 mt-2 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                         <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">
-                           {msg.timestamp ? format(msg.timestamp.toDate(), 'HH:mm') : '--:--'}
-                         </span>
-                         {isMe && (
-                           <div className={`flex items-center ${msg.isRead ? 'text-cyan-500' : 'text-slate-300 dark:text-slate-600'}`}>
-                              {msg.isRead ? <CheckCheck size={12} strokeWidth={3} /> : <Check size={12} strokeWidth={3} />}
-                           </div>
-                         )}
-                         {isMe && (
-                           <button 
-                             onClick={() => confirm('Hapus pesan?') && deleteMessage(msg.id!)}
-                             className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500"
-                           >
-                             <Trash2 size={12} />
-                           </button>
-                         )}
-                      </div>
-                    </div>
-                  </motion.div>
+                  <Bubble
+                    key={msg.id}
+                    msg={msg}
+                    isMe={isMe}
+                    showAvatar={showAvatar}
+                    peerName={selectedCourier?.name ?? '?'}
+                    onDelete={async () => {
+                      const isConfirmed = await confirm({
+                        title: 'Hapus Pesan',
+                        message: 'Apakah Anda yakin ingin menghapus pesan ini?',
+                        variant: 'danger',
+                        confirmLabel: 'Hapus',
+                        cancelLabel: 'Batal'
+                      });
+                      if (isConfirmed) {
+                        try {
+                          await deleteMessage(msg.id!);
+                          toast.success('Pesan dihapus');
+                        } catch (e) {
+                          toast.error('Gagal menghapus pesan');
+                        }
+                      }
+                    }}
+                  />
                 );
               })}
             </AnimatePresence>
           )}
         </div>
 
-        {/* INPUT AREA */}
-        <div className="p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 z-10">
-          <form onSubmit={handleSendMessage} className="space-y-6">
-            <AnimatePresence>
-              {selectedImage && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-cyan-600/20 w-fit"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-cyan-600/10 flex items-center justify-center text-cyan-600">
-                    <ImageIcon size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Attachment</p>
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[200px]">{selectedImage.name}</p>
-                  </div>
-                  <button type="button" onClick={() => setSelectedImage(null)} className="w-8 h-8 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-all">
+        {/* Input area */}
+        <div className="px-5 py-4 border-t border-slate-100 bg-white shrink-0">
+          {/* Image preview */}
+          <AnimatePresence>
+            {selectedImage && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-3 overflow-hidden"
+              >
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl">
+                  <ImageIcon size={16} className="text-green-600 shrink-0" />
+                  <p className="text-[12px] font-medium text-green-700 flex-1 truncate">
+                    {selectedImage.name}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImage(null)}
+                    className="text-green-400 hover:text-green-700 transition-colors"
+                  >
                     <Trash2 size={14} />
                   </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="flex items-center gap-4">
-              <div className="flex gap-2">
-                <label className="w-14 h-14 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-cyan-600 transition-all cursor-pointer">
-                  <Paperclip size={20} />
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && setSelectedImage(e.target.files[0])} />
-                </label>
-                <InteractiveButton className="hidden sm:flex w-14 h-14 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl items-center justify-center text-slate-400 hover:text-amber-500 transition-all">
-                  <Smile size={20} />
-                </InteractiveButton>
-              </div>
+          <form onSubmit={handleSend} className="flex items-center gap-2.5">
+            {/* Attachments */}
+            <label className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all cursor-pointer shrink-0">
+              <Paperclip size={18} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => e.target.files?.[0] && setSelectedImage(e.target.files[0])}
+              />
+            </label>
+            <button
+              type="button"
+              className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-amber-500 transition-all shrink-0"
+            >
+              <Smile size={18} />
+            </button>
 
-              <div className="flex-1">
-                <input 
-                  type="text" 
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Kirim pesan ke kurir..." 
-                  className="w-full h-14 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-[1.2rem] px-6 text-sm font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 ring-cyan-600/20 transition-all placeholder:text-slate-400"
-                />
-              </div>
+            {/* Text input */}
+            <input
+              type="text"
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              placeholder="Ketik pesan..."
+              className="flex-1 h-10 bg-slate-100 rounded-xl px-4 text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-green-200 border border-transparent focus:border-green-300 transition-all"
+            />
 
-              <InteractiveButton 
-                type="submit"
-                disabled={sending || (!inputText.trim() && !selectedImage)}
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all ${
-                  sending || (!inputText.trim() && !selectedImage)
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                  : 'bg-cyan-600 text-white shadow-cyan-600/30 hover:scale-105 active:scale-95'
-                }`}
-              >
-                {sending ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-              </InteractiveButton>
-            </div>
+            {/* Send */}
+            <button
+              type="submit"
+              disabled={sending || (!inputText.trim() && !selectedImage)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                sending || (!inputText.trim() && !selectedImage)
+                  ? 'bg-slate-100 text-slate-300'
+                  : 'bg-green-600 text-white hover:bg-green-700 shadow-sm shadow-green-200'
+              }`}
+            >
+              {sending
+                ? <Loader2 className="animate-spin" size={17} />
+                : <Send size={17} />
+              }
+            </button>
           </form>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }

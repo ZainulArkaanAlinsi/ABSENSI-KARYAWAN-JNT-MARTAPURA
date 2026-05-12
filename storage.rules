@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth() &&
+        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'superadmin');
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // ── Profile photos ────────────────────────────────────────
+    // Path: profile_photos/{userId}.jpg
+    match /profile_photos/{userId}.jpg {
+      allow read: if isAuth();
+      allow write: if (isOwner(userId) || isAdmin())
+        && request.resource.size < 5 * 1024 * 1024
+        && isImage();
+    }
+
+    // ── Attendance check-in/out photos ────────────────────────
+    // Path: attendance_photos/{checkin|checkout}_{docId}.jpg
+    match /attendance_photos/{photoId} {
+      allow read: if isAuth();
+      allow write: if isAuth()
+        && request.resource.size < 10 * 1024 * 1024
+        && isImage();
+    }
+
+    // ── Face enrollment photos ────────────────────────────────
+    // Path: face_photos/{userId}/face_{timestamp}.jpg
+    match /face_photos/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if (isOwner(userId) || isAdmin())
+        && request.resource.size < 5 * 1024 * 1024
+        && isImage();
+    }
+
+    // ── Chat attachments (admin + mobile) ─────────────────────
+    // Path: chats/{chatId}/{filename}
+    match /chats/{chatId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth()
+        && request.resource.size < 10 * 1024 * 1024
+        && isImage();
+    }
+
+    // ── Leave request documents ───────────────────────────────
+    // Path: leaves/{userId}/{filename}
+    match /leaves/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if (isOwner(userId) || isAdmin())
+        && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ── Admin-only fallback ───────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

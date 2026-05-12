@@ -7,6 +7,17 @@ import { useNotifications } from '@/context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 
+const toDate = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('seconds' in val) return new Date(val.seconds * 1000);
+    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
 interface NotificationPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -94,7 +105,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                               <Clock size={10} />
-                              {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: id })}
+                              {formatDistanceToNow(toDate(notif.createdAt), { addSuffix: true, locale: id })}
                             </span>
                             {!notif.isRead && (
                               <button 

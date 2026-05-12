@@ -3,335 +3,346 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Users,
-  UserCheck,
-  Clock,
-  UserMinus,
-  Search,
-  ChevronRight,
-  Filter,
-  Download,
-  Calendar,
-  MoreHorizontal,
-  MapPin,
-  ShieldCheck,
-  Activity,
-  AlertCircle,
-  Inbox,
-  ArrowUpRight
+  Users, UserCheck, Clock, UserMinus, Calendar,
+  Search, ChevronRight, History, FileText,
+  AlertCircle, ArrowUpRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import Link from 'next/link';
 
-// ── PRECISION SKELETONS ──
+// ─── Status ───────────────────────────────────────────────────
+const S: Record<string, { label: string; cls: string }> = {
+  present:  { label: 'Hadir',  cls: 'bg-emerald-100 text-emerald-700' },
+  late:     { label: 'Telat',  cls: 'bg-amber-100   text-amber-700'   },
+  absent:   { label: 'Absen',  cls: 'bg-red-100     text-red-600'     },
+  leave:    { label: 'Izin',   cls: 'bg-blue-100    text-blue-700'    },
+  overtime: { label: 'Lembur', cls: 'bg-violet-100  text-violet-700'  },
+};
 
-const Skeleton = ({ className }: { className: string }) => (
-  <div className={`animate-pulse bg-slate-50 rounded-2xl ${className}`} />
-);
-
-// ── COMPONENTS ──
-
-function StatusChip({ status }: { status: string }) {
-  const map: Record<string, { label: string; color: string; bg: string }> = {
-    present: { label: 'Hadir', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    late: { label: 'Terlambat', color: 'text-amber-600', bg: 'bg-amber-50' },
-    absent: { label: 'Alfa', color: 'text-rose-600', bg: 'bg-rose-50' },
-    leave: { label: 'Izin', color: 'text-primary', bg: 'bg-primary/5' },
-  };
-  const s = map[status] || map.absent;
+function Badge({ status }: { status: string }) {
+  const s = S[status] ?? S.absent;
   return (
-    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${s.bg} ${s.color} border border-transparent`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.color.replace('text-', 'bg-')} mr-2`} />
+    <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${s.cls}`}>
       {s.label}
     </span>
   );
 }
 
-function StatBento({ label, value, icon: Icon, trend }: any) {
+// ─── Stat box ─────────────────────────────────────────────────
+function Stat({ label, value, icon: Icon, color }: {
+  label: string; value: number; icon: React.ElementType; color: string;
+}) {
   return (
-    <motion.div 
-      whileHover={{ y: -4, boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)' }}
-      className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm transition-all flex flex-col justify-between min-h-[160px]"
-    >
-      <div className="flex items-center justify-between">
-        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-          <Icon size={24} strokeWidth={1.5} />
-        </div>
-        {trend && (
-          <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black uppercase tracking-tighter">
-            <ArrowUpRight size={12} strokeWidth={3} />
-            {trend}
-          </div>
-        )}
+    <div className="flex items-center gap-3 p-4 bg-white rounded-xl border"
+         style={{ borderColor: 'var(--border-default)' }}>
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+           style={{ background: `${color}15` }}>
+        <Icon size={17} style={{ color }} strokeWidth={2.2} />
       </div>
       <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
-        <h3 className="text-stats text-slate-900 tracking-tighter">{value || 0}</h3>
+        <p className="text-[22px] font-black leading-none tabular-nums"
+           style={{ color: 'var(--text-primary)' }}>{value ?? 0}</p>
+        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{label}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-export default function AttendanceFinalPage() {
-  const router = useRouter();
-  const { data: stats, loading, error } = useDashboardStats();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('All');
+// ─── Skeleton ─────────────────────────────────────────────────
+function SkeletonRow() {
+  return (
+    <tr className="border-b" style={{ borderColor: 'var(--border-default)' }}>
+      {[180, 90, 70, 80, 20].map((w, i) => (
+        <td key={i} className="px-4 py-3.5">
+          <div className="h-3 bg-slate-100 rounded-full animate-pulse" style={{ width: w }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
 
-  const filteredData = useMemo(() => {
+// ─── Page ─────────────────────────────────────────────────────
+export default function AttendancePage() {
+  const router = useRouter();
+  const { data: stats, loading } = useDashboardStats();
+  const [search,    setSearch]    = useState('');
+  const [activeTab, setActiveTab] = useState('Semua');
+
+  const tabs = useMemo(() => {
+    const depts = stats?.departmentDistribution?.map((d: any) => d.name) ?? [];
+    return ['Semua', ...depts];
+  }, [stats]);
+
+  const filtered = useMemo(() => {
     if (!stats?.recentActivities) return [];
     return stats.recentActivities.filter((p: any) => {
-      const matchesSearch = p.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           (p.employeeId && p.employeeId.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesTab = activeTab === 'All' || p.department === activeTab;
-      return matchesSearch && matchesTab;
+      const q = search.toLowerCase();
+      return (
+        (!q || p.userName.toLowerCase().includes(q) || (p.employeeId ?? '').toLowerCase().includes(q)) &&
+        (activeTab === 'Semua' || p.department === activeTab)
+      );
     });
-  }, [stats, searchQuery, activeTab]);
+  }, [stats, search, activeTab]);
+
+  const presentRate = stats?.totalEmployees
+    ? Math.round(((stats.presentToday ?? 0) / stats.totalEmployees) * 100)
+    : 0;
 
   return (
-    <div className="flex flex-col gap-10 w-full animate-in fade-in duration-700">
-      
-      {/* ── 1. HEADER (8pt Precision) ── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
-            <span>Registry</span>
-            <ChevronRight size={12} className="text-slate-300" />
-            <span className="text-primary italic">Operational Monitoring</span>
-          </div>
-          <h1 className="text-h1 text-slate-900 uppercase italic">
-            Monitoring <span className="text-primary not-italic font-medium">Absensi</span>
+    <div className="flex flex-col gap-4 pb-8 max-w-6xl mx-auto">
+
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between pt-1"
+      >
+        <div>
+          <h1 className="text-[20px] font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            Absensi Karyawan
           </h1>
-          <p className="text-base text-slate-500 max-w-xl leading-relaxed">
-            Sistem pengawasan personil real-time untuk optimalisasi logistik JNE Martapura. 
-          </p>
+          <p className="text-[12px] text-slate-400 mt-0.5">Monitoring kehadiran hari ini</p>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <button className="h-14 px-8 bg-white border border-slate-100 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-600 shadow-sm hover:shadow-md transition-all flex items-center gap-3">
-            <Download size={18} strokeWidth={2} />
-            Export Log
-          </button>
-          <button 
-            onClick={() => router.push('/attendance/live')}
-            className="h-14 px-8 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
-          >
-            <MapPin size={18} strokeWidth={2} />
-            Tactical Map
-          </button>
-        </div>
-      </div>
 
-      {/* ── 2. STATS BENTO (cols-4 gap-6) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {loading ? (
-          Array(4).fill(0).map((_, i) => (
-            <div key={i} className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm">
-               <Skeleton className="w-10 h-10 mb-6 rounded-xl" />
-               <Skeleton className="w-24 h-4 mb-3" />
-               <Skeleton className="w-16 h-10" />
-            </div>
-          ))
-        ) : (
-          <>
-            <StatBento label="Hadir Hari Ini" value={stats?.presentToday} icon={UserCheck} trend="+12.5%" />
-            <StatBento label="Terlambat" value={stats?.lateToday} icon={Clock} trend="+1.8%" />
-            <StatBento label="Belum Absen" value={stats?.absentToday} icon={UserMinus} />
-            <StatBento label="Izin / Cuti" value={stats?.onLeaveToday} icon={Calendar} />
-          </>
-        )}
-      </div>
-
-      {/* ── 3. SEARCH & FILTERS HUB ── */}
-      <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col md:flex-row items-center gap-6">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 group-focus-within:text-primary transition-colors" />
-          <input
-            type="text"
-            placeholder="Cari personil berdasarkan nama atau ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-14 bg-slate-50 border border-transparent rounded-2xl pl-16 pr-8 text-sm font-semibold text-slate-900 placeholder:text-slate-300 outline-none focus:bg-white focus:border-primary/20 transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-3 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-          {['All', 'Delivery', 'Gudang', 'Admin'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                activeTab === tab 
-                  ? 'bg-white text-primary shadow-sm border border-slate-100' 
-                  : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              {tab}
+        <div className="flex items-center gap-2">
+          <Link href="/attendance/history">
+            <button className="h-8 px-3.5 text-[12px] font-semibold rounded-lg border transition-colors hover:bg-slate-50 flex items-center gap-1.5"
+                    style={{ borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}>
+              <History size={13} /> Riwayat
             </button>
-          ))}
-          <div className="w-px h-6 bg-slate-200 mx-2" />
-          <button className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-primary transition-colors">
-            <Filter size={18} strokeWidth={2} />
-          </button>
+          </Link>
+          <Link href="/attendance/live">
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              className="h-8 px-3.5 text-[12px] font-bold rounded-lg text-white flex items-center gap-1.5"
+              style={{ background: '#E31E24' }}
+            >
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+                className="w-1.5 h-1.5 rounded-full bg-white"
+              />
+              Live
+            </motion.button>
+          </Link>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── 4. MAIN OPERATIONAL GRID (cols-4 inside 9/12) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-        
-        {/* Table Module (75%) */}
-        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden flex flex-col min-h-[600px]">
-          <div className="p-10 border-b border-slate-50 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
-                <ShieldCheck size={24} strokeWidth={1.5} />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Personnel Registry</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Daily Tactical Feed</p>
-              </div>
-            </div>
-            {!loading && (
-              <span className="px-5 py-2 bg-slate-50 rounded-full text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border border-slate-100">
-                {filteredData.length} active records
-              </span>
-            )}
+      {/* ── STATS ROW ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.05 }}
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+      >
+        <Stat label="Hadir Hari Ini" value={stats?.presentToday ?? 0} icon={UserCheck} color="#10B981" />
+        <Stat label="Terlambat"      value={stats?.lateToday    ?? 0} icon={Clock}     color="#F59E0B" />
+        <Stat label="Belum Absen"    value={stats?.absentToday  ?? 0} icon={UserMinus} color="#E31E24" />
+        <Stat label="Izin / Cuti"    value={stats?.onLeaveToday ?? 0} icon={Calendar}  color="#005596" />
+      </motion.div>
+
+      {/* ── ATTENDANCE RATE BAR ── */}
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="bg-white rounded-xl border px-5 py-3.5 flex items-center gap-4"
+        style={{ borderColor: 'var(--border-default)' }}
+      >
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-slate-500">Tingkat Kehadiran</span>
+            <span className="text-[13px] font-black" style={{ color: presentRate >= 80 ? '#10B981' : presentRate >= 60 ? '#F59E0B' : '#E31E24' }}>
+              {presentRate}%
+            </span>
+          </div>
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${presentRate}%` }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+              className="h-full rounded-full"
+              style={{ background: presentRate >= 80 ? '#10B981' : presentRate >= 60 ? '#F59E0B' : '#E31E24' }}
+            />
+          </div>
+        </div>
+        <span className="text-[12px] text-slate-400 font-semibold shrink-0">
+          {stats?.presentToday ?? 0} / {stats?.totalEmployees ?? 0} orang
+        </span>
+      </motion.div>
+
+      {/* ── MAIN TABLE CARD ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+        className="bg-white rounded-xl border overflow-hidden"
+        style={{ borderColor: 'var(--border-default)' }}
+      >
+        {/* Toolbar */}
+        <div className="px-4 py-3 border-b flex flex-col sm:flex-row gap-2.5"
+             style={{ borderColor: 'var(--border-default)' }}>
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari nama atau ID..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 text-[12px] font-medium outline-none focus:border-slate-400 transition-colors"
+              style={{ color: 'var(--text-primary)' }}
+            />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 border-b border-slate-100">
-                  <th className="px-10 py-6">Personnel</th>
-                  <th className="px-10 py-6">Sector</th>
-                  <th className="px-10 py-6 text-center">Status</th>
-                  <th className="px-10 py-6">Timeline</th>
-                  <th className="px-10 py-6 text-right">Option</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {loading ? (
-                  Array(5).fill(0).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-50">
-                       <td className="px-10 py-8"><div className="flex gap-4"><Skeleton className="w-12 h-12 rounded-2xl" /><div className="space-y-2"><Skeleton className="w-32 h-4" /><Skeleton className="w-20 h-3" /></div></div></td>
-                       <td className="px-10 py-8"><Skeleton className="w-24 h-6 rounded-full" /></td>
-                       <td className="px-10 py-8"><Skeleton className="w-20 h-8 rounded-full" /></td>
-                       <td className="px-10 py-8"><Skeleton className="w-24 h-4" /></td>
-                       <td className="px-10 py-8 text-right"><Skeleton className="w-8 h-8 ml-auto rounded-full" /></td>
-                    </tr>
-                  ))
-                ) : filteredData.length > 0 ? (
-                  <AnimatePresence>
-                    {filteredData.map((person: any, i: number) => (
-                      <motion.tr 
-                        key={person.id || i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="hover:bg-slate-50/40 transition-all group"
-                      >
-                        <td className="px-10 py-8">
-                          <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                              {person.userName?.charAt(0) || '?'}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-900 tracking-tight">{person.userName || 'Unknown'}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{person.employeeId || 'ID-TEMP'}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-10 py-8">
-                          <span className="text-[9px] font-black text-slate-500 px-4 py-2 bg-slate-100/50 rounded-xl border border-slate-100 uppercase tracking-widest">{person.department || 'Sector A'}</span>
-                        </td>
-                        <td className="px-10 py-8 text-center">
-                          <StatusChip status={person.status || 'present'} />
-                        </td>
-                        <td className="px-10 py-8">
-                          <div className="flex items-center gap-3 text-slate-900">
-                            <Clock size={16} strokeWidth={2.5} className="text-slate-300" />
-                            <span className="text-sm font-bold tracking-tighter tabular-nums">{person.checkIn || '--:--'}</span>
-                          </div>
-                        </td>
-                        <td className="px-10 py-8 text-right">
-                          <button className="w-10 h-10 rounded-full hover:bg-slate-100 text-slate-300 hover:text-slate-900 transition-all flex items-center justify-center">
-                            <MoreHorizontal size={20} />
-                          </button>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="py-40 text-center">
-                       <div className="flex flex-col items-center gap-6">
-                         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
-                           <Inbox size={48} strokeWidth={1} />
-                         </div>
-                         <div className="space-y-1">
-                           <h4 className="text-lg font-bold text-slate-900 uppercase tracking-widest">Nexus Link Inactive</h4>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No telemetry data detected in this sector.</p>
-                         </div>
-                       </div>
-                    </td>
-                  </tr>
+          {/* Dept filter tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {tabs.slice(0, 6).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative shrink-0 h-8 px-3 rounded-lg text-[11px] font-bold transition-all ${
+                  activeTab === tab
+                    ? 'text-white'
+                    : 'text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="dept-tab"
+                    className="absolute inset-0 rounded-lg"
+                    style={{ background: '#E31E24' }}
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                  />
                 )}
-              </tbody>
-            </table>
+                <span className="relative z-10">{tab}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Right actions */}
+          <div className="sm:ml-auto flex items-center gap-1.5">
+            <Link href="/attendance/leaves">
+              <button className="h-8 px-3 text-[11px] font-semibold rounded-lg border transition-colors hover:bg-slate-50 flex items-center gap-1"
+                      style={{ borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}>
+                <FileText size={12} /> Izin
+              </button>
+            </Link>
+            <Link href="/attendance/requests">
+              <button className="h-8 px-3 text-[11px] font-semibold rounded-lg border transition-colors hover:bg-slate-50 flex items-center gap-1"
+                      style={{ borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}>
+                <AlertCircle size={12} /> Koreksi
+              </button>
+            </Link>
           </div>
         </div>
 
-        {/* Live Stream (25%) */}
-        <div className="lg:col-span-1 h-full">
-          <div className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm flex flex-col min-h-[600px] sticky top-28 overflow-hidden">
-            <div className="flex items-center justify-between mb-10">
-              <div>
-                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Telemetry</h3>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Live Link</p>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-primary shadow-inner">
-                <Activity size={20} strokeWidth={1.5} />
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-              {stats?.recentActivities?.slice(0, 10).map((act: any, i: number) => (
-                <motion.div 
-                  key={i} 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex gap-4 p-4 rounded-[24px] bg-slate-50/30 border border-transparent hover:border-[#E67E22]/20 hover:bg-white hover:shadow-lg transition-all cursor-pointer group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shrink-0 group-hover:bg-[#E67E22] group-hover:text-white transition-all shadow-sm">
-                    {act.userName?.charAt(0) || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[10px] font-bold truncate uppercase tracking-tight text-slate-900">{act.userName || 'Personnel'}</p>
-                      <span className="text-[8px] text-slate-400 font-bold tabular-nums">{act.checkIn || '00:00'}</span>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-default)' }}>
+                <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[200px]">Karyawan</th>
+                <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400">Departemen</th>
+                <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400">Jam Masuk</th>
+                <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400">Jam Keluar</th>
+                <th className="px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400">Status</th>
+                <th className="px-4 py-2.5 w-8" />
+              </tr>
+            </thead>
+            <tbody className="divide-y" style={{ '--tw-divide-opacity': 1 } as any}>
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                        <Users size={18} className="text-slate-300" />
+                      </div>
+                      <p className="text-[11px] font-semibold text-slate-400">
+                        {search ? `Tidak ditemukan "${search}"` : 'Belum ada data hari ini'}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                       <ShieldCheck size={10} className="text-slate-300" />
-                       <p className="text-[9px] text-slate-500 font-medium line-clamp-1 uppercase tracking-widest">{act.actionLabel || 'Registered'}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence>
+                  {filtered.map((p: any, i: number) => (
+                    <motion.tr
+                      key={p.id ?? i}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.02 }}
+                      className="border-b group cursor-pointer transition-colors"
+                      style={{ borderColor: 'var(--border-default)' }}
+                      onClick={() => router.push('/attendance/history')}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                    >
+                      {/* Name + ID */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-[11px] font-black shrink-0">
+                            {p.userName?.charAt(0)?.toUpperCase() ?? '?'}
+                          </div>
+                          <div>
+                            <p className="text-[13px] font-semibold leading-none" style={{ color: 'var(--text-primary)' }}>
+                              {p.userName}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{p.employeeId || '—'}</p>
+                          </div>
+                        </div>
+                      </td>
 
-            <button 
-              onClick={() => router.push('/attendance/live')}
-              className="mt-10 w-full py-5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-[#E67E22] transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center justify-center gap-2"
-            >
-              Launch Live Map
-              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+                      {/* Dept */}
+                      <td className="px-4 py-3">
+                        <span className="text-[12px] font-medium text-slate-500">{p.department || '—'}</span>
+                      </td>
+
+                      {/* Check-in */}
+                      <td className="px-4 py-3">
+                        <span className="text-[13px] font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                          {p.checkIn || '—'}
+                        </span>
+                      </td>
+
+                      {/* Check-out */}
+                      <td className="px-4 py-3">
+                        <span className="text-[12px] tabular-nums text-slate-400">
+                          {p.checkOut || '—'}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 py-3">
+                        <Badge status={p.status} />
+                      </td>
+
+                      {/* Arrow */}
+                      <td className="px-4 py-3">
+                        <ChevronRight size={13} className="text-slate-200 group-hover:text-slate-400 transition-colors" />
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </div>
-      </div>
+
+        {/* Footer */}
+        <div className="px-4 py-2.5 border-t flex items-center justify-between"
+             style={{ borderColor: 'var(--border-default)', background: 'var(--surface-hover)' }}>
+          <p className="text-[11px] text-slate-400">
+            Menampilkan <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{filtered.length}</span> karyawan
+          </p>
+          <Link href="/attendance/history">
+            <span className="text-[11px] font-bold flex items-center gap-1 cursor-pointer" style={{ color: '#005596' }}>
+              Lihat Semua Riwayat <ArrowUpRight size={11} />
+            </span>
+          </Link>
+        </div>
+      </motion.div>
     </div>
   );
 }

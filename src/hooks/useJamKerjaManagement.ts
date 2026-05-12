@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { subscribeToJamKerjas, addJamKerja, updateJamKerja, deleteJamKerja } from '@/lib/firestore';
 import type { JamKerja, WorkDay } from '@/types';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 export const DAYS: { key: WorkDay; label: string }[] = [
 
@@ -41,6 +43,7 @@ export function useJamKerjaManagement() {
   const [editingJamKerja, setEditingJamKerja] = useState<JamKerja | null>(null);
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     const unsub = subscribeToJamKerjas((data) => {
@@ -85,18 +88,38 @@ export function useJamKerjaManagement() {
     try {
       if (editingJamKerja) {
         await updateJamKerja(editingJamKerja.id, form);
+        toast.success('Skema jam kerja berhasil diperbarui');
       } else {
         await addJamKerja(form);
+        toast.success('Skema jam kerja berhasil ditambahkan');
       }
       setShowModal(false);
+    } catch (error) {
+      console.error('Error saving jam kerja:', error);
+      toast.error('Gagal menyimpan skema jam kerja');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Hapus jam kerja "${name}"? Karyawan yang menggunakan jam kerja ini perlu diperbarui.`)) return;
-    await deleteJamKerja(id);
+    const isConfirmed = await confirm({
+      title: 'Hapus Jam Kerja',
+      message: `Hapus jam kerja "${name}"? Karyawan yang menggunakan skema ini mungkin terdampak.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal'
+    });
+
+    if (!isConfirmed) return;
+    
+    try {
+      await deleteJamKerja(id);
+      toast.success('Skema jam kerja berhasil dihapus');
+    } catch (error) {
+      console.error('Error deleting jam kerja:', error);
+      toast.error('Gagal menghapus skema jam kerja');
+    }
   };
 
   const calcDuration = (checkIn: string, checkOut: string) => {

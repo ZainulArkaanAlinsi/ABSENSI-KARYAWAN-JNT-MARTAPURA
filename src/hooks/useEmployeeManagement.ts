@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { subscribeToEmployees, getJamKerjas, subscribeToDepartments } from '@/lib/firestore';
 import { useDebounce } from './useDebounce';
 import type { Employee, JamKerja, DepartmentItem } from '@/types';
+import { toast } from 'sonner';
 
 export function useEmployeeManagement() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -82,10 +83,11 @@ export function useEmployeeManagement() {
     try {
       const { deleteEmployee } = await import('@/lib/firestore');
       await deleteEmployee(id);
+      toast.success("Karyawan berhasil dihapus");
     } catch (err) {
       console.error("Deletion failed, rolling back", err);
       setEmployees(previousEmployees);
-      alert("Gagal menghapus data. Silakan coba lagi.");
+      toast.error("Gagal menghapus data. Silakan coba lagi.");
     }
   };
 

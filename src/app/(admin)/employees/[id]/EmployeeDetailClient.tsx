@@ -2,28 +2,56 @@
 
 import { useEffect, useState, use } from 'react';
 import Image from 'next/image';
-
 import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { format, subDays, parseISO } from 'date-fns';
 import { id as dateFnsId } from 'date-fns/locale';
-import { timeValueToISO } from '@/lib/departmentRules';
-import { 
-  ArrowLeft, User, Mail, Briefcase, Calendar, CheckCircle2, 
-  AlertTriangle, XCircle, Clock, MapPin, Building, Smartphone,
-  ExternalLink, ShieldCheck, Fingerprint, History
+import { safeFormatTime } from '@/utils/dateFormatters';
+import {
+  ArrowLeft, Mail, Briefcase, Calendar, AlertTriangle,
+  XCircle, Clock, MapPin, Building, Smartphone,
+  ExternalLink, ShieldCheck, Fingerprint,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Employee, AttendanceRecord } from '@/types';
 
+const toDate = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('seconds' in val) return new Date(val.seconds * 1000);
+    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
+// ─── Status chip ──────────────────────────────────────────────
+const STATUS_CFG: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  present:  { label: 'Hadir',  dot: 'bg-emerald-400', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  late:     { label: 'Telat',  dot: 'bg-amber-400',   bg: 'bg-amber-50',   text: 'text-amber-700'   },
+  absent:   { label: 'Absen',  dot: 'bg-red-400',     bg: 'bg-red-50',     text: 'text-red-600'     },
+  leave:    { label: 'Izin',   dot: 'bg-slate-400',   bg: 'bg-slate-100',  text: 'text-slate-600'   },
+  overtime: { label: 'Lembur', dot: 'bg-violet-400',  bg: 'bg-violet-50',  text: 'text-violet-700'  },
+};
+
+function StatusChip({ status }: { status: string }) {
+  const s = STATUS_CFG[status] ?? STATUS_CFG.absent;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${s.bg} ${s.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {s.label}
+    </span>
+  );
+}
+
 export default function EmployeeDetailClient({ params }: { params: Promise<{ id: string }> }) {
-  const unwrappedParams = use(params);
-  const employeeId = unwrappedParams.id;
-  
-  const [employee, setEmployee] = useState<Employee | null>(null);
+  const { id: employeeId } = use(params);
+
+  const [employee,   setEmployee]   = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -32,15 +60,16 @@ export default function EmployeeDetailClient({ params }: { params: Promise<{ id:
       try {
         const emp = await getEmployee(employeeId);
         setEmployee(emp);
-
         if (emp) {
-           const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
-           const endDate = format(new Date(), 'yyyy-MM-dd');
-           const records = await getAttendanceByRange(startDate, endDate, emp.uid);
-           setAttendance(records);
+          const records = await getAttendanceByRange(
+            format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+            format(new Date(), 'yyyy-MM-dd'),
+            emp.uid,
+          );
+          setAttendance(records);
         }
-      } catch (error) {
-        console.error('Gagal memuat detail karyawan', error);
+      } catch (err) {
+        console.error('Gagal memuat detail karyawan', err);
       } finally {
         setLoading(false);
       }
@@ -50,297 +79,258 @@ export default function EmployeeDetailClient({ params }: { params: Promise<{ id:
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 gap-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
-          <PageLoader />
-        </div>
-        <p className="text-[11px] font-black text-(--text-muted) uppercase tracking-[0.4em] animate-pulse">Sinkronisasi Database...</p>
+      <div className="flex flex-col items-center justify-center py-32 gap-3">
+        <PageLoader />
       </div>
     );
   }
 
   if (!employee) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 gap-6">
-        <div className="h-24 w-24 rounded-3xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
-          <AlertTriangle size={48} className="text-red-500/50" />
+      <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center">
+          <AlertTriangle size={28} className="text-red-400" />
         </div>
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Karyawan Terputus</h2>
-          <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Entitas ID tidak ditemukan dalam sistem JNE</p>
+        <div>
+          <p className="text-[15px] font-bold text-slate-700">Karyawan Tidak Ditemukan</p>
+          <p className="text-[12px] text-slate-400 mt-1">ID tidak ditemukan dalam sistem JNE</p>
         </div>
-        <Link href="/employees" className="mt-4 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all text-[10px] font-black tracking-widest uppercase">
-          Kembali ke Terminal
+        <Link href="/employees" className="flex items-center gap-2 h-9 px-4 bg-slate-100 rounded-xl text-[12px] font-bold text-slate-600 hover:bg-slate-200 transition-all">
+          Kembali ke Daftar
         </Link>
       </div>
     );
   }
 
-  const totalHadir = attendance.filter(a => a.status === 'present' || a.status === 'late').length;
-  const totalTelat = attendance.filter(a => a.status === 'late').length;
-  const totalAbsen = attendance.filter(a => a.status === 'absent').length;
-
-  // Limit attendance to most recent 10 entries
+  const totalHadir      = attendance.filter(a => ['present', 'late'].includes(a.status)).length;
+  const totalTelat      = attendance.filter(a => a.status === 'late').length;
+  const totalAbsen      = attendance.filter(a => a.status === 'absent').length;
   const recentAttendance = attendance.slice(0, 10);
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-4 pb-4 px-4 lg:px-0">
-      
-      {/* Navigation Header - Compact */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-(--bg-card) rounded-2xl p-5 border border-(--border-primary) shadow-lg"
+    <div className="flex flex-col gap-5 pb-6">
+
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/employees" 
-            className="h-10 w-10 flex items-center justify-center rounded-xl bg-(--bg-card) border border-(--border-primary) hover:bg-white/10 hover:border-white/20 transition-all group shadow-sm active:scale-95"
+        <div className="flex items-center gap-3">
+          <Link
+            href="/employees"
+            className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-all shrink-0"
+            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
           >
-            <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+            <ArrowLeft size={16} />
           </Link>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-500 text-[7px] font-black uppercase tracking-widest border border-blue-500/20 rounded">Security Verified</span>
-              <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
-              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500">Employee #{employee.employeeId}</span>
-            </div>
-            <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase leading-none">
-              Personnel <span className="text-blue-500">Intelligence</span>
+          <div>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              {employee.employeeId}
+            </p>
+            <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
+              {employee.name}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all">
-            Reset Auth Device
-          </button>
-          <Link href={`/employees/${employee.id}/edit`} className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[9px] font-black tracking-widest uppercase transition-all shadow-[0_10px_30px_rgba(37,99,235,0.2)] hover:-translate-y-0.5 active:scale-95">
-            Modify Profile
-          </Link>
-        </div>
+        <Link
+          href={`/employees/${employee.id}/edit`}
+          className="flex items-center gap-2 h-9 px-4 bg-white border border-slate-200 rounded-xl text-[12px] font-semibold text-slate-600 hover:border-emerald-300 hover:text-emerald-600 transition-all shrink-0"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
+          Edit Profil
+        </Link>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        {/* Left Column: Profile Card */}
-        <div className="lg:col-span-4 space-y-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-(--bg-card) rounded-2xl border border-(--border-primary) p-6 shadow-xl relative overflow-hidden group"
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        {/* ── LEFT: Profile ── */}
+        <div className="lg:col-span-4 flex flex-col gap-4">
+
+          {/* Profile card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="bg-white rounded-2xl border border-slate-100 p-6 flex flex-col items-center text-center"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
           >
-             <div className="absolute top-0 right-0 w-40 h-40 bg-linear-to-bl from-blue-600/10 via-transparent to-transparent pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-             
-             <div className="flex flex-col items-center">
-                <div className="h-28 w-28 rounded-3xl bg-zinc-900 border-4 border-white/5 p-1 mb-4 relative group/photo overflow-hidden">
-                  {employee.photoUrl ? (
-                    <Image 
-                      src={employee.photoUrl} 
-                      alt={employee.name} 
-                      width={112}
-                      height={112}
-                      priority
-                      className="w-full h-full object-cover rounded-2xl group-hover/photo:scale-110 transition-transform duration-700" 
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-700">
-                      <User size={48} />
-                    </div>
-                  )}
-                  <div className={`absolute bottom-3 right-3 h-6 w-6 rounded-lg border-2 border-zinc-950 flex items-center justify-center shadow-lg ${employee.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}>
-                    {employee.faceRegistered ? <ShieldCheck size={14} className="text-white" /> : <XCircle size={14} className="text-white" />}
+            <div className="relative mb-4">
+              <div className="w-24 h-24 rounded-2xl bg-emerald-100 overflow-hidden">
+                {employee.photoUrl ? (
+                  <Image src={employee.photoUrl} alt={employee.name} width={96} height={96} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-emerald-700 text-stats font-black">
+                    {employee.name.charAt(0)}
                   </div>
-                </div>
-
-                <div className="text-center space-y-1 mb-6">
-                  <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">{employee.name}</h2>
-                  <p className="text-[9px] font-black tracking-[0.3em] text-blue-500 bg-blue-500/10 px-3 py-1 rounded uppercase border border-blue-500/20 inline-block">
-                    {employee.position || 'OPERATIVE'}
-                  </p>
-                </div>
-
-                <div className="w-full space-y-2">
-                  {[
-                    { icon: Building, label: 'Departmental Node', value: employee.department || 'General' },
-                    { icon: Mail, label: 'Neural Link (Email)', value: employee.email },
-                    { icon: Calendar, label: 'Activation Date', value: employee.joinDate ? format(parseISO(employee.joinDate), 'dd MMMM yyyy') : 'Unknown' },
-                    { icon: Smartphone, label: 'Linked Device', value: employee.deviceModel || 'Unlinked System' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-white/2 border border-white/3 hover:bg-white/5 transition-all">
-                      <div className="h-8 w-8 bg-zinc-900 rounded-lg flex items-center justify-center border border-white/5">
-                        <item.icon size={16} className="text-zinc-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-500">{item.label}</p>
-                        <p className="text-xs font-bold text-white truncate">{item.value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-             </div>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-linear-to-br from-blue-600 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-lg"
-          >
-             <Fingerprint size={80} className="absolute -bottom-4 -right-4 opacity-10 -rotate-12" />
-             <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between">
-                   <h3 className="text-xs font-black uppercase italic tracking-widest">Biometric Status</h3>
-                   <span className="px-2 py-0.5 bg-white/20 rounded-md text-[7px] font-black uppercase tracking-widest backdrop-blur-md">Active Zone</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <div className={`h-3 w-3 rounded-full ${employee.faceRegistered ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`} />
-                   <p className="text-sm font-black tracking-tight uppercase italic">
-                      {employee.faceRegistered ? 'Face Signature Locked' : 'Signature Required'}
-                   </p>
-                </div>
-                <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider leading-relaxed">
-                   Biometric verification ensures 99.9% operational integrity.
-                </p>
-             </div>
-          </motion.div>
-        </div>
-
-
-        {/* Right Column: Attendance Logs */}
-        <div className="lg:col-span-8 space-y-4">
-          
-          {/* Compact Stats Row */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="grid grid-cols-3 gap-3"
-          >
-            {[
-              { label: 'Attendance Score', value: totalHadir, color: 'text-emerald-500', bg: 'bg-emerald-500/5', border: 'border-emerald-500/10' },
-              { label: 'Latency Issues', value: totalTelat, color: 'text-amber-500', bg: 'bg-amber-500/5', border: 'border-amber-500/10' },
-              { label: 'Mission Failure', value: totalAbsen, color: 'text-red-500', bg: 'bg-red-500/5', border: 'border-red-500/10' }
-            ].map((stat, idx) => (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + 0.1 * idx }}
-                key={idx} 
-                className={`${stat.bg} ${stat.border} rounded-xl p-4 border flex flex-col items-center justify-center text-center group hover:bg-opacity-80 transition-all`}
-              >
-                <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 mb-1 group-hover:text-zinc-400 transition-colors">{stat.label}</span>
-                <span className={`text-2xl font-black ${stat.color} tracking-tighter italic`}>{stat.value}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-(--bg-card) rounded-2xl border border-(--border-primary) shadow-xl overflow-hidden flex flex-col"
-          >
-            <div className="px-6 py-4 border-b border-(--border-primary) flex justify-between items-center bg-white/2">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500 border border-blue-500/20">
-                  <History size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black italic tracking-tighter text-white uppercase">Operational Log</h3>
-                  <p className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-500">Recent 10 Cycles</p>
-                </div>
+                )}
+              </div>
+              <div className={`absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl border-2 border-white flex items-center justify-center ${employee.faceRegistered ? 'bg-emerald-500' : 'bg-red-400'}`}>
+                {employee.faceRegistered
+                  ? <ShieldCheck size={14} className="text-white" />
+                  : <XCircle size={14} className="text-white" />
+                }
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-(--border-primary) bg-zinc-950/30">
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">Date</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 text-center">IN</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 text-center">OUT</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">Vector</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-(--border-primary)">
-                  <AnimatePresence mode="popLayout">
-                  {recentAttendance.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center gap-4 max-w-xs mx-auto">
-                           <div className="h-16 w-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
-                              <Clock size={24} className="text-zinc-700" />
-                           </div>
-                           <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed text-center">No operational telemetry detected.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    recentAttendance.map((record, index) => (
-                      <motion.tr 
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.05 * index }}
-                        key={record.id} 
-                        className="hover:bg-white/3 transition-all group"
-                      >
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex flex-col">
-                             <span className="text-xs font-black text-white italic uppercase tracking-tight">
-                               {format(parseISO(record.date), 'dd MMM yyyy', { locale: dateFnsId })}
-                             </span>
-                             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">
-                               {format(parseISO(record.date), 'EEEE', { locale: dateFnsId })}
-                             </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="text-sm font-black text-white tracking-tighter tabular-nums italic">
-                            {record.checkIn ? format(parseISO(timeValueToISO(record.checkIn.time)), 'HH:mm') : '--:--'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="text-sm font-black text-zinc-500 tracking-tighter tabular-nums italic group-hover:text-white transition-colors">
-                            {record.checkOut ? format(parseISO(timeValueToISO(record.checkOut.time)), 'HH:mm') : '--:--'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 group/map">
-                            <MapPin size={12} className="text-zinc-600 group-hover/map:text-blue-500 transition-colors" />
-                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest truncate max-w-[100px]">
-                              {record.checkIn ? `${record.checkIn.distance.toFixed(0)}m` : 'Unknown'}
-                            </span>
-                            {record.checkIn && (
-                              <a 
-                                href={`https://www.google.com/maps?q=${record.checkIn.latitude},${record.checkIn.longitude}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="opacity-0 group-hover/map:opacity-100 transition-opacity"
-                              >
-                                <ExternalLink size={10} className="text-blue-500" />
-                              </a>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                           {record.status === 'present' && <span className="inline-flex px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest rounded-md border border-emerald-500/20">OPTIMAL</span>}
-                           {record.status === 'late' && <span className="inline-flex px-2 py-1 bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest rounded-md border border-amber-500/20">LATENCY</span>}
-                           {record.status === 'absent' && <span className="inline-flex px-2 py-1 bg-red-500/10 text-red-500 text-[8px] font-black uppercase tracking-widest rounded-md border border-red-500/20">FAILURE</span>}
-                           {record.status === 'leave' && <span className="inline-flex px-2 py-1 bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded-md border border-blue-500/20">DELEGATED</span>}
-                        </td>
-                      </motion.tr>
-                    ))
-                  )}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+            <h2 className="text-[18px] font-black text-slate-800 tracking-tight">{employee.name}</h2>
+            <p className="text-[12px] text-slate-400 font-medium mt-0.5">{employee.position}</p>
+
+            {/* Mini stats */}
+            <div className="w-full grid grid-cols-3 gap-2 mt-5">
+              {[
+                { label: 'Hadir',  val: totalHadir, color: 'text-emerald-600' },
+                { label: 'Telat',  val: totalTelat, color: 'text-amber-600'   },
+                { label: 'Absen',  val: totalAbsen, color: 'text-red-500'     },
+              ].map(s => (
+                <div key={s.label} className="bg-slate-50 rounded-xl py-2.5 text-center border border-slate-100">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+                  <p className={`text-[20px] font-black mt-0.5 ${s.color}`}>{s.val}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
 
+          {/* Info card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="bg-white rounded-2xl border border-slate-100 p-5"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+          >
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Informasi Detail</p>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { icon: Building,    label: 'Departemen', value: employee.department  },
+                { icon: Briefcase,   label: 'Jabatan',    value: employee.position    },
+                { icon: Mail,        label: 'Email',      value: employee.email       },
+                { icon: Calendar,    label: 'Bergabung',  value: employee.joinDate ? format(toDate(employee.joinDate), 'dd MMM yyyy') : '—' },
+                { icon: Smartphone,  label: 'Perangkat',  value: (employee as any).deviceModel || 'Belum terhubung' },
+              ].map(item => (
+                <div key={item.label} className="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                    <item.icon size={13} className="text-slate-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</p>
+                    <p className="text-[12px] font-semibold text-slate-700 truncate">{item.value || '—'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Biometric card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16 }}
+            className="rounded-2xl p-5 text-white relative overflow-hidden"
+            style={{ background: 'linear-gradient(135deg,#10B981,#059669)', boxShadow: '0 4px 14px -4px rgba(16,185,129,0.4)' }}
+          >
+            <Fingerprint size={60} className="absolute -bottom-3 -right-3 opacity-20" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wider">Biometric Status</p>
+                <span className="px-2 py-0.5 bg-white/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                  {employee.faceRegistered ? 'Aktif' : 'Pending'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${employee.faceRegistered ? 'bg-white animate-pulse' : 'bg-red-300'}`} />
+                <p className="text-[13px] font-bold">
+                  {employee.faceRegistered ? 'Face ID Terdaftar' : 'Belum Mendaftar'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── RIGHT: Attendance Log ── */}
+        <div className="lg:col-span-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+          >
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p className="text-desc font-bold text-slate-800">Log Kehadiran</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">10 catatan terakhir (30 hari)</p>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-500">
+                <Clock size={12} />
+                30 Hari
+              </div>
+            </div>
+
+            {/* Column headers */}
+            <div className="hidden sm:grid grid-cols-[1fr_90px_90px_110px_100px] px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+              {['Tanggal', 'Masuk', 'Keluar', 'Lokasi', 'Status'].map(h => (
+                <p key={h} className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{h}</p>
+              ))}
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              <AnimatePresence>
+                {recentAttendance.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center gap-2">
+                    <Clock size={24} className="text-slate-200" />
+                    <p className="text-[12px] font-bold text-slate-400">Belum ada riwayat absensi</p>
+                  </div>
+                ) : recentAttendance.map((record, i) => (
+                  <motion.div
+                    key={record.id}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_90px_90px_110px_100px] items-center px-5 py-3.5 hover:bg-slate-50 transition-colors group"
+                  >
+                    {/* Date */}
+                    <div>
+                      <p className="text-desc font-bold text-slate-800">
+                        {format(toDate(record.date), 'dd MMM yyyy', { locale: dateFnsId })}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        {format(toDate(record.date), 'EEEE', { locale: dateFnsId })}
+                      </p>
+                    </div>
+
+                    {/* Check-in */}
+                    <p className="hidden sm:block text-[12px] font-semibold text-slate-600 tabular-nums">
+                      {safeFormatTime(record.checkIn?.time)}
+                    </p>
+
+                    {/* Check-out */}
+                    <p className="hidden sm:block text-[12px] font-medium text-slate-400 tabular-nums">
+                      {safeFormatTime(record.checkOut?.time)}
+                    </p>
+
+                    {/* Location */}
+                    <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 group/loc">
+                      <MapPin size={10} className="shrink-0" />
+                      <span className="truncate">
+                        {record.checkIn ? `${record.checkIn.distance.toFixed(0)}m` : '—'}
+                      </span>
+                      {record.checkIn && (
+                        <a
+                          href={`https://www.google.com/maps?q=${record.checkIn.latitude},${record.checkIn.longitude}`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="opacity-0 group/loc:opacity-100 transition-opacity"
+                        >
+                          <ExternalLink size={10} className="text-emerald-500" />
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <StatusChip status={record.status} />
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>

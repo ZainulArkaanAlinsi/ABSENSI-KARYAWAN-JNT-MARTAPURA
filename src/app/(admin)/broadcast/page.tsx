@@ -20,6 +20,7 @@ import {
 import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GlassCard, InteractiveButton } from '@/components/ui/Interactive';
+import { toast } from 'sonner';
 
 export default function BroadcastPage() {
   const [target, setTarget] = useState<'all' | 'specific'>('all');
@@ -66,35 +67,27 @@ export default function BroadcastPage() {
       };
 
       if (target === 'all') {
-        // 1. Send Global Broadcast
-        await addDoc(collection(db, 'broadcasts'), payload);
-        
-        // 2. Also notify all admins
-        await addDoc(collection(db, 'adminNotifications'), {
-          ...payload,
-          target: 'all',
-          sender: 'System (Broadcast Engine)'
-        });
-
-        // 3. Also log to admin history
-        await addDoc(collection(db, 'adminLogs'), {
-          action: 'BROADCAST_SENT',
-          details: `Broadcast sent to all couriers: ${title}`,
-          timestamp: serverTimestamp()
-        });
+        // Global broadcast — mobile listens to `broadcasts` collection
+        await addDoc(collection(db, 'broadcasts'), { ...payload, target: 'all' });
       } else {
-        // Send Specific Notification to User
+        if (!selectedUser) return;
+
+        const targetUser = users.find(u => u.id === selectedUser);
+
+        // Personal notification — mobile listens to `userNotifications` filtered by userId
         await addDoc(collection(db, 'userNotifications'), {
           ...payload,
           userId: selectedUser,
-          isRead: false
+          targetName: targetUser?.name ?? selectedUser,
+          isRead: false,
         });
 
-        // Also notify admins that a specific message was sent
-        await addDoc(collection(db, 'adminNotifications'), {
+        // Also add to broadcasts for history visibility in this panel
+        await addDoc(collection(db, 'broadcasts'), {
           ...payload,
-          target: selectedUser,
-          sender: 'System (Directed Message)'
+          target: 'specific',
+          targetUserId: selectedUser,
+          targetName: targetUser?.name ?? selectedUser,
         });
       }
 
@@ -103,6 +96,7 @@ export default function BroadcastPage() {
       setMessage('');
       setSelectedUser('');
       setStatus('success');
+      toast.success('Pesan berhasil dipublikasikan ke Nexus App & Web!');
       
       // Refresh recent
       const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(5));
@@ -113,6 +107,7 @@ export default function BroadcastPage() {
     } catch (err) {
       console.error(err);
       setStatus('error');
+      toast.error('Gagal mengirim broadcast');
     } finally {
       setLoading(false);
     }

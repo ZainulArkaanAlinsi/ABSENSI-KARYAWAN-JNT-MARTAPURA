@@ -16,6 +16,17 @@ import type { NotificationType } from '@/types';
 import { useNotificationPanelLogic } from '@/hooks/useNotificationPanelLogic';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const toDate = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('seconds' in val) return new Date(val.seconds * 1000);
+    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
 const iconMap: Record<NotificationType, { icon: React.ElementType; color: string }> = {
   leave_request:      { icon: FileText,      color: '#D97706' },
   face_enrolled:      { icon: UserCheck,     color: '#10B981' },
@@ -100,7 +111,7 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
                         {notif.title}
                       </h4>
                       <span className="text-[9px] font-bold text-(--text-muted) whitespace-nowrap pt-0.5">
-                        {notif.createdAt ? formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: localeId }) : 'Baru saja'}
+                        {notif.createdAt ? formatDistanceToNow(toDate(notif.createdAt), { addSuffix: true, locale: localeId }) : 'Baru saja'}
                       </span>
                     </div>
                     <p className="mt-1 text-[11px] font-medium text-(--text-secondary) line-clamp-2 leading-relaxed">

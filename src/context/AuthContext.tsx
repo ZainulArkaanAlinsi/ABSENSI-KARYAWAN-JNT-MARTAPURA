@@ -88,9 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // NORMALISASI EMAIL
       const normalizedEmail = email.trim().toLowerCase();
       
-       // DOMAIN CHECK: Only allow official JNE email domains
-       const isOfficialDomain = normalizedEmail.endsWith('@jne.mtp.com') || normalizedEmail.endsWith('@jnemtp.com') || normalizedEmail.endsWith('@jne.co.id');
-       
+       // DOMAIN CHECK: Allow official JNE email domains + gmail for dev/testing
+       const isOfficialDomain =
+         normalizedEmail.endsWith('@jne.mtp.com') ||
+         normalizedEmail.endsWith('@jnemtp.com') ||
+         normalizedEmail.endsWith('@jne.co.id') ||
+         normalizedEmail.endsWith('@gmail.com');
+
        if (!isOfficialDomain) {
          setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
          setLoading(false);

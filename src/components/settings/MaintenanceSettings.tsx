@@ -22,14 +22,25 @@ import {
 import { db } from '@/lib/firebase';
 import { COLLECTIONS, getEmployees, getJamKerjas } from '@/lib/firestore';
 import { format, subDays, startOfDay, addMinutes, isWeekend } from 'date-fns';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 export default function MaintenanceSettings() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const { confirm } = useConfirm();
 
   const clearAttendance = async () => {
-    if (!confirm('Delete ALL attendance history? This cannot be undone.')) return;
+    const isConfirmed = await confirm({
+      title: 'Hapus Riwayat Absensi',
+      message: 'Apakah Anda yakin ingin menghapus SEMUA data absensi? Tindakan ini permanen dan tidak dapat dibatalkan.',
+      variant: 'danger',
+      confirmLabel: 'Ya, Hapus Semua',
+      cancelLabel: 'Batal'
+    });
+
+    if (!isConfirmed) return;
 
     setLoading(true);
     setStatus('Deleting attendance data...');
@@ -51,9 +62,11 @@ export default function MaintenanceSettings() {
       }
 
       setStatus(`Deleted ${deleted} records.`);
+      toast.success(`Berhasil menghapus ${deleted} data absensi.`);
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       console.error(err);
+      toast.error('Gagal menghapus data absensi.');
       setStatus('Delete failed. Please try again.');
     } finally {
       setLoading(false);
@@ -167,9 +180,11 @@ export default function MaintenanceSettings() {
       }
 
       setStatus('Seeding complete!');
+      toast.success('Berhasil generate data simulasi.');
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       console.error(err);
+      toast.error('Gagal generate data simulasi.');
       setStatus('Seeding failed. Please try again.');
     } finally {
       setLoading(false);

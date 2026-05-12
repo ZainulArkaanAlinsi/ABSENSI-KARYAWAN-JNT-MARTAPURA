@@ -1,34 +1,93 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="w-full min-h-screen bg-slate-50 selection:bg-indigo-500/10 selection:text-indigo-600 overflow-x-hidden">
-      
-      {/* ── CENTRAL HUB WRAPPER (1440px Constrained) ── */}
-      <div className="w-full max-w-[1600px] mx-auto flex min-h-screen bg-white shadow-[0_0_100px_rgba(15,23,42,0.06)] border-x border-slate-100 relative">
-        
-        {/* ── SIDEBAR SECTOR (Operational Hub) ── */}
-        <div className="hidden lg:block w-[280px] h-screen sticky top-0 bg-primary z-60 shrink-0 overflow-hidden">
-          <Sidebar />
-        </div>
+const COLLAPSED_W = 72;
+const EXPANDED_W  = 260;
 
-        {/* ── CONTENT SECTOR ── */}
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
-          
-          {/* ── HEADER (Telemetry Nav) ── */}
-          <div className="w-full h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100/60 z-50 shrink-0 sticky top-0">
-             <Header onMenuClick={() => {}} />
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
+
+  return (
+    <div className="w-full min-h-screen overflow-x-hidden transition-colors duration-300"
+         style={{ background: 'var(--travigo-page)' }}>
+      <div className="w-full max-w-[1600px] mx-auto flex min-h-screen relative">
+
+        {/* ── DESKTOP SIDEBAR (collapsible) ── */}
+        <motion.div
+          animate={{ width: collapsed ? COLLAPSED_W : EXPANDED_W }}
+          transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+          className="hidden lg:block shrink-0 h-screen sticky top-0 overflow-hidden transition-colors duration-300"
+          style={{ borderRight: '1px solid var(--border-default)', background: 'var(--surface-sidebar)' }}
+        >
+          <Sidebar
+            collapsed={collapsed}
+            onToggle={() => setCollapsed(v => !v)}
+          />
+        </motion.div>
+
+        {/* ── MOBILE DRAWER BACKDROP ── */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ── MOBILE DRAWER ── */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              key="drawer"
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="lg:hidden fixed left-0 top-0 bottom-0 z-50 shadow-2xl transition-colors duration-300"
+              style={{ width: EXPANDED_W, background: 'var(--surface-sidebar)' }}
+            >
+              <Sidebar onClose={() => setMobileOpen(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── CONTENT AREA ── */}
+        <div className="flex-1 flex flex-col min-w-0">
+
+          {/* ── HEADER ── */}
+          <div
+            className="w-full h-[68px] shrink-0 sticky top-0 z-30 transition-colors duration-300"
+            style={{
+              background: 'var(--surface-header)',
+              borderBottom: '1px solid var(--border-default)',
+              boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
+            }}
+          >
+            <Header onMenuClick={() => setMobileOpen(true)} />
           </div>
 
-          {/* ── SCROLLABLE WORKSPACE ── */}
+          {/* ── PAGE CONTENT ── */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-            <div className="p-8 lg:p-12 w-full animate-in fade-in slide-in-from-bottom-2 duration-700">
+            <motion.div
+              key="page-content"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="p-5 lg:p-7 w-full"
+            >
               {children}
-            </div>
+            </motion.div>
           </main>
         </div>
       </div>

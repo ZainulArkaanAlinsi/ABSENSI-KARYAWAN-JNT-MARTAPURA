@@ -7,6 +7,17 @@ import { useNotifications } from '@/context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
+const toDate = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('seconds' in val) return new Date(val.seconds * 1000);
+    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export default function ActiveAlerts() {
   const { notifications } = useNotifications();
   
@@ -43,7 +54,7 @@ export default function ActiveAlerts() {
                     <span className="text-[10px] font-black text-[#D21F24] uppercase tracking-[0.2em]">Sinyal Darurat Aktif</span>
                     <span className="h-1 w-1 rounded-full bg-slate-700" />
                     <span className="text-[10px] font-bold text-slate-500 uppercase">
-                      {alert.createdAt ? formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true, locale: localeId }) : 'Baru saja'}
+                      {alert.createdAt ? formatDistanceToNow(toDate(alert.createdAt) || new Date(), { addSuffix: true, locale: localeId }) : 'Baru saja'}
                     </span>
                   </div>
                   <h3 className="text-xl font-black text-white uppercase tracking-tight">

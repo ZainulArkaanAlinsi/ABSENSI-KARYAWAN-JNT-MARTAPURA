@@ -22,14 +22,12 @@ export const BentoCard: React.FC<BentoCardProps> = ({
   // ── PRECISION UI: Zen Premium Card Style ──
   const content = (
     <div className={`
-      bg-white
-      border border-slate-100
-      rounded-xl
-      shadow-sm
-      overflow-hidden 
-      h-full
+      rounded-xl border
+      shadow-sm overflow-hidden h-full
       ${className}
-    `}>
+    `}
+    style={{ background: 'var(--surface-card)', borderColor: 'var(--border-card)' }}
+    >
       {children}
     </div>
   );

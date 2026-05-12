@@ -6,6 +6,8 @@ import {
   deleteDepartment,
 } from '@/lib/firestore';
 import type { DepartmentItem } from '@/types';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 export const DEPARTMENT_COLORS = [
   '#E31E24', // JNE Red
@@ -25,6 +27,7 @@ export function useDepartmentManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<DepartmentItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const { confirm } = useConfirm();
 
   const [form, setForm] = useState<Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>>({
     name: '',
@@ -65,37 +68,43 @@ export function useDepartmentManagement() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return alert('Nama departemen wajib diisi');
+    if (!form.name.trim()) return toast.error('Nama departemen wajib diisi');
 
     setSaving(true);
     try {
       if (editingDepartment) {
         await updateDepartment(editingDepartment.id, form);
-        alert('Departemen berhasil diperbarui');
+        toast.success('Departemen berhasil diperbarui');
       } else {
         await addDepartment(form);
-        alert('Departemen berhasil ditambahkan');
+        toast.success('Departemen berhasil ditambahkan');
       }
       setShowModal(false);
     } catch (error) {
       console.error('Error saving department:', error);
-      alert('Gagal menyimpan departemen');
+      toast.error('Gagal menyimpan departemen');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Yakin ingin menghapus departemen "${name}"?\nKaryawan yang terdaftar di departemen ini mungkin perlu diperbarui secara manual.`)) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Hapus Departemen',
+      message: `Yakin ingin menghapus departemen "${name}"? Karyawan yang terdaftar di departemen ini mungkin perlu diperbarui secara manual.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal'
+    });
+
+    if (!isConfirmed) return;
 
     try {
       await deleteDepartment(id);
-      alert('Departemen berhasil dihapus');
+      toast.success('Departemen berhasil dihapus');
     } catch (error) {
       console.error('Error deleting department:', error);
-      alert('Gagal menghapus departemen');
+      toast.error('Gagal menghapus departemen');
     }
   };
 

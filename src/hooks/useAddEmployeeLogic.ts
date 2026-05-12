@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { registerEmployee, getNextEmployeeId } from '@/lib/firestore';
+import { toast } from 'sonner';
 import type { JamKerja, Department } from '@/types';
 
 export function useAddEmployeeLogic(onClose: () => void) {
@@ -65,12 +66,12 @@ export function useAddEmployeeLogic(onClose: () => void) {
 
     // Strict Validation: Remove password from mandatory manual check as it is auto-filled
     if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
-      alert('Semua field bertanda * wajib diisi!');
+      toast.error('Semua field bertanda * wajib diisi!');
       return;
     }
 
     if (form.password.length < 6) {
-      alert('Password sistem tidak valid. Gunakan minimal 6 karakter.');
+      toast.error('Password sistem tidak valid. Gunakan minimal 6 karakter.');
       return;
     }
 
@@ -100,6 +101,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
         password
       );
 
+      toast.success('Karyawan berhasil didaftarkan');
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
@@ -122,7 +124,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
 
     } catch (err: any) {
       console.error('Gagal menambah karyawan:', err);
-      alert(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      toast.error(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }

@@ -189,8 +189,8 @@ export default function MaintenancePage() {
           <Database size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase">Sistem Maintenance</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Database Tools & Data Seeding</p>
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase" style={{ color: 'var(--text-primary)' }}>Sistem Maintenance</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-dim)' }}>Database Tools & Data Seeding</p>
         </div>
       </div>
 
@@ -199,16 +199,17 @@ export default function MaintenancePage() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#020617] border border-white/5 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group"
+          className="border rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group"
+          style={{ background: 'var(--surface-card)', borderColor: 'var(--border-card)' }}
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-red-600/10 transition-colors" />
           
           <div className="flex items-center gap-3">
             <Zap className="text-red-600" size={20} />
-            <h2 className="text-lg font-black text-white italic uppercase tracking-tight">Generate Mock Data</h2>
+            <h2 className="text-lg font-black italic uppercase tracking-tight" style={{ color: 'var(--text-primary)' }}>Generate Mock Data</h2>
           </div>
           
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             Gunakan fitur ini untuk mengisi dashboard dengan data dummy selama 30 hari terakhir. 
             Sangat berguna untuk demonstrasi atau pengujian visual dashboard.
           </p>
@@ -220,7 +221,7 @@ export default function MaintenancePage() {
               'Otomatis menghitung menit keterlambatan',
               'Melewati hari Sabtu & Minggu (Weekend)'
             ].map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-slate-500">
+              <li key={i} className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-dim)' }}>
                 <CheckCircle2 size={14} className="text-emerald-500 mt-0.5 shrink-0" />
                 <span>{item}</span>
               </li>
@@ -230,7 +231,8 @@ export default function MaintenancePage() {
           <button
             onClick={seedAttendance}
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-white/5"
+            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg
+                     bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-100"
           >
             {loading ? 'Processing...' : 'Start Seeding Data'}
           </button>
@@ -241,16 +243,17 @@ export default function MaintenancePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#020617] border border-white/5 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group"
+          className="border rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group"
+          style={{ background: 'var(--surface-card)', borderColor: 'var(--border-card)' }}
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-slate-600/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-slate-600/10 transition-colors" />
 
           <div className="flex items-center gap-3">
             <Trash2 className="text-slate-400" size={20} />
-            <h2 className="text-lg font-black text-white italic uppercase tracking-tight">Database Cleanup</h2>
+            <h2 className="text-lg font-black italic uppercase tracking-tight" style={{ color: 'var(--text-primary)' }}>Database Cleanup</h2>
           </div>
 
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             Bersihkan semua riwayat absensi dari database. Gunakan ini jika Anda ingin memulai dari awal dengan data yang bersih.
           </p>
 
@@ -264,7 +267,8 @@ export default function MaintenancePage() {
           <button
             onClick={clearAttendance}
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-transparent border border-white/10 text-white font-black uppercase tracking-widest text-xs hover:bg-white/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed border
+                     text-red-500 dark:text-red-400 border-red-500/20 dark:border-red-400/20 hover:bg-red-500/5"
           >
             Clear All Attendance
           </button>
@@ -276,24 +280,25 @@ export default function MaintenancePage() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#020617] border border-white/10 rounded-3xl p-6 space-y-4 shadow-2xl"
+          className="border rounded-3xl p-6 space-y-4 shadow-2xl"
+          style={{ background: 'var(--surface-card)', borderColor: 'var(--border-default)' }}
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <History size={16} className="text-red-600" />
-              <span className="text-xs font-black text-white uppercase tracking-widest">Maintenance Log</span>
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>Maintenance Log</span>
             </div>
-            <span className="text-[10px] font-black text-slate-500 uppercase">{progress}% Complete</span>
+            <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text-dim)' }}>{progress}% Complete</span>
           </div>
 
-          <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-default)' }}>
             <motion.div 
               className="h-full bg-red-600" 
               animate={{ width: `${progress}%` }} 
             />
           </div>
 
-          <p className="text-[11px] font-mono text-slate-400 break-all bg-black/40 p-4 rounded-xl border border-white/5">
+          <p className="text-[11px] font-mono break-all p-4 rounded-xl border" style={{ color: 'var(--text-muted)', background: 'var(--surface-hover)', borderColor: 'var(--border-card)' }}>
             {'> '} {status}
           </p>
         </motion.div>
@@ -305,13 +310,13 @@ export default function MaintenancePage() {
           { label: 'Personnel', icon: Users, color: '#3B82F6' },
           { label: 'Attendance', icon: CheckCircle2, color: '#10B981' },
         ].map((item, i) => (
-          <div key={i} className="bg-[#020617] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+          <div key={i} className="border p-6 rounded-3xl flex items-center gap-4" style={{ background: 'var(--surface-card)', borderColor: 'var(--border-card)' }}>
              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${item.color}10`, color: item.color }}>
                 <item.icon size={18} />
              </div>
              <div>
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{item.label}</p>
-                <p className="text-lg font-black text-white italic tracking-tighter uppercase leading-none">Ready</p>
+                <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--text-dim)' }}>{item.label}</p>
+                <p className="text-lg font-black italic tracking-tighter uppercase leading-none" style={{ color: 'var(--text-primary)' }}>Ready</p>
              </div>
           </div>
         ))}

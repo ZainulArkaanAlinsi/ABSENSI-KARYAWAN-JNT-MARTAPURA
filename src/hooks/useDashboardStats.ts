@@ -15,6 +15,7 @@ import { db } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firestore';
 import { fortressRetry } from '@/lib/fortress';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale';
 import type { AttendanceRecord, Employee } from '@/types';
 
 export interface RecentActivity {
@@ -60,6 +61,14 @@ interface AnalyticsStats {
   recentActivities: RecentActivity[];
   pendingRequests: any[];
 }
+
+const toDate = (val: any): Date | null => {
+  if (!val) return null;
+  if (typeof val === 'object' && val.toDate && typeof val.toDate === 'function') return val.toDate();
+  if (typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
 
 export function useDashboardStats() {
   const [data, setData] = useState<AnalyticsStats | null>(null);
@@ -160,11 +169,11 @@ export function useDashboardStats() {
               return { name: dept, attendance: rate };
             });
 
-            const weeklyTrends = [];
+            const weeklyTrends: { day: string; present: number; late: number; absent: number }[] = [];
             for (let i = 6; i >= 0; i--) {
               const d = subDays(new Date(), i);
               const dStr = format(d, 'yyyy-MM-dd');
-              const dayName = format(d, 'EEE');
+              const dayName = format(d, 'EEE', { locale: idLocale });
               const dayRecords = allRecords.filter(r => r.date === dStr);
               const dPresent = dayRecords.filter(r => ['present', 'late', 'overtime'].includes(r.status)).length;
               const dLeave = dayRecords.filter(r => r.status === 'leave').length;
@@ -228,7 +237,15 @@ export function useDashboardStats() {
 
             const pendingRequests = [
               ...sosAlertsRef.current,
-              ...pendingDataSnap.docs.map(d => ({ id: d.id, ...d.data(), type: d.data().type || 'Leave' }))
+              ...pendingDataSnap.docs.map(d => {
+                const docData = d.data();
+                return { 
+                  id: d.id, 
+                  ...docData, 
+                  type: docData.type || 'Leave',
+                  startDate: toDate(docData.startDate) || toDate(docData.createdAt) || new Date()
+                };
+              })
             ].sort((a, b) => {
               if (a.type === 'SOS' && b.type !== 'SOS') return -1;
               if (a.type !== 'SOS' && b.type === 'SOS') return 1;

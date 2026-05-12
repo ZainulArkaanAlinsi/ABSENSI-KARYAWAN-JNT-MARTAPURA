@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  serverTimestamp, 
-  updateDoc, 
-  doc, 
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+  updateDoc,
+  doc,
   setDoc,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -17,11 +17,23 @@ export interface Message {
   id?: string;
   text: string;
   senderId: string;
+  senderName?: string;
+  senderRole?: string;
   receiverId: string;
-  timestamp: any;
-  isRead: boolean;
+  receiverRole?: string;
+  chatId: string;
+  createdAt: any;
+  status: 'sent' | 'delivered' | 'read';
+  readAt?: any;
+  deliveredAt?: any;
   imageUrl?: string;
+  isDeleted: boolean;
+  isRead?: boolean;
 }
+
+// ── Flat `messages` collection (same path as mobile `chat_provider.dart`)
+// Mobile writes to: collection('messages').where('chatId', isEqualTo: chatId)
+// Admin must use the same path for cross-platform messaging to work.
 
 export const useChat = (chatId: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -29,34 +41,47 @@ export const useChat = (chatId: string | null) => {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   };
 
+  // ── Listen to flat `messages` collection filtered by chatId ──
   useEffect(() => {
     if (!chatId) return;
 
     setLoading(true);
-    const messagesRef = collection(db, 'chats', chatId, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+    const q = query(
+      collection(db, 'messages'),
+      where('chatId', '==', chatId),
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Message[];
+      const msgs = snapshot.docs
+        .map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            ...data,
+            get isRead() { return this.status === 'read'; },
+          } as Message;
+        })
+        .sort((a, b) => {
+          const aTs = a.createdAt?.seconds ?? 0;
+          const bTs = b.createdAt?.seconds ?? 0;
+          return aTs - bTs;
+        });
       setMessages(msgs);
       setLoading(false);
       setTimeout(scrollToBottom, 100);
 
-      // Mark as read if the last message is from the other user
+      // Mark incoming messages as read
       msgs.forEach(msg => {
-        if (!msg.isRead && msg.senderId !== auth.currentUser?.uid) {
-          updateDoc(doc(db, 'chats', chatId, 'messages', msg.id!), {
-            isRead: true
+        if (msg.status !== 'read' && msg.senderId !== auth.currentUser?.uid) {
+          updateDoc(doc(db, 'messages', msg.id!), {
+            status: 'read',
+            readAt: serverTimestamp(),
           });
         }
       });
@@ -70,30 +95,42 @@ export const useChat = (chatId: string | null) => {
 
     setSending(true);
     try {
-      let imageUrl = '';
+      let imageUrl: string | undefined;
       if (imageFile) {
         const imageRef = ref(storage, `chats/${chatId}/${Date.now()}_${imageFile.name}`);
         await uploadBytes(imageRef, imageFile);
         imageUrl = await getDownloadURL(imageRef);
       }
 
-      const messageData: Partial<Message> = {
+      const messageData = {
         text,
         senderId: auth.currentUser.uid,
+        senderName: auth.currentUser.displayName ?? 'Admin',
+        senderRole: 'admin',
         receiverId,
-        timestamp: serverTimestamp(),
-        isRead: false,
-        ...(imageUrl && { imageUrl }),
+        receiverRole: 'employee',
+        chatId,
+        status: 'sent',
+        createdAt: serverTimestamp(),
+        readAt: null,
+        deliveredAt: null,
+        imageUrl: imageUrl ?? null,
+        isDeleted: false,
       };
 
-      await addDoc(collection(db, 'chats', chatId, 'messages'), messageData);
+      const docRef = await addDoc(collection(db, 'messages'), messageData);
 
-      // Update chat metadata
+      // Mark as delivered immediately (optimistic — mirrors mobile behavior)
+      await updateDoc(docRef, {
+        status: 'delivered',
+        deliveredAt: serverTimestamp(),
+      });
+
+      // Update chat metadata for sidebar last-message preview
       await setDoc(doc(db, 'chats', chatId), {
-        lastMessage: imageUrl ? '📷 Photo' : text,
+        lastMessage: imageUrl ? '📷 Foto' : text,
         lastTimestamp: serverTimestamp(),
         participants: [auth.currentUser.uid, receiverId],
-        [`unread_${receiverId}`]: (await getUnreadCount(chatId, receiverId)) + 1,
       }, { merge: true });
 
     } catch (error) {
@@ -103,25 +140,18 @@ export const useChat = (chatId: string | null) => {
     }
   };
 
-  const getUnreadCount = async (chatId: string, userId: string) => {
-    // This is a placeholder, in a real app you might want to handle unread counts differently
-    return 0; 
-  };
-
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [otherUserTyping, setOtherUserTyping] = useState<boolean>(false);
+  // ── Typing indicator (same path as mobile: chats/{chatId}/typing/status) ──
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
 
   useEffect(() => {
     if (!chatId) return;
 
     const typingRef = doc(db, 'chats', chatId, 'typing', 'status');
-    const unsubscribe = onSnapshot(typingRef, (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
+    const unsubscribe = onSnapshot(typingRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
         const otherUserId = chatId.split('_').find(id => id !== auth.currentUser?.uid);
-        if (otherUserId) {
-          setOtherUserTyping(data[otherUserId] || false);
-        }
+        if (otherUserId) setOtherUserTyping(data[otherUserId] ?? false);
       }
     });
 
@@ -130,27 +160,27 @@ export const useChat = (chatId: string | null) => {
 
   const setTyping = async (typing: boolean) => {
     if (!auth.currentUser || !chatId) return;
-    const typingRef = doc(db, 'chats', chatId, 'typing', 'status');
-    await setDoc(typingRef, {
-      [auth.currentUser.uid]: typing
+    await setDoc(doc(db, 'chats', chatId, 'typing', 'status'), {
+      [auth.currentUser.uid]: typing,
     }, { merge: true });
-    setIsTyping(typing);
   };
 
   const deleteMessage = async (messageId: string) => {
-    if (!chatId) return;
     try {
-      // In a real app, you might want to do a soft delete (e.g. set 'isDeleted: true')
-      // but for this request, we'll do a hard delete or set status
-      await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+      await updateDoc(doc(db, 'messages', messageId), {
         text: '🚫 Pesan telah dihapus',
         imageUrl: null,
-        isDeleted: true
+        isDeleted: true,
       });
     } catch (error) {
       console.error('Error deleting message:', error);
     }
   };
 
-  return { messages, loading, sending, sendMessage, deleteMessage, scrollRef, scrollToBottom, isTyping, setTyping, otherUserTyping };
+  return {
+    messages, loading, sending,
+    sendMessage, deleteMessage,
+    scrollRef, scrollToBottom,
+    setTyping, otherUserTyping,
+  };
 };

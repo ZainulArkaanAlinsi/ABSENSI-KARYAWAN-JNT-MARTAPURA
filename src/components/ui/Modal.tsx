@@ -43,8 +43,8 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-            className="relative w-full overflow-hidden bg-white dark:bg-slate-900 rounded-[32px] border border-white/20 dark:border-white/10 shadow-2xl"
-            style={{ maxWidth }}
+            className="relative w-full overflow-hidden rounded-3xl shadow-2xl"
+            style={{ maxWidth, background: 'var(--surface-card)', border: '1px solid var(--border-card)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Accent */}
@@ -52,12 +52,15 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
 
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
+                <h2 className="text-2xl font-black uppercase tracking-tighter italic" style={{ color: 'var(--text-primary)' }}>
                   {title}
                 </h2>
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all active:scale-90"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90
+                             text-slate-400 dark:text-slate-500
+                             hover:text-rose-500 hover:bg-rose-500/10"
+                  style={{ background: 'var(--surface-hover)' }}
                 >
                   <X size={20} strokeWidth={3} />
                 </button>

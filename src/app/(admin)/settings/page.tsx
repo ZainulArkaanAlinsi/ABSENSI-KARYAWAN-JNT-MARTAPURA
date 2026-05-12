@@ -4,63 +4,51 @@ import { PageLoader } from '@/components/ui/LoadingSpinner';
 import { useSettingsManagement } from '@/hooks/useSettingsManagement';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
 import SettingsPanel from '@/components/settings/SettingsPanel';
-import { Settings as SettingsIcon, Shield, Bell, Database, Globe, ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { BentoCard } from '@/components/ui/BentoCard';
+import { motion } from 'framer-motion';
 
 export default function SettingsPage() {
-  const router = useRouter();
   const {
-    activeTab,
-    setActiveTab,
-    settings,
-    loading,
-    saving,
-    saved,
-    error,
-    lastSync,
-    update,
-    handleSave,
-    setError,
-    TABS,
+    activeTab, setActiveTab,
+    settings, loading, saving, saved, error,
+    lastSync, update, handleSave, setError, TABS,
   } = useSettingsManagement();
 
   if (loading || !settings) {
     return (
-      <div className="flex-1 flex justify-center items-center min-h-[60vh]">
+      <div className="flex flex-col items-center justify-center py-32 gap-3">
         <PageLoader />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-10 w-full pb-20">
-      
-      {/* ── HEADER ── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
-            <SettingsIcon size={12} strokeWidth={3} className="text-primary" />
-            Control Center
-            <span className="text-slate-200">/</span>
-            <span className="text-primary italic">Terminal Config</span>
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic">
-            System <span className="text-primary not-italic font-medium">Settings</span>
-          </h1>
-          <p className="text-sm font-medium text-slate-500 max-w-xl leading-relaxed">
-            Configure global administrative parameters, geofencing coordinates, and tactical telemetry thresholds.
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-col gap-5 pb-6">
 
-      {/* ── SETTINGS CONTAINER ── */}
-      <BentoCard className="p-0 overflow-hidden flex flex-col lg:flex-row min-h-[700px]" hoverEffect={false}>
-        <SettingsSidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          tabs={TABS} 
-          className="lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-50 bg-slate-50/50"
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
+          Pengaturan <span className="text-emerald-500">Sistem</span>
+        </h1>
+        <p className="text-[12px] text-slate-400 mt-1 font-medium">
+          Konfigurasi parameter administrasi, geofencing, dan aturan jam kerja
+        </p>
+      </motion.div>
+
+      {/* ── SETTINGS PANEL ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col lg:flex-row"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', minHeight: 600 }}
+      >
+        <SettingsSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          tabs={TABS}
+          className="lg:w-72 border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/60"
         />
         <div className="flex-1 overflow-y-auto">
           <SettingsPanel
@@ -77,7 +65,7 @@ export default function SettingsPage() {
             tabs={TABS}
           />
         </div>
-      </BentoCard>
+      </motion.div>
     </div>
   );
 }

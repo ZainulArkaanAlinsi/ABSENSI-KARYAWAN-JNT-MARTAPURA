@@ -18,7 +18,7 @@ interface AttendanceChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#121826] border border-white/10 p-5 rounded-2xl shadow-2xl backdrop-blur-xl">
+      <div className="bg-primary border border-white/10 p-5 rounded-2xl shadow-2xl backdrop-blur-xl">
         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{label}</p>
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-[#4F46E5] shadow-[0_0_10px_rgba(79,70,229,0.5)]" />

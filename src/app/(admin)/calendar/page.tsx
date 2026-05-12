@@ -15,6 +15,7 @@ import { scheduleMeetingNotifications } from '@/lib/firestore';
 import type { CalendarEvent } from '@/types';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function CalendarPage() {
   const { events, loading, addEvent, updateEvent, deleteEvent } = useCalendarManagement();
@@ -27,6 +28,7 @@ export default function CalendarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [employees, setEmployees] = useState<any[]>([]);
   const router = useRouter();
+  const { confirm } = useConfirm();
 
   // State untuk data libur dari API
   const [holidaysMap, setHolidaysMap] = useState<Record<string, string[]>>({});
@@ -190,8 +192,21 @@ export default function CalendarPage() {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (confirm('Yakin ingin menghapus acara ini?')) {
-      await deleteEvent(eventId);
+    const isConfirmed = await confirm({
+      title: 'Hapus Acara',
+      message: 'Yakin ingin menghapus acara ini? Tindakan ini tidak dapat dibatalkan.',
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal'
+    });
+
+    if (isConfirmed) {
+      try {
+        await deleteEvent(eventId);
+        toast.success('Acara berhasil dihapus');
+      } catch (error) {
+        toast.error('Gagal menghapus acara');
+      }
     }
   };
 

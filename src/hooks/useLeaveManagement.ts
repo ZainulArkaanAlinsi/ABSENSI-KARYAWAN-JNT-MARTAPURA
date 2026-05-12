@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { subscribeToLeaves, updateLeaveStatus, addDoc, collection, serverTimestamp } from '@/lib/firestore';
+import { subscribeToLeaves, updateLeaveStatus } from '@/lib/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import type { LeaveRequest, LeaveStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 import { db } from '@/lib/firebase';
 
 export const TABS: { key: LeaveStatus | 'all'; label: string }[] = [
@@ -28,7 +31,7 @@ async function sendNotification(userId: string, status: LeaveStatus, reviewedBy:
       body: JSON.stringify({
         userId,
         title,
-        message: body,
+        body,
         data: { type: 'leave_status', status },
       }),
     });
@@ -47,6 +50,7 @@ export function useLeaveManagement() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     setLoading(true);
@@ -58,7 +62,16 @@ export function useLeaveManagement() {
   }, [activeTab]);
 
   const handleApprove = async (leave: LeaveRequest) => {
-    if (!confirm(`Setujui izin ${leave.employeeName}?`)) return;
+    const isConfirmed = await confirm({
+      title: 'Setujui Izin',
+      message: `Apakah Anda yakin ingin menyetujui pengajuan izin dari ${leave.employeeName}?`,
+      variant: 'info',
+      confirmLabel: 'Setujui',
+      cancelLabel: 'Batal'
+    });
+
+    if (!isConfirmed) return;
+
     setProcessing(leave.id);
     try {
       await updateLeaveStatus(leave.id, 'approved', user?.name || 'Admin');
@@ -73,9 +86,10 @@ export function useLeaveManagement() {
         isRead: false,
         createdAt: serverTimestamp(),
       });
+      toast.success('Pengajuan izin berhasil disetujui');
     } catch (e) {
       console.error('Approve failed:', e);
-      alert('Gagal menyetujui. Coba lagi.');
+      toast.error('Gagal menyetujui. Coba lagi.');
     } finally {
       setProcessing(null);
     }
@@ -101,9 +115,10 @@ export function useLeaveManagement() {
       setShowRejectModal(false);
       setRejectReason('');
       setSelectedLeave(null);
+      toast.success('Pengajuan izin telah ditolak');
     } catch (e) {
       console.error('Reject failed:', e);
-      alert('Gagal menolak. Coba lagi.');
+      toast.error('Gagal menolak. Coba lagi.');
     } finally {
       setProcessing(null);
     }

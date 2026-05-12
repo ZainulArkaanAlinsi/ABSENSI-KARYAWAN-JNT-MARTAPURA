@@ -26,6 +26,16 @@ module.exports = {
           accent: '#10B981', // Emerald
           bg: '#F9F7F2', // Warm Cream
         },
+        jne: {
+          red:        '#E31E24', // JNE Primary Red
+          'red-dark': '#C01A1F', // Hover / pressed
+          'red-light':'#FDECEA', // Light tint for badges / bg
+          blue:       '#004080', // JNE Navy Blue (sidebar/header)
+          'blue-dark':'#002D5C', // Deeper navy
+          'blue-light':'#E6EEF8',// Soft blue tint
+          gray:       '#F4F7FE', // Page background
+          'gray-mid': '#E0E7F5', // Dividers, subtle borders
+        },
         slate: {
           50: '#F9FAFB',
           100: '#F3F4F6',
@@ -40,21 +50,22 @@ module.exports = {
         },
       },
       borderRadius: {
-        sm: '8px',
-        md: '12px',
-        lg: '16px',
-        xl: '20px',
-        '2xl': '24px',
-        '3xl': '32px',
-        '4xl': '40px',
-        '5xl': '48px',
+        sm:   '4px',   // was 8px  — tepi tajam, koran
+        md:   '6px',   // was 12px
+        lg:   '8px',   // was 16px
+        xl:   '10px',  // was 20px — stat cards
+        '2xl':'12px',  // was 24px — modal, panel
+        '3xl':'14px',  // was 32px
+        '4xl':'18px',  // was 40px
+        '5xl':'22px',  // was 48px
         full: '9999px',
       },
       fontFamily: {
-        outfit: ['var(--font-outfit)', 'sans-serif'],
-        inter: ['var(--font-inter)', 'sans-serif'],
-        'plus-jakarta': ['var(--font-plus-jakarta)', 'sans-serif'],
-        mono: ["'JetBrains Mono'", "'SF Mono'", "'Fira Code'", 'monospace'],
+        outfit:          ['var(--font-outfit)', 'sans-serif'],
+        inter:           ['var(--font-inter)', 'sans-serif'],
+        'plus-jakarta':  ['var(--font-plus-jakarta)', 'sans-serif'],
+        playfair:        ['var(--font-playfair)', 'Georgia', 'serif'],
+        mono:            ["'JetBrains Mono'", "'SF Mono'", "'Fira Code'", 'monospace'],
       },
       boxShadow: {
         xs: '0 1px 2px rgba(0,0,0,0.04)',

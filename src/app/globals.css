@@ -1,93 +1,219 @@
 @import "tailwindcss";
 
-/* ── PREMIUM SAAS DESIGN SYSTEM ── */
+/* Dark mode works with data-theme="dark" on the <html> element */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── EDITORIAL NEWSPAPER DESIGN SYSTEM ── */
 
 @theme {
-  /* Colors */
-  --color-primary: #121826;
-  --color-secondary: #F9F7F2;
-  --color-accent: #E67E22;
-  --color-mustard: #E67E22;
-  --color-warm-cream: #F9F7F2;
-  
-  /* Borders */
-  --color-border: rgba(18, 24, 38, 0.05);
-  
-  /* Radius */
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-3xl: 40px;
+  --color-primary: #1A202C;
+  --color-secondary: #E8E2D6;
+  --color-accent: #10B981;
+  --color-green: #10B981;
+  --color-warm-cream: #E8E2D6;
 
-  /* Typography */
-  --font-display: "Plus Jakarta Sans", sans-serif;
+  --color-border: rgba(0, 0, 0, 0.11);
+
+  /* Tighter radius = lebih editorial, kurang app-ish */
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+
+  /* Serif display font = ciri khas koran */
+  --font-display: "Playfair Display", Georgia, serif;
   --font-body: "Plus Jakarta Sans", sans-serif;
-  
+
   --text-h1: 30px;
   --text-stats: 36px;
   --text-desc: 14px;
 
-  /* Custom Shadow */
-  --shadow-premium: 0 4px 20px -2px rgba(18, 24, 38, 0.04);
+  /* Offset shadow = kertas terangkat, lebih terasa cetak */
+  --shadow-card: 2px 3px 0px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-premium: 3px 4px 0px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.07);
+  --shadow-hover: 4px 5px 0px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
 }
 
 :root {
-  --zen-navy: #121826;
-  --zen-mustard: #E67E22;
-  --zen-cream: #F9F7F2;
+  --travigo-green: #10B981;
+  --travigo-green-dark: #059669;
+  --travigo-green-light: #D1FAE5;
 
-  /* Legacy Utility Bridge */
-  --bg-secondary: var(--zen-cream);
-  --text-primary: var(--zen-navy);
-  --text-muted: #64748B;
-  --text-dim: #94A3B8;
+  /* ── Newsprint paper tones ── */
+  --travigo-page: #E8E2D6;
+  --travigo-bg: #E8E2D6;
+  --travigo-white: #F5F1E8;
+
+  /* Surface tokens — newsprint */
+  --surface-card: #F5F1E8;
+  --surface-elevated: #FDFAF4;
+  --surface-sidebar: #0F172A;   /* sidebar selalu dark, kayak headline kolom koran */
+  --surface-header: #EDE8DC;
+  --surface-hover: #E4DDD1;
+
+  /* Border tokens — lebih kelihatan, kayak garis kolom koran */
+  --border-default: #C4B99E;
+  --border-card: rgba(0, 0, 0, 0.12);
+
+  /* Legacy */
+  --bg-secondary: var(--travigo-page);
+  --bg-main: var(--travigo-page);
+  --bg-card: var(--surface-card);
+  --border-primary: var(--border-card);
+  --text-primary: #1C1917;
+  --text-muted: #57534E;
+  --text-dim: #A8A29E;
 }
 
 [data-theme="dark"] {
-  --bg-secondary: #121212;
-  --text-primary: #F9F7F2;
+  --bg-secondary: #0B1120;
+  --bg-main: #0B1120;
+  --bg-card: #1A2537;
+  --border-primary: rgba(255, 255, 255, 0.05);
+  --text-primary: #F1F5F9;
   --text-muted: #94A3B8;
-  --color-border: rgba(255, 255, 255, 0.05);
+  --text-dim: #64748B;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --travigo-page: #0B1120;
+
+  --surface-card: #1A2537;
+  --surface-elevated: #1A2537;
+  --surface-sidebar: #0D1526;
+  --surface-header: #111827;
+  --surface-hover: #1E2D40;
+
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.05);
+
+  /* Dark mode shadows stay subtle */
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.25);
+  --shadow-premium: 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-hover: 0 6px 24px rgba(0,0,0,0.35);
 }
 
-/* ── BASE RESET ── */
+/* ── BASE ── */
 @layer base {
   * {
     border-color: var(--color-border);
   }
-  
+
   body {
-    @apply bg-secondary text-primary antialiased;
+    @apply antialiased;
+    background-color: var(--travigo-page);
+    color: var(--text-primary);
     font-family: 'Plus Jakarta Sans', sans-serif;
-    transition: background-color 0.4s ease;
+    transition: background-color 0.3s ease;
+    /* Subtle paper grain */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  /* ── EDITORIAL TYPOGRAPHY: semua h1/h2/h3 otomatis pakai serif ── */
+  h1, h2, h3 {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
   }
 }
 
-/* ── UTILITY CLASSES ── */
+/* ── COMPONENTS ── */
 @layer components {
+
+  /* Serif display — ciri khas koran */
   .text-display {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
   }
-  
+
+  /* Shorthand untuk heading koran */
+  .editorial-heading {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+
+  /* Card: warm newsprint bg + border kolom + offset shadow */
   .bento-card {
-    @apply bg-white rounded-xl shadow-premium border border-border transition-all duration-300;
+    @apply rounded-xl border transition-all duration-200;
+    background: var(--surface-card);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-card);
+  }
+
+  .bento-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  /* Universal editorial card */
+  .comic-card {
+    background: var(--surface-card);
+    border: 1.5px solid var(--border-default);
+    box-shadow: var(--shadow-card);
+    border-radius: 10px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .comic-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
   }
 
   .bento-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: 2rem;
+    gap: 1.5rem;
+  }
+
+  .travigo-sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer;
+  }
+
+  .travigo-sidebar-item.active {
+    @apply bg-emerald-500 text-white;
+    box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+  }
+
+  .travigo-sidebar-item:not(.active) {
+    @apply text-slate-500 hover:bg-slate-50 hover:text-slate-700;
+  }
+}
+
+/* ── EDITORIAL OVERRIDES: bg-white → newsprint di seluruh app ── */
+@layer utilities {
+  /* bg-white jadi newsprint warm-white */
+  .bg-white {
+    background-color: var(--surface-elevated) !important;
+  }
+  /* bg-slate-50 → hover surface */
+  .bg-slate-50 {
+    background-color: var(--surface-hover) !important;
+  }
+  /* border-slate-100/50 → border default newsprint */
+  .border-slate-100 {
+    border-color: var(--border-default) !important;
+  }
+  .border-slate-50 {
+    border-color: var(--border-default) !important;
+  }
+  /* text-slate-800/700 → pakai text-primary */
+  .text-slate-800 {
+    color: var(--text-primary) !important;
+  }
+  .text-slate-700 {
+    color: var(--text-primary) !important;
   }
 }
 
 /* ── SCROLLBAR ── */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--zen-navy);
+  background: rgba(0,0,0,0.12);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {

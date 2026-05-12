@@ -1,252 +1,574 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaceBadge } from '@/components/ui/Badge';
-import { PageLoader } from '@/components/ui/LoadingSpinner';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import Link from 'next/link';
 import { Pagination } from '@/components/ui/Pagination';
 import {
-  Trash2,
-  ChevronRight,
-  UserPlus,
-  Search,
-  Users,
-  ShieldCheck,
-  AlertCircle,
-  Building2,
-  CheckCircle2,
-  Filter,
-  MoreVertical,
-  Mail
+  Trash2, ChevronRight, UserPlus, Search,
+  Users, ShieldCheck, AlertCircle, Building2,
+  Mail, Loader2, LayoutGrid, List, Wifi, X,
 } from 'lucide-react';
-import { BentoCard } from '@/components/ui/BentoCard';
-import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
-// ── COMPONENTS ──
+// ── Animated counter ──────────────────────────────────────────
+function AnimCount({ to }: { to: number }) {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, v => Math.round(v));
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    const unsub = rounded.on('change', v => setDisplay(v));
+    const ctrl  = animate(count, to, { duration: 0.8, ease: 'easeOut' });
+    return () => { ctrl.stop(); unsub(); };
+  }, [to]);
+  return <span className="tabular-nums">{display}</span>;
+}
 
-const StatCard = ({ label, val, icon: Icon, color, index }: any) => (
-  <BentoCard 
-    index={index}
-    className="p-10 flex flex-col justify-between"
-  >
-    <div className="flex items-center justify-between mb-8">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} bg-opacity-10`}>
-        <Icon size={24} className={color.replace('bg-', 'text-')} />
+// ── Stat card ──────────────────────────────────────────────────
+function StatCard({ label, val, icon: Icon, color, delay }: {
+  label: string; val: number; icon: React.ElementType;
+  color: { bar: string; icon: string; num: string }; delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+      className="bg-white rounded-2xl p-5 border border-slate-100 flex items-center gap-4 cursor-default overflow-hidden relative"
+      style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+    >
+      {/* Left accent bar */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${color.bar}`} />
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color.icon}`}>
+        <Icon size={20} strokeWidth={2} className="text-white" />
       </div>
-      <div className="w-1.5 h-1.5 rounded-full bg-slate-100" />
-    </div>
-    <div>
-      <p className="text-desc font-medium text-slate-400 mb-2 uppercase tracking-widest">{label}</p>
-      <h3 className="text-stats font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
-        {val}
-      </h3>
-    </div>
-  </BentoCard>
-);
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{label}</p>
+        <p className={`text-[28px] font-black leading-tight mt-1 ${color.num}`}>
+          <AnimCount to={val} />
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
+// ── Avatar ─────────────────────────────────────────────────────
+const AVATAR_COLORS = [
+  'from-red-500 to-rose-600',
+  'from-blue-500 to-indigo-600',
+  'from-emerald-500 to-teal-600',
+  'from-amber-500 to-orange-600',
+  'from-violet-500 to-purple-600',
+  'from-sky-500 to-cyan-600',
+];
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+// ── Grid card ──────────────────────────────────────────────────
+function EmployeeCard({
+  emp, idx, onDelete,
+}: { emp: any; idx: number; onDelete: () => void }) {
+  const { confirm } = useConfirm();
+  const avatarGradient = getAvatarColor(emp.name);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+      transition={{ delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4 }}
+      className="group bg-white border border-slate-100 rounded-2xl overflow-hidden flex flex-col cursor-default"
+      style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s' }}
+      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 32px rgba(227,30,36,0.12)')}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)')}
+    >
+      {/* Top strip */}
+      <div className="h-1.5 w-full bg-linear-to-r from-[#E31E24] to-[#005596] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="p-5 flex flex-col gap-4 flex-1">
+        {/* Avatar + name row */}
+        <div className="flex items-start gap-3.5">
+          <div className="relative shrink-0">
+            <div className={`w-13 h-13 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-[18px] font-black text-white`}
+              style={{ width: 52, height: 52 }}>
+              {emp.name.charAt(0).toUpperCase()}
+            </div>
+            {emp.isOnline && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <p className="text-desc font-bold text-slate-800 truncate leading-tight group-hover:text-[#E31E24] transition-colors">
+              {emp.name}
+            </p>
+            <p className="text-[11px] text-slate-400 font-semibold mt-0.5 tracking-wider uppercase">
+              {emp.employeeId}
+            </p>
+          </div>
+          {emp.isOnline && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg shrink-0">
+              <Wifi size={10} className="text-emerald-500" />
+              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Online</span>
+            </div>
+          )}
+        </div>
+
+        {/* Dept + face badge */}
+        <div className="bg-slate-50 rounded-xl px-3.5 py-2.5 border border-slate-100 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Building2 size={12} className="text-slate-400 shrink-0" />
+            <p className="text-[12px] font-semibold text-slate-700 truncate">{emp.department || 'Operasional'}</p>
+          </div>
+          <FaceBadge registered={emp.faceRegistered} />
+        </div>
+
+        {/* Email */}
+        <div className="flex items-center gap-2 px-0.5">
+          <Mail size={12} className="text-slate-300 shrink-0" />
+          <p className="text-[12px] text-slate-400 truncate">{emp.email || '—'}</p>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Divider */}
+        <div className="h-px bg-slate-100" />
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
+            onClick={async (e) => { 
+              e.stopPropagation(); 
+              const isConfirmed = await confirm({
+                title: 'Hapus Karyawan',
+                message: `Yakin ingin menghapus data ${emp.name}? Semua riwayat absensi juga akan dihapus.`,
+                variant: 'danger',
+                confirmLabel: 'Hapus',
+                cancelLabel: 'Batal'
+              });
+              if (isConfirmed) onDelete(); 
+            }}
+            className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-all shrink-0"
+          >
+            <Trash2 size={14} />
+          </motion.button>
+
+          <Link href={`/employees/detail?id=${emp.uid}`} className="flex-1">
+            <motion.button
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              className="w-full h-9 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-2 transition-all"
+              style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)' }}
+            >
+              Lihat Profil <ChevronRight size={13} />
+            </motion.button>
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── List row ───────────────────────────────────────────────────
+function EmployeeRow({ emp, idx, onDelete }: { emp: any; idx: number; onDelete: () => void }) {
+  const { confirm } = useConfirm();
+  const avatarGradient = getAvatarColor(emp.name);
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 12 }}
+      transition={{ delay: idx * 0.03 }}
+      whileHover={{ backgroundColor: '#fafafa' }}
+      className="flex items-center gap-4 px-5 py-4 border-b border-slate-100 last:border-0 group transition-colors"
+    >
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        <div className={`w-10 h-10 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-desc font-black text-white`}>
+          {emp.name.charAt(0).toUpperCase()}
+        </div>
+        {emp.isOnline && <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />}
+      </div>
+
+      {/* Name + ID */}
+      <div className="w-44 min-w-0 shrink-0">
+        <p className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[#E31E24] transition-colors">{emp.name}</p>
+        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{emp.employeeId}</p>
+      </div>
+
+      {/* Dept */}
+      <div className="flex-1 hidden sm:flex items-center gap-1.5 min-w-0">
+        <Building2 size={11} className="text-slate-300 shrink-0" />
+        <p className="text-[12px] text-slate-500 truncate">{emp.department || 'Operasional'}</p>
+      </div>
+
+      {/* Email */}
+      <div className="flex-1 hidden md:flex items-center gap-1.5 min-w-0">
+        <Mail size={11} className="text-slate-300 shrink-0" />
+        <p className="text-[12px] text-slate-400 truncate">{emp.email || '—'}</p>
+      </div>
+
+      {/* Face badge */}
+      <div className="shrink-0 hidden sm:block">
+        <FaceBadge registered={emp.faceRegistered} />
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 shrink-0">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={async (e) => { 
+            e.stopPropagation(); 
+            const isConfirmed = await confirm({
+              title: 'Hapus Karyawan',
+              message: `Yakin ingin menghapus data ${emp.name}?`,
+              variant: 'danger',
+              confirmLabel: 'Hapus',
+              cancelLabel: 'Batal'
+            });
+            if (isConfirmed) onDelete(); 
+          }}
+          className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+        >
+          <Trash2 size={13} />
+        </motion.button>
+        <Link href={`/employees/detail?id=${emp.uid}`}>
+          <motion.button
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            className="h-8 px-4 rounded-lg text-[11px] font-bold text-white flex items-center gap-1.5 transition-all"
+            style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)' }}
+          >
+            Profil <ChevronRight size={11} />
+          </motion.button>
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Empty state ────────────────────────────────────────────────
+function EmptyState({ hasFilter }: { hasFilter: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="col-span-full flex flex-col items-center justify-center py-24 gap-4"
+    >
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-16 h-16 rounded-2xl flex items-center justify-center"
+        style={{ background: 'rgba(227,30,36,0.08)' }}
+      >
+        <Users size={28} style={{ color: '#E31E24' }} />
+      </motion.div>
+      <div className="text-center">
+        <p className="text-desc font-bold text-slate-700">
+          {hasFilter ? 'Tidak ditemukan' : 'Belum ada karyawan'}
+        </p>
+        <p className="text-[12px] text-slate-400 mt-1">
+          {hasFilter ? 'Coba ubah filter atau kata kunci pencarian' : 'Tambah karyawan pertama untuk mulai'}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Main page ──────────────────────────────────────────────────
 export default function EmployeesPage() {
   const {
-    employees,
-    loading,
-    search,
-    setSearch,
-    filterDept,
-    setFilterDept,
-    filterFace,
-    setFilterFace,
-    showAddModal,
-    setShowAddModal,
-    departmentItems,
-    jamKerjas,
-    filteredEmployees,
-    deleteEmployeeOptimistic,
+    employees, loading, search, setSearch,
+    filterDept, setFilterDept, filterFace, setFilterFace,
+    showAddModal, setShowAddModal,
+    departmentItems, jamKerjas,
+    filteredEmployees, deleteEmployeeOptimistic,
   } = useEmployeeManagement();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
-
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredEmployees]);
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('search');
+    if (q) setSearch(q);
+  }, []);
 
-  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const itemsPerPage = viewMode === 'grid' ? 9 : 12;
+
+  useEffect(() => { setCurrentPage(1); }, [filteredEmployees]);
+
+  const totalPages         = Math.ceil(filteredEmployees.length / itemsPerPage);
   const paginatedEmployees = filteredEmployees.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
 
+  const hasFilter = !!(search || filterDept !== 'all' || filterFace !== 'all');
+
+  const FACE_OPTS = [
+    { value: 'all',          label: 'Semua' },
+    { value: 'registered',   label: 'Verified' },
+    { value: 'unregistered', label: 'Belum Daftar' },
+  ];
+
   return (
-    <div className="flex flex-col gap-10 w-full pb-20 max-w-[1440px] mx-auto">
-      
+    <div className="flex flex-col gap-5 pb-6">
+
       {/* ── HEADER ── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-6">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+      >
         <div>
-          <div className="flex items-center gap-3 mb-4">
-             <span className="flex items-center gap-2 px-3 py-1.5 bg-mustard bg-opacity-10 text-mustard rounded-full text-[10px] font-bold uppercase tracking-wider border border-mustard border-opacity-10">
-               <Users size={12} />
-               Personnel Directory
-             </span>
+          {/* Section label */}
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1 h-4 rounded-full" style={{ background: '#E31E24' }} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">Manajemen SDM</span>
           </div>
-          <h1 className="text-h1 font-extrabold text-slate-900 tracking-tight leading-none">
-            Employee <span className="text-mustard">Database</span>
+          <h1 className="text-[24px] font-black text-slate-900 tracking-tight leading-none">
+            Data <span style={{ color: '#E31E24' }}>Karyawan</span>
           </h1>
-          <p className="text-desc font-medium text-slate-400 mt-4 max-w-xl">
-            Central repository for JNE Martapura personnel. Currently managing {employees.length} active records.
+          <p className="text-[12px] text-slate-400 mt-1.5 font-medium">
+            {employees.length} personel aktif terdaftar di sistem
           </p>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <AnimatedButton
+
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5">
+            {(['grid', 'list'] as const).map(mode => (
+              <motion.button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                whileTap={{ scale: 0.93 }}
+                className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              >
+                {viewMode === mode && (
+                  <motion.div
+                    layoutId="view-indicator"
+                    className="absolute inset-0 rounded-lg bg-white"
+                    style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                  />
+                )}
+                <span className={`relative z-10 transition-colors ${viewMode === mode ? 'text-slate-700' : 'text-slate-400'}`}>
+                  {mode === 'grid' ? <LayoutGrid size={15} /> : <List size={15} />}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02, boxShadow: '0 6px 20px rgba(227,30,36,0.30)' }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setShowAddModal(true)}
-            className="h-14 px-8 bg-slate-900 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest shadow-lg hover:bg-mustard transition-all flex items-center gap-3"
+            className="flex items-center gap-2 h-10 px-5 rounded-xl text-[12px] font-bold text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)', boxShadow: '0 2px 8px rgba(227,30,36,0.25)' }}
           >
-            <UserPlus size={18} />
-            Onboard Personnel
-          </AnimatedButton>
+            <UserPlus size={15} />
+            Tambah Karyawan
+          </motion.button>
         </div>
+      </motion.div>
+
+      {/* ── STAT CARDS ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard delay={0.06} label="Total Karyawan" val={employees.length}
+          icon={Users}
+          color={{ bar: 'bg-slate-400', icon: 'bg-slate-600', num: 'text-slate-700' }} />
+        <StatCard delay={0.10} label="Terverifikasi" val={employees.filter(e => e.faceRegistered).length}
+          icon={ShieldCheck}
+          color={{ bar: 'bg-[#005596]', icon: 'bg-[#005596]', num: 'text-[#005596]' }} />
+        <StatCard delay={0.14} label="Belum Daftar" val={employees.filter(e => !e.faceRegistered).length}
+          icon={AlertCircle}
+          color={{ bar: 'bg-amber-500', icon: 'bg-amber-500', num: 'text-amber-600' }} />
+        <StatCard delay={0.18} label="Sedang Online" val={employees.filter(e => e.isOnline).length}
+          icon={Wifi}
+          color={{ bar: 'bg-emerald-500', icon: 'bg-emerald-500', num: 'text-emerald-600' }} />
       </div>
 
-      {/* ── STATS GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <StatCard index={0} label="Total Records" val={employees.length} icon={Users} color="bg-indigo-600" />
-        <StatCard index={1} label="Verified Units" val={employees.filter((e) => e.faceRegistered).length} icon={ShieldCheck} color="bg-emerald-600" />
-        <StatCard index={2} label="Pending Sync" val={employees.filter((e) => !e.faceRegistered).length} icon={AlertCircle} color="bg-amber-600" />
-        <StatCard index={3} label="Live Status" val={employees.filter(e => e.isOnline).length} icon={CheckCircle2} color="bg-cyan-600" />
-      </div>
-
-      {/* ── FILTERS ── */}
-      <BentoCard className="p-4" hoverEffect={false}>
-        <div className="flex flex-col lg:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-mustard transition-colors" />
-            <input
-              type="text"
-              placeholder="Search by name, ID, or department..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-slate-50 border border-transparent rounded-xl pl-16 pr-8 text-desc font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-mustard focus:border-opacity-20 transition-all"
-            />
-          </div>
-          <div className="flex gap-4 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-56">
-              <select
-                value={filterDept}
-                onChange={(e) => setFilterDept(e.target.value)}
-                className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 pr-12 text-[11px] font-bold text-slate-600 uppercase tracking-widest outline-none cursor-pointer hover:border-mustard transition-all appearance-none"
+      {/* ── FILTER BAR ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+        className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+      >
+        {/* Search */}
+        <div className="relative flex-1 w-full">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Cari nama, ID, atau departemen..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full h-10 pl-9 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-red-300 focus:ring-2 focus:ring-red-50 focus:bg-white transition-all"
+          />
+          <AnimatePresence>
+            {search && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
-                <option value="all">ALL DEPARTMENTS</option>
-                {departmentItems.map((d) => (
-                  <option key={d.id} value={d.name}>{d.name}</option>
-                ))}
-              </select>
-              <Filter size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
-            </div>
-            <div className="relative flex-1 lg:w-56">
-              <select
-                value={filterFace}
-                onChange={(e) => setFilterFace(e.target.value as any)}
-                className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 pr-12 text-[11px] font-bold text-slate-600 uppercase tracking-widest outline-none cursor-pointer hover:border-mustard transition-all appearance-none"
-              >
-                <option value="all">VERIFICATION STATUS</option>
-                <option value="registered">VERIFIED</option>
-                <option value="unregistered">UNVERIFIED</option>
-              </select>
-              <ShieldCheck size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
-            </div>
-          </div>
+                <X size={13} />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
-      </BentoCard>
 
-      {/* ── DIRECTORY GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <AnimatePresence mode="popLayout">
-          {loading ? (
-            <div className="col-span-full py-40 flex flex-col items-center gap-6">
-              <PageLoader />
-              <p className="text-[12px] font-bold uppercase tracking-widest text-slate-400">
-                Synchronizing Database...
-              </p>
-            </div>
-          ) : paginatedEmployees.map((emp, idx) => (
-            <BentoCard
-              key={emp.id}
-              index={idx}
-              className="p-10 flex flex-col justify-between group"
+        {/* Dept dropdown */}
+        <div className="relative shrink-0 w-full sm:w-44">
+          <select
+            value={filterDept}
+            onChange={e => setFilterDept(e.target.value)}
+            className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-8 text-[12px] font-semibold text-slate-600 outline-none appearance-none cursor-pointer focus:border-red-300 transition-all"
+          >
+            <option value="all">Semua Dept.</option>
+            {departmentItems.map(d => (
+              <option key={d.id} value={d.name}>{d.name}</option>
+            ))}
+          </select>
+          <Building2 size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        </div>
+
+        {/* Face status pills */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {FACE_OPTS.map(opt => (
+            <motion.button
+              key={opt.value}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setFilterFace(opt.value as any)}
+              className={`relative h-10 px-4 rounded-xl text-[12px] font-bold transition-all ${
+                filterFace === opt.value ? 'text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+              }`}
             >
-              <div>
-                <div className="flex items-start justify-between mb-8">
-                  <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[20px] font-black group-hover:bg-mustard transition-colors shadow-sm">
-                      {emp.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="text-[18px] font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-mustard transition-colors">
-                        {emp.name}
-                      </h3>
-                      <p className="text-[12px] font-medium text-slate-400 uppercase tracking-widest mt-1">{emp.employeeId}</p>
-                    </div>
-                  </div>
-                  <button className="text-slate-200 hover:text-slate-400 transition-colors">
-                    <MoreVertical size={20} />
-                  </button>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-white group-hover:border-mustard group-hover:border-opacity-10 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100">
-                        <Building2 size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</p>
-                        <p className="text-[13px] font-bold text-slate-900">{emp.department || 'Operations'}</p>
-                      </div>
-                    </div>
-                    <FaceBadge registered={emp.faceRegistered} />
-                  </div>
-
-                  <div className="flex items-center gap-3 px-1">
-                    <Mail size={14} className="text-slate-300" />
-                    <p className="text-[12px] font-medium text-slate-500 truncate">{emp.email || 'no-email@jne.com'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-10 flex items-center gap-3 mt-auto">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Archive record for ${emp.name}?`)) {
-                      deleteEmployeeOptimistic(emp.id);
-                    }
-                  }}
-                  className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center"
-                >
-                  <Trash2 size={20} />
-                </button>
-                
-                <Link href={`/employees/detail?id=${emp.uid}`} className="flex-1">
-                  <button
-                    className="w-full h-14 bg-slate-900 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-mustard transition-all shadow-sm"
-                  >
-                    View Full Profile
-                    <ChevronRight size={18} />
-                  </button>
-                </Link>
-              </div>
-            </BentoCard>
+              {filterFace === opt.value && (
+                <motion.div
+                  layoutId="face-pill"
+                  className="absolute inset-0 rounded-xl"
+                  style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)' }}
+                  transition={{ type: 'spring', bounce: 0.18, duration: 0.38 }}
+                />
+              )}
+              <span className="relative z-10">{opt.label}</span>
+            </motion.button>
           ))}
-        </AnimatePresence>
-      </div>
+        </div>
+      </motion.div>
+
+      {/* Active filter chips */}
+      <AnimatePresence>
+        {hasFilter && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex items-center gap-2 flex-wrap overflow-hidden -mt-2"
+          >
+            <span className="text-[11px] text-slate-400 font-semibold">Filter aktif:</span>
+            {search && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-100 rounded-full text-[11px] font-semibold text-red-600">
+                Cari: "{search}"
+                <button onClick={() => setSearch('')}><X size={10} /></button>
+              </span>
+            )}
+            {filterDept !== 'all' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[11px] font-semibold text-blue-600">
+                Dept: {filterDept}
+                <button onClick={() => setFilterDept('all')}><X size={10} /></button>
+              </span>
+            )}
+            {filterFace !== 'all' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-100 rounded-full text-[11px] font-semibold text-amber-600">
+                {filterFace === 'registered' ? 'Verified' : 'Belum Daftar'}
+                <button onClick={() => setFilterFace('all')}><X size={10} /></button>
+              </span>
+            )}
+            <button
+              onClick={() => { setSearch(''); setFilterDept('all'); setFilterFace('all'); }}
+              className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 underline transition-colors"
+            >
+              Hapus semua
+            </button>
+            <span className="text-[11px] text-slate-400 ml-auto font-medium">
+              {filteredEmployees.length} hasil
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── CONTENT ── */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(227,30,36,0.08)' }}>
+            <Loader2 size={22} className="animate-spin" style={{ color: '#E31E24' }} />
+          </div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Memuat data...</p>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <AnimatePresence mode="popLayout">
+            {paginatedEmployees.length === 0
+              ? <EmptyState hasFilter={hasFilter} />
+              : paginatedEmployees.map((emp, idx) => (
+                  <EmployeeCard
+                    key={emp.id} emp={emp} idx={idx}
+                    onDelete={() => deleteEmployeeOptimistic(emp.id)}
+                  />
+                ))
+            }
+          </AnimatePresence>
+        </div>
+      ) : (
+        /* List view */
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+          style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+        >
+          {/* List header */}
+          <div className="hidden sm:grid px-5 py-3 bg-slate-50 border-b border-slate-100"
+            style={{ gridTemplateColumns: '52px 176px 1fr 1fr 120px 100px' }}>
+            {['', 'Nama', 'Departemen', 'Email', 'Status', ''].map((h, i) => (
+              <p key={i} className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{h}</p>
+            ))}
+          </div>
+          <AnimatePresence mode="popLayout">
+            {paginatedEmployees.length === 0
+              ? <EmptyState hasFilter={hasFilter} />
+              : paginatedEmployees.map((emp, idx) => (
+                  <EmployeeRow
+                    key={emp.id} emp={emp} idx={idx}
+                    onDelete={() => deleteEmployeeOptimistic(emp.id)}
+                  />
+                ))
+            }
+          </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* ── PAGINATION ── */}
       {totalPages > 1 && (
-        <div className="flex justify-center pt-10">
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex justify-center pt-2"
+        >
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </div>
+        </motion.div>
       )}
 
       <AddEmployeeModal

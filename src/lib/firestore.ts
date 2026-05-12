@@ -499,16 +499,19 @@ export async function deleteAttendance(id: string): Promise<void> {
 export function subscribeToTodayAttendance(
   date: string,
   callback: (records: AttendanceRecord[]) => void,
-  limitCount: number = 50
+  limitCount: number = 100
 ) {
+  // Single-field query — no composite index needed.
+  // Also accept attendanceDate (legacy field name used by some mobile records).
   const q = query(
     collection(db, COLLECTIONS.ATTENDANCE),
     where('date', '==', date),
-    orderBy('createdAt', 'desc'),
     limit(limitCount)
   );
   return onSnapshot(q, (snap) => {
     const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
+    // Sort newest-first client-side (avoids orderBy composite index)
+    data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     callback(data);
   });
 }

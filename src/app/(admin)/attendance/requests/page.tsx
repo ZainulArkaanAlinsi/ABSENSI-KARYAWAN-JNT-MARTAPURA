@@ -6,161 +6,218 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase
 import { EditRequest } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Clock, FileText, AlertCircle, Inbox, Loader2, XCircle } from 'lucide-react';
+import { Check, X, Clock, FileText, AlertCircle, Inbox, Loader2, XCircle, CheckCircle2 } from 'lucide-react';
+
+const toDate = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'object' && val !== null) {
+    if ('seconds' in val) return new Date(val.seconds * 1000);
+    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+  }
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
 
 export default function EditRequestsPage() {
-  const [requests, setRequests] = useState<EditRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [requests,   setRequests]   = useState<EditRequest[]>([]);
+  const [loading,    setLoading]    = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'edit_requests'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as EditRequest));
-      setRequests(data);
+    const q     = query(collection(db, 'edit_requests'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => {
+      setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as EditRequest)));
       setLoading(false);
     });
     return () => unsub();
   }, []);
 
-  const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
-    setProcessing(requestId);
+  const handleAction = async (id: string, status: 'approved' | 'rejected') => {
+    setProcessing(id);
     try {
-      await updateDoc(doc(db, 'edit_requests', requestId), {
-        status,
-        updatedAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Error updating request:', error);
+      await updateDoc(doc(db, 'edit_requests', id), { status, updatedAt: new Date().toISOString() });
+    } catch (e) {
+      console.error(e);
     } finally {
       setProcessing(null);
     }
   };
 
+  const pending  = requests.filter(r => r.status === 'pending').length;
+  const approved = requests.filter(r => r.status === 'approved').length;
+  const rejected = requests.filter(r => r.status === 'rejected').length;
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <Loader2 size={36} className="animate-spin text-text-tertiary" />
-        <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-[0.3em]">
-          Loading Requests...
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <Loader2 size={32} className="animate-spin text-emerald-500" />
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          Memuat permintaan...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="p-6 rounded-xl bg-primary/10 border border-border-primary flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-mustard/5 to-transparent pointer-events-none" />
-        <div className="w-14 h-14 rounded-xl bg-mustard flex items-center justify-center text-white shadow-md shrink-0 relative z-10">
-          <FileText size={28} />
-        </div>
-        <div className="relative z-10">
-          <h2 className="text-xl font-bold text-text-primary italic tracking-tight">Request Queue</h2>
-          <p className="text-[11px] font-medium text-text-tertiary mt-1">
-            {requests.length} pending review
+    <div className="flex flex-col gap-5 pb-6">
+
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
+        <div>
+          <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
+            Request <span className="text-emerald-500">Edit Absensi</span>
+          </h1>
+          <p className="text-[12px] text-slate-400 mt-1 font-medium">
+            Permintaan koreksi data kehadiran dari karyawan
           </p>
         </div>
+      </motion.div>
+
+      {/* ── SUMMARY ── */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Menunggu',  val: pending,  clr: 'text-amber-600',   bg: 'bg-amber-50',   dot: 'bg-amber-400'   },
+          { label: 'Disetujui', val: approved, clr: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-400' },
+          { label: 'Ditolak',   val: rejected, clr: 'text-red-600',     bg: 'bg-red-50',     dot: 'bg-red-400'     },
+        ].map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 + i * 0.07 }}
+            className="bg-white rounded-2xl px-4 py-3.5 border border-slate-100 flex items-center gap-3"
+            style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full ${s.dot} shrink-0`} />
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+              <p className={`text-[22px] font-black leading-none tabular-nums ${s.clr}`}>{s.val}</p>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
+      {/* ── LIST ── */}
       {requests.length === 0 ? (
-        <div className="bg-primary border border-border-primary rounded-xl p-12 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-secondary text-text-tertiary mb-4">
-            <Inbox size={32} />
-          </div>
-          <h4 className="text-base font-bold text-text-primary uppercase tracking-wider mb-1">All Clear</h4>
-          <p className="text-[11px] font-medium text-text-tertiary">No pending requests at this time.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="bg-white border border-slate-100 rounded-2xl p-16 text-center"
+          style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}
+        >
+          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+            <Inbox size={24} className="text-slate-300" />
+          </motion.div>
+          <p className="text-[13px] font-bold text-slate-700">Tidak ada permintaan</p>
+          <p className="text-[11px] text-slate-400 mt-1">Semua request sudah ditangani</p>
+        </motion.div>
       ) : (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-3">
           <AnimatePresence>
-            {requests.map((req) => (
+            {requests.map((req, i) => (
               <motion.div
                 key={req.id}
                 layout
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: 0.1 }}
-                className="bg-primary border border-border-primary rounded-xl p-6 shadow-xs hover:shadow-md transition-all group"
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ delay: i * 0.04 }}
+                className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-sm transition-all"
+                style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
               >
-                <div className="flex flex-col md:flex-row justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-lg font-bold text-text-primary group-hover:border-border-hover transition-all border border-border-primary">
-                        {req.userName.charAt(0)}
+                <div className="flex flex-col lg:flex-row gap-5">
+
+                  {/* ── Left info ── */}
+                  <div className="flex-1 min-w-0">
+                    {/* Top row: avatar + name + badge */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-desc font-bold shrink-0">
+                        {req.userName?.charAt(0) ?? '?'}
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-bold text-text-primary italic uppercase tracking-tight truncate leading-tight">
-                          {req.userName}
-                        </h3>
-                        <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest mt-0.5">
-                          ID: {req.userId.slice(0, 8)}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-desc font-bold text-slate-800 truncate leading-tight">{req.userName}</p>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">ID: {req.userId?.slice(0, 10)}…</p>
                       </div>
-                      <div
-                        className={`ml-auto px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border ${
-                          req.status === 'pending'
-                            ? 'bg-mustard/10 text-mustard border-mustard/20'
-                            : req.status === 'approved'
-                            ? 'bg-success/10 text-success border-success/20'
-                            : 'bg-pink/10 text-pink border-pink/20'
-                        }`}
-                      >
-                        {req.status === 'pending' ? 'Pending' : req.status === 'approved' ? 'Approved' : 'Rejected'}
-                      </div>
+                      <span className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                        req.status === 'pending'  ? 'bg-amber-50   text-amber-700'   :
+                        req.status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
+                                                    'bg-red-50     text-red-600'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          req.status === 'pending'  ? 'bg-amber-400'   :
+                          req.status === 'approved' ? 'bg-emerald-400' : 'bg-red-400'
+                        }`} />
+                        {req.status === 'pending' ? 'Menunggu' : req.status === 'approved' ? 'Disetujui' : 'Ditolak'}
+                      </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 rounded-lg bg-secondary border border-border-primary">
-                        <p className="text-[8px] font-bold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <AlertCircle size={12} className="text-danger" />
-                          Reason
-                        </p>
-                        <p className="text-sm font-medium text-text-secondary italic">"{req.reason}"</p>
+                    {/* Info grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <AlertCircle size={11} className="text-amber-500" />
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alasan</p>
+                        </div>
+                        <p className="text-[13px] font-medium text-slate-700 italic">"{req.reason}"</p>
                       </div>
-                      <div className="p-4 rounded-lg bg-secondary border border-border-primary">
-                        <p className="text-[8px] font-bold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <Clock size={12} className="text-primary" />
-                          Submitted
+                      <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Clock size={11} className="text-emerald-500" />
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dikirim</p>
+                        </div>
+                        <p className="text-[13px] font-bold text-slate-800">
+                          {format(toDate(req.createdAt), 'dd MMM yyyy')}
                         </p>
-                        <p className="text-sm font-bold text-text-primary">
-                          {format(new Date(req.createdAt), 'dd MMM yyyy HH:mm')}
-                        </p>
-                        <p className="text-[8px] font-medium text-text-tertiary uppercase tracking-wider mt-1">
-                          Server time
+                        <p className="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                          {format(toDate(req.createdAt), 'HH:mm')} WIB
                         </p>
                       </div>
                     </div>
                   </div>
 
+                  {/* ── Actions ── */}
                   {req.status === 'pending' && (
-                    <div className="flex md:flex-col justify-center gap-3 md:min-w-[160px]">
-                      <button
+                    <div className="flex lg:flex-col gap-2.5 lg:min-w-[140px] lg:justify-center">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                         onClick={() => handleAction(req.id, 'rejected')}
                         disabled={!!processing}
-                        className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-secondary border border-border-primary text-text-secondary rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-pink/10 hover:text-pink hover:border-pink/30 transition-all disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 h-10 px-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-[12px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
                       >
-                        {processing === req.id ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <XCircle size={16} />
-                        )}
-                        Reject
-                      </button>
-                      <button
+                        {processing === req.id
+                          ? <Loader2 size={14} className="animate-spin" />
+                          : <XCircle size={15} />}
+                        Tolak
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                         onClick={() => handleAction(req.id, 'approved')}
                         disabled={!!processing}
-                        className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-success text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-success/90 transition-all disabled:opacity-50 shadow-sm shadow-success/20"
+                        className="flex-1 flex items-center justify-center gap-2 h-10 px-4 text-white rounded-xl text-[12px] font-bold disabled:opacity-50 shadow-md"
+                        style={{ background: '#10B981', boxShadow: 'none' }}
                       >
-                        {processing === req.id ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <Check size={16} />
-                        )}
-                        Approve
-                      </button>
+                        {processing === req.id
+                          ? <Loader2 size={14} className="animate-spin" />
+                          : <CheckCircle2 size={15} />}
+                        Setuju
+                      </motion.button>
+                    </div>
+                  )}
+
+                  {/* Non-pending badge */}
+                  {req.status !== 'pending' && (
+                    <div className="flex lg:flex-col items-center justify-center lg:min-w-[120px]">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                        req.status === 'approved' ? 'bg-emerald-100' : 'bg-red-100'
+                      }`}>
+                        {req.status === 'approved'
+                          ? <Check size={22} className="text-emerald-600" />
+                          : <X     size={22} className="text-red-500" />}
+                      </div>
                     </div>
                   )}
                 </div>

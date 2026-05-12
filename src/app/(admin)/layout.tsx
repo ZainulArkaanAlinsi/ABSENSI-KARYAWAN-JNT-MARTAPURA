@@ -4,57 +4,53 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
+import { useAdminFCM } from '@/hooks/useAdminFCM';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Loader2 } from 'lucide-react';
 
-export default function AdminGroupLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+/** Komponen kecil yang memanggil hook FCM — harus berada di dalam NotificationProvider */
+function AdminFCMInit() {
+  useAdminFCM();
+  return null;
+}
+
+export default function AdminGroupLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  const router   = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
+    if (!loading && !user) router.replace('/login');
   }, [user, loading, router]);
 
-  // Loading State - Make it premium
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-950">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white font-black italic text-xs">J</span>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center transition-colors duration-300">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg">
+            <Loader2 size={24} className="animate-spin text-emerald-500" />
           </div>
-        </div>
-        <div className="mt-8 text-center">
-          <h2 className="text-white font-black uppercase tracking-[0.4em] italic text-sm">System Initializing</h2>
-          <p className="text-slate-500 text-[8px] font-bold uppercase tracking-[0.2em] mt-2">Connecting to Command Tower...</p>
+          <div className="text-center">
+            <p className="text-[13px] font-bold text-slate-700">Memuat sistem...</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Menghubungkan ke server</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Fallback for no user - avoid return null which makes screen blank
   if (!user) {
     return (
-      <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin text-primary mx-auto mb-4" size={24} />
-          <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest">Redirecting to Terminal...</p>
-        </div>
+      <div className="min-h-screen w-full transition-colors duration-300 flex items-center justify-center">
+        <Loader2 className="animate-spin text-emerald-500" size={24} />
       </div>
     );
   }
 
   return (
     <NotificationProvider>
+      <AdminFCMInit />
       <AdminLayout>
         <AnimatePresence mode="wait">
           <motion.div
@@ -62,10 +58,7 @@ export default function AdminGroupLayout({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ 
-              duration: 0.3, 
-              ease: [0.22, 1, 0.36, 1] 
-            }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="w-full h-full"
           >
             {children}

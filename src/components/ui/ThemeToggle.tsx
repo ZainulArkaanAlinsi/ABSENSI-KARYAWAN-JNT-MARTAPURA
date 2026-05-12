@@ -10,24 +10,25 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="w-11 h-11 rounded-xl flex items-center justify-center transition-all bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 group relative overflow-hidden"
+      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all border
+                 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5
+                 text-slate-500 dark:text-slate-400
+                 hover:bg-amber-50 dark:hover:bg-amber-500/10
+                 hover:border-amber-200 dark:hover:border-amber-500/20
+                 hover:text-amber-500 dark:hover:text-amber-400"
       aria-label="Toggle Theme"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={theme}
-          initial={{ y: 20, opacity: 0, rotate: -45 }}
+          initial={{ y: 10, opacity: 0, rotate: -30 }}
           animate={{ y: 0, opacity: 1, rotate: 0 }}
-          exit={{ y: -20, opacity: 0, rotate: 45 }}
-          transition={{ duration: 0.3, ease: 'backOut' }}
-          className="text-(--sidebar-text)/60 group-hover:text-(--sidebar-text)"
+          exit={{ y: -10, opacity: 0, rotate: 30 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          {theme === 'light' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
         </motion.div>
       </AnimatePresence>
-      
-      {/* Glow Effect */}
-      <div className="absolute inset-0 bg-(--accent-primary)/0 group-hover:bg-(--accent-primary)/5 transition-colors" />
     </button>
   );
 }

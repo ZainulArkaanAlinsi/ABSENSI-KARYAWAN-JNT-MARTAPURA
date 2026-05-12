@@ -1,5 +1,6 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useConfirm } from '@/context/ConfirmContext';
 import { 
   LayoutDashboard, 
   Users, 
@@ -24,6 +25,7 @@ export function useSidebarLogic() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { confirm } = useConfirm();
 
   const navItems = [
     { isHeader: true, label: 'Inti Sistem' },
@@ -57,7 +59,15 @@ export function useSidebarLogic() {
   };
 
   const handleSignOut = async () => {
-    if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+    const isConfirmed = await confirm({
+      title: 'Keluar Sistem',
+      message: 'Apakah Anda yakin ingin mengakhiri sesi ini dan keluar dari dashboard?',
+      confirmLabel: 'Ya, Keluar',
+      cancelLabel: 'Batal',
+      variant: 'danger'
+    });
+
+    if (isConfirmed) {
       await signOut();
       router.push('/login');
     }

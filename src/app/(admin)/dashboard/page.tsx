@@ -2,456 +2,504 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Users, Clock, Calendar, ChevronRight, TrendingUp, TrendingDown,
-  Activity, ArrowUpRight, CheckCircle2, MoreHorizontal, Plus,
-  ShieldCheck, Zap, UserX,
+  UserX, Calendar, CheckCircle2,
+  ArrowUpRight, Clock, TrendingUp,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { id as idLocale } from 'date-fns/locale';
+import { motion, animate, AnimatePresence } from 'framer-motion';
+import {
+  AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-// ── DESIGN TOKENS ─────────────────────────────────────────
-// bg-main    : #1A0B10
-// bg-card    : #2C1419
-// bg-hover   : #351C22
-// accent     : #E5374A
-// accent-lt  : #FF6B6B
-// border     : rgba(255,255,255,0.06)
-// ──────────────────────────────────────────────────────────
-
-// ── TYPES ──
-
-interface Metric {
-  label: string;
-  value: string | number;
-  change: string;
-  trend: 'up' | 'down' | 'neutral';
-  icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
+// ─── Count-up ──────────────────────────────────────────────────────────────────
+function useCountUp(target: number, duration = 0.8, delay = 0) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const ctrl = animate(0, target, {
+        duration,
+        ease: [0.22, 1, 0.36, 1],
+        onUpdate: v => setCount(Math.round(v)),
+      });
+      return () => ctrl.stop();
+    }, delay * 1000);
+    return () => clearTimeout(t);
+  }, [target]);
+  return count;
 }
 
-// ── SKELETON ──
-
-const DashboardSkeleton = () => (
-  <div className="min-h-[calc(100vh-5rem)] bg-[#1A0B10] -m-8 lg:-m-12 p-8 lg:p-12 animate-pulse">
-    <div className="max-w-[1440px] mx-auto space-y-6">
-      <div className="flex justify-between items-end">
-        <div className="space-y-2">
-          <div className="h-5 w-40 bg-white/5 rounded-full" />
-          <div className="h-8 w-52 bg-white/5 rounded-xl" />
-        </div>
-        <div className="flex gap-3">
-          <div className="h-10 w-32 bg-white/5 rounded-xl" />
-          <div className="h-10 w-10 bg-white/5 rounded-xl" />
-        </div>
-      </div>
-      <div className="grid grid-cols-12 gap-5">
-        <div className="col-span-8 h-48 bg-white/5 rounded-3xl" />
-        <div className="col-span-4 space-y-3">
-          <div className="h-[58px] bg-white/5 rounded-2xl" />
-          <div className="h-[58px] bg-white/5 rounded-2xl" />
-          <div className="h-[58px] bg-white/5 rounded-2xl" />
-        </div>
-      </div>
-      <div className="grid grid-cols-4 gap-4">
-        {[1,2,3,4].map(i => <div key={i} className="h-32 bg-white/5 rounded-2xl" />)}
-      </div>
-      <div className="grid grid-cols-12 gap-5">
-        <div className="col-span-7 h-72 bg-white/5 rounded-3xl" />
-        <div className="col-span-5 h-72 bg-white/5 rounded-3xl" />
-      </div>
-    </div>
-  </div>
-);
-
-// ── METRIC CARD ──
-
-const MetricCard = ({ metric, index }: { metric: Metric; index: number }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 14 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 + index * 0.06 }}
-    className="bg-[#2C1419] border border-white/6 rounded-2xl p-5 hover:bg-[#351C22] transition-colors"
-  >
-    <div className="flex items-start justify-between mb-4">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${metric.iconBg}`}>
-        <metric.icon size={18} className={metric.iconColor} strokeWidth={2} />
-      </div>
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold leading-none ${
-        metric.trend === 'up'    ? 'bg-emerald-500/15 text-emerald-400' :
-        metric.trend === 'down'  ? 'bg-rose-500/15 text-rose-400' :
-                                   'bg-white/8 text-white/40'
-      }`}>
-        {metric.trend === 'up'   && <TrendingUp size={9} />}
-        {metric.trend === 'down' && <TrendingDown size={9} />}
-        {metric.change}
-      </span>
-    </div>
-    <p className="text-[10px] font-bold text-white/35 uppercase tracking-widest mb-1.5">{metric.label}</p>
-    <h3 className="text-h1 font-extrabold text-white tracking-tight leading-none tabular-nums">{metric.value}</h3>
-  </motion.div>
-);
-
-// ── REQUEST ITEM ──
-
-const RequestItem = ({ req, isLast }: { req: any; isLast: boolean }) => {
-  const router = useRouter();
+// ─── Section Divider (newspaper style) ────────────────────────────────────────
+function SectionDivider({ label, index = 0 }: { label: string; index?: number }) {
   return (
-    <div
-      onClick={() => router.push('/attendance/leaves')}
-      className={`flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group ${
-        !isLast ? 'border-b border-white/4' : ''
-      }`}
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.08 }}
+      className="flex items-center gap-3 py-1"
     >
-      <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-9 h-9 rounded-lg bg-[#E5374A] text-white flex items-center justify-center text-xs font-bold shrink-0 group-hover:bg-[#FF4D5F] transition-colors">
-          {req.employeeName?.charAt(0)?.toUpperCase() ?? '?'}
-        </div>
-        <div className="min-w-0">
-          <h4 className="text-[13px] font-bold text-white/85 leading-tight truncate">{req.employeeName}</h4>
-          <p className="text-[11px] font-medium text-white/35 uppercase tracking-wider mt-0.5">
-            {req.type} · {req.totalDays ?? 1} Day{(req.totalDays ?? 1) > 1 ? 's' : ''}
-          </p>
-        </div>
+      <span
+        className="w-2 h-2 rounded-sm shrink-0"
+        style={{ background: '#E31E24' }}
+      />
+      <span
+        className="text-[9px] font-black uppercase tracking-[0.3em] shrink-0"
+        style={{ color: '#E31E24' }}
+      >
+        {label}
+      </span>
+      <div className="flex-1 h-px" style={{ background: 'var(--border-default)' }} />
+      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 shrink-0">
+        JNE MTP
+      </span>
+    </motion.div>
+  );
+}
+
+// ─── Hero Stat Card (big card) ─────────────────────────────────────────────────
+function HeroCard({ present, total, pct, delay }: {
+  present: number; total: number; pct: number; delay: number;
+}) {
+  const n = useCountUp(present, 1.0, delay);
+  const p = useCountUp(pct, 1.0, delay + 0.1);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
+      whileHover={{ y: -3 }}
+      className="relative rounded-2xl p-6 overflow-hidden flex flex-col justify-between gap-4"
+      style={{
+        background: 'linear-gradient(135deg, #E31E24 0%, #A8151A 100%)',
+        boxShadow: '0 8px 32px rgba(227,30,36,0.25)',
+        minHeight: 180,
+      }}
+    >
+      {/* Background pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)',
+          backgroundSize: '20px 20px',
+        }}
+      />
+      {/* Big number watermark */}
+      <div
+        className="absolute -right-4 -bottom-6 text-[110px] font-black leading-none select-none pointer-events-none tabular-nums"
+        style={{ color: 'rgba(255,255,255,0.08)' }}
+      >
+        {p}%
       </div>
-      <div className="flex items-center gap-3 shrink-0 ml-4">
-        <div className="hidden sm:block text-right">
-          <p className="text-[12px] font-bold text-white/75 tabular-nums">
-            {req.startDate ? format(new Date(req.startDate), 'dd MMM') : 'Today'}
-          </p>
-          <p className="text-[10px] font-medium text-white/25 uppercase tracking-wider">Start</p>
+
+      <div className="relative z-10">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-200 mb-1">
+          Hadir Hari Ini
+        </p>
+        <div className="flex items-end gap-2">
+          <span className="text-[52px] font-black leading-none tabular-nums text-white">{n}</span>
+          <span className="text-[16px] font-bold text-red-200 mb-2">/{total}</span>
         </div>
-        <div className="w-7 h-7 rounded-lg border border-white/10 flex items-center justify-center text-white/25 group-hover:border-[#E5374A]/40 group-hover:text-[#E5374A] group-hover:bg-[#E5374A]/10 transition-all">
-          <ChevronRight size={14} />
-        </div>
+        <p className="text-[11px] font-medium text-red-100 mt-1">orang hadir hari ini</p>
       </div>
+
+      <div className="relative z-10">
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
+          <motion.div
+            className="h-full rounded-full bg-white"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: delay + 0.3 }}
+          />
+        </div>
+        <p className="text-[10px] font-bold text-red-100 mt-1.5">{p}% tingkat kehadiran</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Small Stat Card ───────────────────────────────────────────────────────────
+function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
+  label: string; value: number; icon: React.ElementType;
+  color: string; bg: string; sub: string; delay: number; tag?: string;
+}) {
+  const n = useCountUp(value, 0.8, delay);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
+      whileHover={{ y: -2 }}
+      className="rounded-2xl p-4 flex flex-col gap-3"
+      style={{
+        background: 'var(--surface-card)',
+        border: '1.5px solid var(--border-default)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+          <Icon size={16} style={{ color }} strokeWidth={2} />
+        </div>
+        {tag && (
+          <span
+            className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+            style={{ background: bg, color }}
+          >
+            {tag}
+          </span>
+        )}
+      </div>
+      <div>
+        <span className="text-[32px] font-black leading-none tabular-nums" style={{ color: 'var(--text-primary)' }}>
+          {n}
+        </span>
+        <span className="text-[11px] text-slate-400 ml-1 font-medium">{sub}</span>
+      </div>
+      <p className="text-[11px] font-semibold text-slate-500 -mt-1">{label}</p>
+    </motion.div>
+  );
+}
+
+// ─── Pending Banner Card ───────────────────────────────────────────────────────
+function PendingBannerCard({ pending, delay }: { pending: number; delay: number }) {
+  const n = useCountUp(pending, 0.8, delay);
+  return (
+    <Link href="/leaves">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay }}
+        whileHover={{ y: -2 }}
+        className="rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer group"
+        style={{
+          background: 'var(--surface-card)',
+          border: '1.5px solid var(--border-default)',
+          boxShadow: 'var(--shadow-card)',
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: '#E6EEF8' }}>
+            <Calendar size={18} style={{ color: '#004080' }} strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Antrian Izin</p>
+            <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-[20px] font-black tabular-nums" style={{ color: '#004080' }}>{n}</span>
+              {' '}pengajuan menunggu review
+            </p>
+          </div>
+        </div>
+        <motion.div
+          whileHover={{ x: 3 }}
+          className="flex items-center gap-1 text-[11px] font-bold"
+          style={{ color: '#004080' }}
+        >
+          Lihat Semua <ArrowUpRight size={13} />
+        </motion.div>
+      </motion.div>
+    </Link>
+  );
+}
+
+// ─── Chart Tooltip ─────────────────────────────────────────────────────────────
+const ChartTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white rounded-xl shadow-lg border border-slate-100 px-3 py-2.5 text-[11px]">
+      <p className="font-bold text-slate-700 mb-1.5">{label}</p>
+      {payload.map((p: any) => (
+        <div key={p.dataKey} className="flex items-center gap-1.5 mb-0.5">
+          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+          <span className="text-slate-500">
+            {p.dataKey === 'present' ? 'Hadir' : p.dataKey === 'late' ? 'Telat' : 'Absen'}:
+          </span>
+          <span className="font-bold text-slate-800 ml-auto pl-2">{p.value}</span>
+        </div>
+      ))}
     </div>
   );
 };
 
-// ── ACTIVITY ITEM ──
-
-const ActivityItem = ({ act, isLast }: { act: any; isLast: boolean }) => (
-  <div className="flex gap-3.5 relative">
-    {!isLast && (
-      <div
-        className="absolute left-[17px] top-9 w-px bg-white/[0.07]"
-        style={{ height: 'calc(100% - 4px)' }}
-      />
-    )}
-    <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 z-10 ${
-      act.status === 'present'
-        ? 'border-emerald-500/30 bg-emerald-500/10'
-        : 'border-rose-500/30 bg-rose-500/10'
-    }`}>
-      <div className={`w-2 h-2 rounded-full ${
-        act.status === 'present' ? 'bg-emerald-400' : 'bg-rose-400'
-      }`} />
-    </div>
-    <div className="pb-5 flex-1 min-w-0">
-      <div className="flex items-baseline justify-between gap-2">
-        <h4 className="text-[13px] font-bold text-white/85 truncate">{act.actionLabel}</h4>
-        <span className="text-[10px] font-bold text-white/20 uppercase tracking-wider shrink-0">
-          {act.checkIn ?? 'Just now'}
+// ─── Request Row ───────────────────────────────────────────────────────────────
+function RequestRow({ req, i }: { req: any; i: number }) {
+  const isSOS = req.type === 'SOS';
+  return (
+    <Link href={isSOS ? '/requests' : '/leaves'}>
+      <motion.div
+        initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.28, delay: 0.38 + i * 0.05 }}
+        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+      >
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[12px] font-black shrink-0 ${
+          isSOS ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+        }`}>
+          {isSOS ? '!' : req.employeeName?.charAt(0)?.toUpperCase() ?? '?'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-semibold text-slate-700 truncate">{req.employeeName}</p>
+          <p className="text-[11px] text-slate-400 capitalize">{req.type} · {req.totalDays ?? 1} hari</p>
+        </div>
+        {isSOS && (
+          <span className="text-[9px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase shrink-0">SOS</span>
+        )}
+        <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
+          {(() => {
+            const dateVal = req.startDate || req.createdAt || req.timestamp;
+            if (!dateVal) return 'Hari ini';
+            
+            let d: Date | null = null;
+            try {
+              if (dateVal instanceof Date) {
+                d = dateVal;
+              } else if (typeof dateVal === 'object' && dateVal !== null && 'seconds' in dateVal) {
+                d = new Date((dateVal as any).seconds * 1000);
+              } else if (typeof dateVal === 'string' && dateVal.length > 0) {
+                d = new Date(dateVal);
+              }
+            } catch (e) {
+              console.error('Date parsing error:', e);
+            }
+            
+            if (!d || isNaN(d.getTime())) return 'Hari ini';
+            return format(d, 'dd MMM', { locale: idLocale });
+          })()}
         </span>
-      </div>
-      <p className="text-[12px] text-white/35 mt-0.5 truncate">
-        <span className="text-white/65 font-semibold">{act.userName}</span> data synced
-      </p>
+      </motion.div>
+    </Link>
+  );
+}
+
+// ─── Empty ─────────────────────────────────────────────────────────────────────
+const Empty = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
+  <div className="py-10 flex flex-col items-center gap-3">
+    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+      <Icon size={20} className="text-slate-400" />
+    </div>
+    <p className="text-[12px] font-semibold text-slate-400">{text}</p>
+  </div>
+);
+
+// ─── Skeleton ──────────────────────────────────────────────────────────────────
+const Skeleton = () => (
+  <div className="space-y-5 animate-pulse">
+    <div className="h-8 w-56 bg-slate-200 rounded-xl" />
+    <div className="h-4 w-32 bg-slate-100 rounded-lg" />
+    <div className="grid grid-cols-3 gap-3">
+      <div className="col-span-1 h-44 bg-slate-200 rounded-2xl" />
+      <div className="h-44 bg-slate-200 rounded-2xl" />
+      <div className="h-44 bg-slate-200 rounded-2xl" />
+    </div>
+    <div className="h-12 bg-slate-100 rounded-2xl" />
+    <div className="h-4 w-40 bg-slate-100 rounded-lg" />
+    <div className="grid grid-cols-12 gap-4">
+      <div className="col-span-12 lg:col-span-7 h-[280px] bg-slate-200 rounded-2xl" />
+      <div className="col-span-12 lg:col-span-5 h-[280px] bg-slate-200 rounded-2xl" />
     </div>
   </div>
 );
 
-// ── EMPTY STATE ──
-
-const EmptyState = ({ icon: Icon, message }: { icon: React.ElementType; message: string }) => (
-  <div className="py-12 flex flex-col items-center gap-3">
-    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/[0.06] flex items-center justify-center">
-      <Icon size={20} className="text-white/20" />
-    </div>
-    <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest">{message}</p>
-  </div>
-);
-
-// ── MAIN PAGE ──
-
-export default function AdminDashboard() {
-  const { data: stats, loading } = useDashboardStats();
-  const [currentTime, setCurrentTime] = useState(new Date());
+// ─── Dashboard ─────────────────────────────────────────────────────────────────
+export default function Dashboard() {
+  const { data: s, weeklyData, loading } = useDashboardStats();
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  const metrics: Metric[] = [
-    {
-      label: 'Total Personnel', value: stats?.totalEmployees ?? 0,
-      change: '+4%', trend: 'up',
-      icon: Users, iconBg: 'bg-indigo-500/15', iconColor: 'text-indigo-400',
-    },
-    {
-      label: 'On-Duty Today', value: stats?.presentToday ?? 0,
-      change: `${stats?.punctualityRate ?? 100}%`, trend: 'up',
-      icon: Clock, iconBg: 'bg-emerald-500/15', iconColor: 'text-emerald-400',
-    },
-    {
-      label: 'Pending Requests', value: stats?.pendingLeaves ?? 0,
-      change: '-12%', trend: 'down',
-      icon: Calendar, iconBg: 'bg-amber-500/15', iconColor: 'text-amber-400',
-    },
-    {
-      label: 'Face Registered', value: stats?.faceRegisteredCount ?? 0,
-      change: 'Normal', trend: 'neutral',
-      icon: ShieldCheck, iconBg: 'bg-violet-500/15', iconColor: 'text-violet-400',
-    },
-  ];
+  if (loading) return <Skeleton />;
 
-  const quickStats = [
-    {
-      label: 'Late Arrivals',
-      value: stats?.lateToday ?? 0,
-      icon: Clock,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10',
-    },
-    {
-      label: 'Absent Today',
-      value: (stats?.totalEmployees ?? 0) - (stats?.presentToday ?? 0),
-      icon: UserX,
-      color: 'text-rose-400',
-      bg: 'bg-rose-500/10',
-    },
-    {
-      label: 'On Leave',
-      value: stats?.pendingLeaves ?? 0,
-      icon: Calendar,
-      color: 'text-violet-400',
-      bg: 'bg-violet-500/10',
-    },
-  ];
-
-  const presentRate = stats?.totalEmployees
-    ? Math.round(((stats.presentToday ?? 0) / stats.totalEmployees) * 100)
-    : 0;
-
-  const pendingRequests  = stats?.pendingRequests ?? [];
-  const recentActivities = stats?.recentActivities ?? [];
-  const displayedRequests    = pendingRequests.slice(0, 5);
-  const displayedActivities  = recentActivities.slice(0, 4);
-
-  if (loading) return <DashboardSkeleton />;
+  const total   = s?.totalEmployees ?? 0;
+  const present = s?.presentToday   ?? 0;
+  const late    = s?.lateToday      ?? 0;
+  const absent  = s?.absentToday    ?? 0;
+  const pending = s?.pendingLeaves  ?? 0;
+  const pct     = total ? Math.round((present / total) * 100) : 0;
+  const requests = (s?.pendingRequests ?? []).slice(0, 6);
 
   return (
-    // Full-bleed dark background — negates AdminLayout's p-8 lg:p-12
-    <div className="min-h-[calc(100vh-5rem)] bg-[#1A0B10] -m-8 lg:-m-12 p-8 lg:p-12 pb-16">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-4 pb-4">
 
-        {/* ── HEADER ── */}
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Live</span>
+          </span>
+          <p className="text-[11px] font-medium text-slate-400 tabular-nums">
+            {format(now, 'EEEE, dd MMMM yyyy', { locale: idLocale })}
+            {' · '}
+            {format(now, 'HH:mm:ss')}
+          </p>
+        </div>
+        <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
+          Dashboard{' '}
+          <span style={{ color: '#E31E24' }}>Kehadiran</span>
+        </h1>
+        <p className="text-[12px] font-medium text-slate-400 mt-0.5">
+          Monitor absensi &amp; kehadiran karyawan JNE Martapura secara real-time
+        </p>
+      </motion.div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 1: STATISTIK HARI INI                                        */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <SectionDivider label="Statistik Hari Ini" index={1} />
+
+      {/* Big card + 2 small cards */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Big hero card (2 cols wide on lg, full on mobile) */}
+        <div className="col-span-3 sm:col-span-1">
+          <HeroCard present={present} total={total} pct={pct} delay={0.12} />
+        </div>
+
+        {/* Small cards stacked */}
+        <div className="col-span-3 sm:col-span-2 grid grid-cols-2 gap-3">
+          <SmallCard
+            label="Telat Hari Ini" value={late} icon={Clock}
+            color="#D97706" bg="#FEF3C7" sub="orang" delay={0.18} tag="Telat"
+          />
+          <SmallCard
+            label="Tidak Hadir" value={absent} icon={UserX}
+            color="#E31E24" bg="#FDECEA" sub="orang" delay={0.24} tag="Absen"
+          />
+          <SmallCard
+            label="Total Karyawan" value={total} icon={TrendingUp}
+            color="#7C3AED" bg="#EDE9FE" sub="orang" delay={0.30}
+          />
+          <SmallCard
+            label="Hadir Hari Ini" value={present} icon={CheckCircle2}
+            color="#059669" bg="#D1FAE5" sub="orang" delay={0.36}
+          />
+        </div>
+      </div>
+
+      {/* Pending Banner */}
+      <PendingBannerCard pending={pending} delay={0.42} />
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 2: TREN & LAPORAN                                            */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <SectionDivider label="Tren & Laporan" index={2} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        {/* Weekly chart */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1"
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.46 }}
+          className="lg:col-span-7 rounded-2xl overflow-hidden"
+          style={{
+            background: 'var(--surface-card)',
+            border: '1.5px solid var(--border-default)',
+            boxShadow: 'var(--shadow-card)',
+          }}
         >
-          <div>
-            <div className="flex items-center gap-2.5 mb-2.5">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#E5374A]/15 text-[#FF7A87] rounded-full text-[10px] font-bold uppercase tracking-wider border border-[#E5374A]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#E5374A] animate-pulse" />
-                Live
-              </span>
-              <span className="text-[11px] font-medium text-white/30 tabular-nums">
-                {format(currentTime, 'EEE, dd MMM yyyy')} · {format(currentTime, 'HH:mm:ss')}
-              </span>
+          <div className="px-5 pt-5 pb-3 flex items-start justify-between" style={{ borderBottom: '1px solid var(--border-default)' }}>
+            <div>
+              <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
+                Tren Kehadiran Mingguan
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">7 hari terakhir · realtime</p>
             </div>
-            <h1 className="text-[26px] font-extrabold text-white tracking-tight leading-none">
-              Admin <span className="text-[#E5374A]">Overview</span>
-            </h1>
+            <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
+              {[
+                { color: '#059669', label: 'Hadir' },
+                { color: '#D97706', label: 'Telat' },
+                { color: '#E31E24', label: 'Absen' },
+              ].map(l => (
+                <span key={l.label} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm inline-block" style={{ background: l.color }} />
+                  {l.label}
+                </span>
+              ))}
+            </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/employees">
-              <button className="inline-flex items-center gap-2 h-10 px-5 bg-white/5 border border-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/50 hover:border-[#E5374A]/40 hover:text-[#FF7A87] hover:bg-[#E5374A]/10 transition-all">
-                <Users size={15} />
-                Personnel
-              </button>
-            </Link>
-            <Link href="/employees/new">
-              <button className="w-10 h-10 bg-[#E5374A] text-white rounded-xl flex items-center justify-center hover:bg-[#FF4D5F] transition-colors shadow-lg shadow-[#E5374A]/25 group">
-                <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-              </button>
-            </Link>
+          <div className="px-3 py-5" style={{ height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyData} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#059669" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gLate" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#D97706" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="#D97706" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gAbsent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#E31E24" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#E31E24" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: '#94A3B8', fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#E2E8F0', strokeWidth: 1 }} />
+                <Area type="monotone" dataKey="present" stroke="#059669" strokeWidth={2.5}
+                  fill="url(#gPresent)" dot={false} activeDot={{ r: 4, fill: '#059669' }} />
+                <Area type="monotone" dataKey="late"    stroke="#D97706" strokeWidth={2}
+                  fill="url(#gLate)"    dot={false} activeDot={{ r: 4, fill: '#D97706' }} />
+                <Area type="monotone" dataKey="absent"  stroke="#E31E24" strokeWidth={1.5}
+                  fill="url(#gAbsent)"  dot={false} strokeDasharray="4 3" activeDot={{ r: 4, fill: '#E31E24' }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </motion.div>
 
-        {/* ── HERO ROW ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
-          {/* Hero Banner — Today's Summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-            className="lg:col-span-8 relative overflow-hidden rounded-3xl bg-[#2C1419] border border-white/6 p-7 min-h-[188px]"
+        {/* Approval queue */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.52 }}
+          className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col"
+          style={{
+            background: 'var(--surface-card)',
+            border: '1.5px solid var(--border-default)',
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <div
+            className="flex items-center justify-between px-5 py-4 shrink-0"
+            style={{ borderBottom: '1px solid var(--border-default)' }}
           >
-            {/* Ambient glow orbs */}
-            <div className="absolute -right-12 -top-12 w-72 h-72 rounded-full bg-[#E5374A]/15 blur-3xl pointer-events-none" />
-            <div className="absolute right-40 -bottom-8 w-48 h-48 rounded-full bg-[#FF9500]/10 blur-2xl pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col justify-between h-full gap-5">
-              <div className="flex items-start justify-between gap-6">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E5374A] text-white rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
-                    <Zap size={10} fill="currentColor" />
-                    Today's Report
-                  </span>
-                  <h2 className="text-[40px] font-extrabold text-white tracking-tight leading-none">
-                    {stats?.presentToday ?? 0}
-                    <span className="text-white/25 text-[22px] font-bold ml-2.5">
-                      / {stats?.totalEmployees ?? 0}
-                    </span>
-                  </h2>
-                  <p className="text-[13px] text-white/45 font-medium mt-2">
-                    Personnel on duty — {format(currentTime, 'EEEE, dd MMMM yyyy')}
-                  </p>
-                </div>
-
-                <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
-                  <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">Punctuality Rate</p>
-                  <p className="text-stats font-extrabold text-[#E5374A] tabular-nums leading-none">
-                    {stats?.punctualityRate ?? 0}%
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div>
-                <div className="flex justify-between mb-2">
-                  <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">Attendance Rate</p>
-                  <p className="text-[10px] font-bold text-white/40">
-                    {stats?.presentToday ?? 0} of {stats?.totalEmployees ?? 0} present
-                  </p>
-                </div>
-                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${presentRate}%` }}
-                    transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-                    className="h-full bg-linear-to-r from-[#E5374A] to-[#FF8A8A] rounded-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Quick Stats List */}
-          <div className="lg:col-span-4 flex flex-col gap-3">
-            {quickStats.map((item, i) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 + i * 0.07 }}
-                className="flex items-center justify-between px-5 py-4 bg-[#2C1419] border border-white/6 rounded-2xl hover:bg-[#351C22] transition-colors group"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${item.bg}`}>
-                    <item.icon size={17} className={item.color} />
-                  </div>
-                  <span className="text-[13px] font-semibold text-white/60">{item.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[20px] font-extrabold text-white tabular-nums">{item.value}</span>
-                  <ChevronRight size={14} className="text-white/15 group-hover:text-white/40 transition-colors" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── METRICS GRID ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {metrics.map((m, i) => (
-            <MetricCard key={m.label} metric={m} index={i} />
-          ))}
-        </div>
-
-        {/* ── CONTENT GRID ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
-          {/* APPROVAL QUEUE */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.35 }}
-            className="lg:col-span-7 bg-[#2C1419] border border-white/6 rounded-3xl p-6"
-          >
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h3 className="text-[15px] font-extrabold text-white tracking-tight">Approval Queue</h3>
-                <p className="text-[12px] font-medium text-white/30 mt-0.5">
-                  Leave and permit requests awaiting review.
-                </p>
-              </div>
-              <Link href="/attendance/leaves">
-                <button className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#E5374A] uppercase tracking-widest hover:gap-2.5 transition-all shrink-0 mt-0.5">
-                  View All <ArrowUpRight size={13} />
-                </button>
-              </Link>
-            </div>
-
             <div>
-              {displayedRequests.length > 0 ? (
-                displayedRequests.map((req: any, i: number) => (
-                  <RequestItem key={req.id} req={req} isLast={i === displayedRequests.length - 1} />
-                ))
-              ) : (
-                <EmptyState icon={CheckCircle2} message="Queue is clear" />
-              )}
+              <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
+                Antrian Approval
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Pengajuan izin menunggu review</p>
             </div>
-          </motion.div>
-
-          {/* LIVE FEED */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.42 }}
-            className="lg:col-span-5 bg-[#2C1419] border border-white/6 rounded-3xl p-6 flex flex-col"
-          >
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h3 className="text-[15px] font-extrabold text-white tracking-tight">Live Feed</h3>
-                <p className="text-[12px] font-medium text-white/30 mt-0.5">
-                  Real-time attendance & biometric syncs.
-                </p>
-              </div>
-              <button className="w-8 h-8 rounded-lg bg-white/5 text-white/30 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0">
-                <MoreHorizontal size={16} />
-              </button>
-            </div>
-
-            <div className="flex-1">
-              {displayedActivities.length > 0 ? (
-                displayedActivities.map((act: any, i: number) => (
-                  <ActivityItem key={i} act={act} isLast={i === displayedActivities.length - 1} />
-                ))
-              ) : (
-                <EmptyState icon={Activity} message="No activity yet" />
-              )}
-            </div>
-
-            <Link href="/attendance/live" className="block mt-4">
-              <button className="w-full h-11 bg-[#E5374A]/10 border border-[#E5374A]/20 text-[#FF7A87] rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-[#E5374A] hover:text-white hover:border-[#E5374A] hover:shadow-lg hover:shadow-[#E5374A]/20 transition-all">
-                Open Live Monitor
-              </button>
+            <Link href="/leaves">
+              <motion.span
+                whileHover={{ x: 2 }}
+                className="text-[11px] font-bold flex items-center gap-0.5 cursor-pointer"
+                style={{ color: '#004080' }}
+              >
+                Semua <ArrowUpRight size={12} />
+              </motion.span>
             </Link>
-          </motion.div>
-
-        </div>
+          </div>
+          <div className="p-2 flex-1 overflow-auto">
+            <AnimatePresence>
+              {requests.length > 0
+                ? requests.map((r: any, i: number) => <RequestRow key={r.id} req={r} i={i} />)
+                : <Empty icon={CheckCircle2} text="Antrian kosong" />}
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </div>
+
     </div>
   );
 }
