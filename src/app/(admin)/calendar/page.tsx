@@ -73,7 +73,7 @@ export default function CalendarPage() {
       const map: Record<string, number> = {};
       snap.docs.forEach(doc => {
         const data = doc.data();
-        const date = data.attendanceDate;
+        const date = data.date; // Fixed: was 'attendanceDate', should be 'date'
         if (date) {
           map[date] = (map[date] || 0) + 1;
         }

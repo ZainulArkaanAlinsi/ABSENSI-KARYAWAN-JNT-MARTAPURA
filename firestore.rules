@@ -24,32 +24,40 @@ service cloud.firestore {
 
     // Attendance records
     match /attendance/{attendanceId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Leave requests
     match /leaves/{leaveId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
     }
 
     // Overtime records
     match /overtime/{overtimeId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
 
     // SOS Alerts (Employees create, Admins read/write)
     match /sos_alerts/{sosId} {
       allow create: if request.auth != null;
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read, update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // Admin Notifications (Employees can create to alert admin)
     match /adminNotifications/{notifId} {
       allow create: if request.auth != null;
       allow read: if request.auth != null && (resource.data.employeeId == request.auth.uid || isAdmin());
+    }
+
+    // Audit Log (Anyone authenticated can append, only admin can read)
+    match /audit_log/{logId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
     }
     
     // Shared public info (Authenticated)

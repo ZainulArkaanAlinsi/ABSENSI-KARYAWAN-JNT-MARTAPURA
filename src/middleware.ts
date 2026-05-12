@@ -5,8 +5,12 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('jne_admin_session');
   const { pathname } = request.nextUrl;
 
-  // 1. If no session and trying to access admin pages, redirect to login
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/broadcast'))) {
+  // Public paths that don't require authentication
+  const publicPaths = ['/login', '/forgot-password', '/_next', '/api'];
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
+
+  // 1. If no session and trying to access protected admin pages, redirect to login
+  if (!session && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -15,7 +19,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // 3. Allow access to auth pages and public assets
+  // 3. Allow everything else
   return NextResponse.next();
 }
 

@@ -2,7 +2,7 @@
 
 import ToggleSwitch from './ToggleSwitch';
 import type { Settings } from '@/types';
-import { ShieldCheck, UserCheck, Zap, Lock, Eye, Clock } from 'lucide-react';
+import { UserCheck, ShieldCheck, Zap, Lock, Eye, Clock, Fingerprint, Activity } from 'lucide-react';
 
 interface AttendanceSettingsProps {
   settings: Settings['attendance'];
@@ -11,113 +11,131 @@ interface AttendanceSettingsProps {
 
 export default function AttendanceSettings({ settings, update }: AttendanceSettingsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
       <div className="space-y-10">
         {/* Face Recognition Protocol */}
-        <div className="space-y-6">
-           <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-(--accent-info)/10 text-(--accent-info) flex items-center justify-center">
-                 <UserCheck size={18} />
-              </div>
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-(--text-primary) italic">Protokol Biometrik</h4>
-           </div>
+        <div className="space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 text-primary flex items-center justify-center shrink-0 shadow-sm">
+              <Fingerprint size={24} strokeWidth={1.5} />
+            </div>
+            <div>
+              <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Biometric Protocol</h4>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Facial Recognition Parameters</p>
+            </div>
+          </div>
 
-           <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Ambang Batas Pengenalan (Threshold)</label>
-                <div className="px-4 py-1.5 bg-(--accent-info) text-white text-[10px] font-black rounded-xl shadow-lg shadow-(--accent-info)/20 italic">
-                  {settings.faceSimilarityThreshold ?? 60}%
-                </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                Similarity Threshold
+              </label>
+              <span className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black tracking-widest shadow-lg shadow-primary/20">
+                {settings.faceSimilarityThreshold ?? 60}%
+              </span>
+            </div>
+            
+            <div className="relative py-4">
+              <input
+                type="range"
+                min={60}
+                max={99}
+                step={1}
+                className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-primary"
+                value={settings.faceSimilarityThreshold ?? 60}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  update('attendance', 'faceSimilarityThreshold', val === '' ? 60 : parseInt(val, 10));
+                }}
+              />
+              <div className="flex justify-between text-[9px] font-black text-slate-300 uppercase tracking-widest mt-4">
+                <span>Fast Sync (60%)</span>
+                <span>Max Precision (99%)</span>
               </div>
-              <div className="relative h-2 w-full bg-(--bg-main) rounded-full border border-(--border-color)">
-                <input
-                  type="range"
-                  min={60}
-                  max={99}
-                  step={1}
-                  className="absolute inset-0 w-full h-2 rounded-full appearance-none cursor-pointer bg-transparent accent-(--accent-info) z-10"
-                  value={settings.faceSimilarityThreshold ?? 60}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    update('attendance', 'faceSimilarityThreshold', val === '' ? 60 : parseInt(val, 10));
-                  }}
-                />
-                <div 
-                  className="absolute top-0 left-0 h-full bg-(--accent-info) rounded-full shadow-[0_0_10px_rgba(14,116,144,0.3)]"
-                  style={{ width: `${((settings.faceSimilarityThreshold ?? 60) - 60) / (99 - 60) * 100}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-(--text-secondary) opacity-50">
-                <span>Sinkronisasi Cepat (60%)</span>
-                <span>Presisi Tinggi (99%)</span>
-              </div>
-           </div>
+            </div>
+          </div>
 
-           <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">Batas Percobaan Keamanan</label>
-              <div className="relative group">
-                <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-secondary) opacity-40 group-focus-within:text-(--accent-info) transition-colors" />
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-(--accent-info)/50 transition-all shadow-sm"
-                  value={settings.maxFaceAttempts ?? 1}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    update('attendance', 'maxFaceAttempts', val === '' ? 1 : parseInt(val, 10));
-                  }}
-                />
-              </div>
-              <p className="text-[9px] font-bold text-(--text-secondary) opacity-50 uppercase tracking-widest italic">
-                Sistem akan mengunci fitur absensi jika gagal melewati batas ini.
-              </p>
-           </div>
+          <div className="space-y-4">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              <Lock size={12} strokeWidth={3} className="text-primary" />
+              Security Attempt Limit
+            </label>
+            <div className="relative group">
+              <Activity size={16} strokeWidth={2.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <input
+                type="number"
+                min={1}
+                max={10}
+                className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 text-sm font-black text-slate-900 outline-none focus:bg-white focus:border-primary/20 transition-all"
+                value={settings.maxFaceAttempts ?? 1}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  update('attendance', 'maxFaceAttempts', val === '' ? 1 : parseInt(val, 10));
+                }}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 leading-relaxed italic">
+              * The system will automatically suspend biometric access for the user if verification fails beyond this threshold.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-(--accent-success)/10 text-(--accent-success) flex items-center justify-center">
-              <ShieldCheck size={18} />
-           </div>
-           <h4 className="text-[11px] font-black uppercase tracking-widest text-(--text-primary) italic">Logika Operasional</h4>
+      <div className="space-y-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 text-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+            <ShieldCheck size={24} strokeWidth={1.5} />
+          </div>
+          <div>
+            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Operational Logic</h4>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Telemetry & Sync Behavior</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-6">
           {[
             {
               key: 'allowOfflineAttendance',
-              label: 'Sinkronisasi Arsip Offline',
-              desc: 'Simpan data lokal saat koneksi terputus.',
-              icon: Zap
+              label: 'Offline Data Buffer',
+              desc: 'Enable local storage for telemetry packets when network connection is unstable.',
+              icon: Zap,
+              color: 'text-amber-500',
+              bg: 'bg-amber-50',
             },
             {
               key: 'courierBypassGeofence',
-              label: 'Bypass Lokasi Kurir',
-              desc: 'Kurir bebas absen di mana saja untuk efisiensi.',
-              icon: Eye
+              label: 'Tactical Perimeter Bypass',
+              desc: 'Allow designated couriers to execute attendance triggers outside geofence boundaries.',
+              icon: Eye,
+              color: 'text-blue-500',
+              bg: 'bg-blue-50',
             },
             {
               key: 'overtimeCalculation',
-              label: 'Kalkulasi Lembur Otomatis',
-              desc: 'Hitung lembur real-time berdasarkan jam pulang.',
-              icon: Clock
+              label: 'Precision Overtime',
+              desc: 'Automated computation of surplus operational hours based on shift delta.',
+              icon: Clock,
+              color: 'text-primary',
+              bg: 'bg-primary/5',
             },
           ].map((item) => (
-            <div key={item.key} className="p-5 rounded-2xl border border-(--border-color) bg-(--bg-main) hover:border-(--accent-info)/30 transition-all group">
-              <div className="flex items-center gap-4 mb-4">
-                 <div className="w-10 h-10 rounded-xl bg-(--bg-card) flex items-center justify-center text-(--text-secondary) opacity-40 group-hover:text-(--accent-info) group-hover:opacity-100 transition-all">
-                    <item.icon size={20} />
-                 </div>
-                 <div className="flex-1">
-                    <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">{item.label}</p>
-                 </div>
+            <div
+              key={item.key}
+              className="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all group"
+            >
+              <div className="flex items-center gap-5 mb-8">
+                <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-sm`}>
+                  <item.icon size={20} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-black text-slate-900 uppercase tracking-widest">
+                    {item.label}
+                  </p>
+                </div>
               </div>
               <ToggleSwitch
                 checked={Boolean((settings as any)[item.key])}
                 onChange={() => update('attendance', item.key, !(settings as any)[item.key])}
-                label=""
                 description={item.desc}
               />
             </div>

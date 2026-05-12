@@ -1,299 +1,269 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { 
+  ArrowLeft, 
+  Mail, 
+  MapPin, 
+  Phone, 
+  Briefcase, 
+  Building2, 
+  ShieldCheck, 
+  Calendar,
+  Clock,
+  Activity,
+  User,
+  MoreVertical,
+  Download,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  ChevronRight,
+  TrendingUp,
+  Fingerprint
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
-import { format, subDays, parseISO } from 'date-fns';
-import { id as dateFnsId } from 'date-fns/locale';
-import { ArrowLeft, User, Mail, Briefcase, Calendar, CheckCircle2, AlertTriangle, XCircle, Clock, Building, Edit3, RefreshCcw } from 'lucide-react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { BentoCard } from '@/components/ui/BentoCard';
+import { StatusBadge, FaceBadge } from '@/components/ui/Badge';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import type { Employee, AttendanceRecord } from '@/types';
 
-function EmployeeDetailContent() {
+// ── COMPONENTS ──
+
+const InfoItem = ({ icon: Icon, label, value, highlight = false }: any) => (
+  <div className={`p-6 rounded-2xl transition-all border ${highlight ? 'bg-mustard bg-opacity-5 border-mustard border-opacity-10' : 'bg-slate-50 border-transparent hover:border-slate-100'}`}>
+    <div className="flex items-center gap-3 mb-3">
+      <Icon size={16} className={highlight ? 'text-mustard' : 'text-slate-400'} />
+      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+    </div>
+    <p className="text-[15px] font-extrabold text-slate-900 tracking-tight">{value || 'Not specified'}</p>
+  </div>
+);
+
+export default function EmployeeDetailPage() {
   const searchParams = useSearchParams();
-  const employeeId = searchParams.get('id');
+  const router = useRouter();
+  const uid = searchParams.get('id');
   
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      if (!employeeId) {
-        setLoading(false);
-        return;
+    if (!uid) return;
+
+    const unsubEmp = onSnapshot(doc(db, 'employees', uid), (doc) => {
+      if (doc.exists()) {
+        setEmployee({ id: doc.id, ...doc.data() } as Employee);
       }
-      setLoading(true);
-      try {
-        const emp = await getEmployee(employeeId);
-        setEmployee(emp);
+      setLoading(false);
+    });
 
-        if (emp) {
-           // Tarik history absensi 30 hari terakhir
-           const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
-           const endDate = format(new Date(), 'yyyy-MM-dd');
-           const records = await getAttendanceByRange(startDate, endDate, emp.uid);
-           setAttendance(records);
-        }
-      } catch (error) {
-        console.error('Gagal memuat detail karyawan', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, [employeeId]);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <PageLoader />
-        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Memuat Rekam Jejak...</p>
-      </div>
+    const attQuery = query(
+      collection(db, 'attendance'),
+      where('userId', '==', uid),
+      orderBy('date', 'desc'),
+      limit(20)
     );
-  }
 
-  if (!employee) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <AlertTriangle size={48} className="text-[#E31E24]/50" />
-        <h2 className="text-xl font-bold text-white">Karyawan Tidak Ditemukan</h2>
-        <Link href="/employees" className="mt-4 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-xs font-black tracking-widest uppercase">
-          Kembali ke Daftar
-        </Link>
-      </div>
-    );
-  }
+    const unsubAtt = onSnapshot(attQuery, (snap) => {
+      setAttendance(snap.docs.map(d => d.data() as AttendanceRecord));
+    });
 
-  // Statistik Singkat
-  const totalHadir = attendance.filter(a => a.status === 'present' || a.status === 'late').length;
-  const totalTelat = attendance.filter(a => a.status === 'late').length;
-  const totalAbsen = attendance.filter(a => a.status === 'absent').length;
+    return () => {
+      unsubEmp();
+      unsubAtt();
+    };
+  }, [uid]);
+
+  const stats = useMemo(() => {
+    if (!attendance.length) return { rate: 0, late: 0 };
+    const present = attendance.filter(r => ['present', 'late', 'overtime'].includes(r.status)).length;
+    const late = attendance.filter(r => r.status === 'late').length;
+    return {
+      rate: Math.round((present / attendance.length) * 100),
+      late
+    };
+  }, [attendance]);
+
+  if (loading) return <div className="h-screen flex items-center justify-center"><PageLoader /></div>;
+  if (!employee) return <div className="p-20 text-center text-slate-400">Personnel record not found.</div>;
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 pb-10">
+    <div className="flex flex-col gap-10 w-full pb-20 max-w-[1440px] mx-auto">
       
-      {/* ── Header ── */}
-      <div className="flex items-center gap-4">
-        <Link 
-          href="/employees" 
-          className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
-        >
-          <ArrowLeft size={18} className="text-(--text-dim) group-hover:text-white transition-colors" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase">Profil Karyawan</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-muted)">Rekam Jejak & Identitas</p>
-        </div>
-        <div className="ml-auto flex gap-3">
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pt-6">
+        <div className="flex items-center gap-6">
           <button 
-            onClick={() => alert('Feature: Form edit data personil sedang disiapkan.')}
-            className="h-11 px-6 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-white/10 transition-all"
+            onClick={() => router.back()}
+            className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-mustard hover:border-mustard transition-all shadow-sm"
           >
-            <Edit3 size={16} /> Edit Personnel
+            <ArrowLeft size={24} />
           </button>
-          <button 
-            onClick={() => alert('Security Protocol: Reset biometrik memerlukan otorisasi fisik. Silakan instruksikan karyawan untuk login ulang di perangkat baru.')}
-            className="h-11 px-6 rounded-xl bg-rose-600/10 border border-rose-600/20 text-rose-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-rose-600 hover:text-white transition-all"
-          >
-            <RefreshCcw size={16} /> Reset Binding
-          </button>
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Personnel ID: {employee.employeeId}</span>
+               <span className="text-slate-300">|</span>
+               <span className={`text-[11px] font-bold uppercase tracking-widest ${employee.isOnline ? 'text-emerald-500' : 'text-slate-400'}`}>
+                 {employee.isOnline ? 'Live Activity' : 'Offline'}
+               </span>
+            </div>
+            <h1 className="text-h1 font-extrabold text-slate-900 tracking-tight leading-none">
+              {employee.name}
+            </h1>
+          </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* ── Kolom Kiri: Profil Card ── */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-1 space-y-6">
-          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) p-8 shadow-sm relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#005596]/10 to-transparent pointer-events-none" />
-             
-             <div className="flex flex-col items-center text-center">
-                <div className="h-28 w-28 rounded-full bg-black/20 border-4 border-white/5 flex items-center justify-center mb-6 relative">
-                  {employee.photoUrl ? (
-                    <img src={employee.photoUrl} alt={employee.name} className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    <User size={40} className="text-(--text-dim)" />
-                  )}
-                  <div className={`absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-[#020617] flex items-center justify-center ${employee.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}>
-                    {employee.faceRegistered ? <CheckCircle2 size={12} className="text-white" /> : <XCircle size={12} className="text-white" />}
-                  </div>
-                </div>
+        <div className="flex items-center gap-4">
+          <AnimatedButton className="h-14 px-8 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-slate-600 shadow-sm hover:border-mustard transition-all flex items-center gap-3">
+            <Download size={18} />
+            Export Record
+          </AnimatedButton>
+          <AnimatedButton className="h-14 w-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-mustard transition-all">
+            <MoreVertical size={24} />
+          </AnimatedButton>
+        </div>
+      </div>
 
-                <h2 className="text-2xl font-black text-(--text-primary) tracking-tight mb-1">{employee.name}</h2>
-                <p className="text-[11px] font-bold tracking-widest text-[#005596] uppercase bg-[#005596]/10 px-3 py-1 rounded-lg mb-6">
-                  {employee.employeeId}
-                </p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* LEFT COLUMN: Profile & Info */}
+        <div className="lg:col-span-4 space-y-8">
+          <BentoCard className="p-10 flex flex-col items-center">
+            <div className="relative mb-8">
+               <div className="w-32 h-32 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[40px] font-black shadow-xl">
+                 {employee.name.charAt(0)}
+               </div>
+               <div className="absolute -bottom-2 -right-2">
+                 <FaceBadge registered={employee.faceRegistered} />
+               </div>
+            </div>
+            <h3 className="text-[20px] font-extrabold text-slate-900 mb-1">{employee.name}</h3>
+            <p className="text-[13px] font-medium text-slate-400 uppercase tracking-widest mb-8">{employee.position}</p>
+            
+            <div className="w-full grid grid-cols-2 gap-4">
+               <div className="p-6 bg-slate-50 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Performance</p>
+                  <p className="text-[20px] font-extrabold text-slate-900">{stats.rate}%</p>
+               </div>
+               <div className="p-6 bg-slate-50 rounded-2xl text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Hours</p>
+                  <p className="text-[20px] font-extrabold text-slate-900">162h</p>
+               </div>
+            </div>
+          </BentoCard>
 
-                <div className="w-full space-y-4 text-left">
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                    <Building size={16} className="text-(--text-muted)" />
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Departemen</p>
-                      <p className="text-sm font-bold text-(--text-primary)">{employee.department || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                    <Briefcase size={16} className="text-(--text-muted)" />
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Posisi / Jabatan</p>
-                      <p className="text-sm font-bold text-(--text-primary)">{employee.position || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                    <Mail size={16} className="text-(--text-muted)" />
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-(--text-muted)">Email Akses</p>
-                      <p className="text-sm font-bold text-(--text-primary)">{employee.email}</p>
-                    </div>
-                  </div>
-                </div>
-             </div>
-          </div>
-        </motion.div>
+          <BentoCard className="p-10">
+            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8">Detailed Information</h4>
+            <div className="space-y-4">
+              <InfoItem icon={Mail} label="Email Address" value={employee.email} />
+              <InfoItem icon={Phone} label="Contact Number" value={employee.phone} />
+              <InfoItem icon={Building2} label="Department" value={employee.department} highlight />
+              <InfoItem icon={Briefcase} label="Role Type" value={employee.position} />
+            </div>
+          </BentoCard>
+        </div>
 
-
-        {/* ── Kolom Kanan: History & Stats ── */}
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-2 space-y-6">
+        {/* RIGHT COLUMN: Attendance & Activity */}
+        <div className="lg:col-span-8 space-y-8">
           
-          {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-4">
-             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Total Hadir (30 Hari)</span>
-                <span className="text-3xl font-black text-emerald-500">{totalHadir}</span>
-             </div>
-             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Terlambat</span>
-                <span className="text-3xl font-black text-amber-500">{totalTelat}</span>
-             </div>
-             <div className="bg-(--bg-card) rounded-3xl border border-(--border-primary) p-6 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-(--text-muted) mb-2">Alpha / Mangkir</span>
-                <span className="text-3xl font-black text-[#E31E24]">{totalAbsen}</span>
-             </div>
-          </div>
+          <BentoCard className="p-10">
+            <div className="flex items-center justify-between mb-10">
+               <div>
+                  <h3 className="text-[20px] font-extrabold text-slate-900 tracking-tight mb-1">Attendance History</h3>
+                  <p className="text-[13px] font-medium text-slate-400">Latest biometric synchronization records.</p>
+               </div>
+               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-[11px] font-bold text-slate-600 border border-slate-100">
+                  <Calendar size={14} className="text-mustard" />
+                  Last 20 Records
+               </div>
+            </div>
 
-          {/* Face History Gallery */}
-          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) p-8 shadow-sm">
-             <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-black italic tracking-tighter text-(--text-primary) uppercase">Galeri Riwayat Wajah</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-(--text-muted)">Bukti Visual Scan Absensi</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-cyan-600/10 border border-cyan-600/20 flex items-center justify-center">
-                  <User size={18} className="text-cyan-600" />
-                </div>
-             </div>
-
-             <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
-                {attendance.filter(a => a.checkIn?.photoUrl).length === 0 ? (
-                  <div className="col-span-full py-10 text-center border-2 border-dashed border-(--border-primary) rounded-3xl">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tidak ada data visual</p>
-                  </div>
-                ) : (
-                  attendance.filter(a => a.checkIn?.photoUrl).map((rec, i) => (
-                    <motion.div 
-                      key={rec.id}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="group relative aspect-square rounded-2xl overflow-hidden border border-(--border-primary) cursor-pointer hover:border-cyan-600 transition-all shadow-sm"
-                      onClick={() => window.open(rec.checkIn?.photoUrl, '_blank')}
-                    >
-                       <img 
-                        src={rec.checkIn?.photoUrl} 
-                        alt={`Scan ${rec.date}`} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                       />
-                       <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                          <p className="text-[7px] font-black text-white uppercase truncate">{format(parseISO(rec.date), 'dd MMM')}</p>
-                          <p className="text-[6px] font-bold text-white/60 uppercase">{rec.checkIn?.time ? format(parseISO(rec.checkIn.time), 'HH:mm') : '--:--'}</p>
-                       </div>
-                    </motion.div>
-                  ))
-                )}
-             </div>
-          </div>
-
-          {/* Table History */}
-          <div className="bg-(--bg-card) rounded-4xl border border-(--border-primary) shadow-sm overflow-hidden flex flex-col">
-             <div className="px-8 py-6 border-b border-(--border-primary) flex justify-between items-center bg-white/2">
-                <div>
-                  <h3 className="text-lg font-black italic tracking-tighter text-(--text-primary) uppercase">Log Absensi</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-(--text-muted)">30 Hari Terakhir</p>
-                </div>
-                <Calendar className="text-(--text-dim)" size={20} />
-             </div>
-
-             <div className="overflow-x-auto">
-               <table className="w-full text-left">
-                 <thead>
-                   <tr className="border-b border-(--border-primary) bg-black/20">
-                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Tanggal</th>
-                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Masuk</th>
-                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Jam Pulang</th>
-                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-(--text-muted)">Status</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-(--border-primary)">
-                   {attendance.length === 0 ? (
-                     <tr>
-                       <td colSpan={4} className="px-8 py-16 text-center">
-                         <div className="flex flex-col items-center justify-center gap-3">
-                            <Clock size={32} className="text-(--text-dim)" />
-                            <p className="text-[11px] font-bold text-(--text-muted) uppercase tracking-widest">Belum Ada Riwayat Absensi</p>
-                         </div>
-                       </td>
+            <div className="overflow-hidden rounded-2xl border border-slate-100">
+               <table className="w-full text-left border-collapse">
+                  <thead>
+                     <tr className="bg-slate-50">
+                        <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                        <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Check In</th>
+                        <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                        <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Location</th>
                      </tr>
-                   ) : (
-                     attendance.map((record) => (
-                       <tr key={record.id} className="hover:bg-white/5 transition-colors">
-                         <td className="px-8 py-4 whitespace-nowrap">
-                           <span className="text-sm font-bold text-(--text-primary)">
-                             {record.date ? format(parseISO(record.date), 'dd MMM yyyy', { locale: dateFnsId }) : '-'}
-                           </span>
-                         </td>
-                         <td className="px-8 py-4 whitespace-nowrap">
-                           <span className="text-sm font-bold text-(--text-primary)">
-                             {record.checkIn?.time ? format(parseISO(record.checkIn.time), 'HH:mm') : '--:--'}
-                           </span>
-                         </td>
-                         <td className="px-8 py-4 whitespace-nowrap">
-                           <span className="text-sm font-bold text-(--text-primary)">
-                             {record.checkOut?.time ? format(parseISO(record.checkOut.time), 'HH:mm') : '--:--'}
-                           </span>
-                         </td>
-                         <td className="px-8 py-4 whitespace-nowrap">
-                            {record.status === 'present' && <span className="inline-flex px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">Tepat Waktu</span>}
-                            {record.status === 'late' && <span className="inline-flex px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-amber-500/20">Terlambat</span>}
-                            {record.status === 'absent' && <span className="inline-flex px-3 py-1 bg-[#E31E24]/10 text-[#E31E24] text-[10px] font-black uppercase tracking-widest rounded-lg border border-[#E31E24]/20">Alpha</span>}
-                            {record.status === 'leave' && <span className="inline-flex px-3 py-1 bg-[#005596]/10 text-[#005596] text-[10px] font-black uppercase tracking-widest rounded-lg border border-[#005596]/20">Izin / Cuti</span>}
-                         </td>
-                       </tr>
-                     ))
-                   )}
-                 </tbody>
+                  </thead>
+                  <tbody>
+                     {attendance.map((log, i) => (
+                        <tr key={i} className="border-t border-slate-100 hover:bg-slate-50 transition-colors group">
+                           <td className="px-8 py-5 text-desc font-bold text-slate-900">
+                             {format(new Date(log.date), 'MMM dd, yyyy')}
+                           </td>
+                           <td className="px-8 py-5 text-desc font-medium text-slate-500 tabular-nums">
+                             {typeof log.checkIn === 'string' ? log.checkIn : '—'}
+                           </td>
+                           <td className="px-8 py-5">
+                             <StatusBadge status={log.status} />
+                           </td>
+                           <td className="px-8 py-5">
+                             <div className="flex items-center gap-2 text-[12px] font-medium text-slate-400">
+                                <MapPin size={12} className="group-hover:text-mustard transition-colors" />
+                                Hub Martapura
+                             </div>
+                           </td>
+                        </tr>
+                     ))}
+                  </tbody>
                </table>
-             </div>
+               {attendance.length === 0 && (
+                  <div className="py-20 text-center flex flex-col items-center">
+                    <AlertCircle size={32} className="text-slate-200 mb-4" />
+                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">No attendance records detected</p>
+                  </div>
+               )}
+            </div>
+          </BentoCard>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <BentoCard className="p-10">
+                <div className="flex items-center gap-4 mb-8">
+                   <div className="w-12 h-12 rounded-xl bg-mustard bg-opacity-10 flex items-center justify-center text-mustard">
+                      <Fingerprint size={24} />
+                   </div>
+                   <h4 className="text-[16px] font-extrabold text-slate-900">Biometric Identity</h4>
+                </div>
+                <p className="text-[13px] font-medium text-slate-500 leading-relaxed mb-8">
+                  Security credentials and face recognition synchronization status for this personnel.
+                </p>
+                <div className="p-6 bg-slate-50 rounded-2xl flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <ShieldCheck size={18} className={employee.faceRegistered ? 'text-emerald-500' : 'text-slate-300'} />
+                      <span className="text-[12px] font-bold text-slate-900">Face Recognition</span>
+                   </div>
+                   <FaceBadge registered={employee.faceRegistered} />
+                </div>
+             </BentoCard>
+
+             <BentoCard className="p-10">
+                <div className="flex items-center gap-4 mb-8">
+                   <div className="w-12 h-12 rounded-xl bg-indigo-600 bg-opacity-10 flex items-center justify-center text-indigo-600">
+                      <Lock size={24} />
+                   </div>
+                   <h4 className="text-[16px] font-extrabold text-slate-900">System Access</h4>
+                </div>
+                <p className="text-[13px] font-medium text-slate-500 leading-relaxed mb-8">
+                  Privileges and administrative permissions authorized for this user account.
+                </p>
+                <button className="w-full h-14 border border-slate-100 rounded-2xl text-[11px] font-bold text-slate-400 uppercase tracking-widest hover:border-mustard hover:text-mustard transition-all flex items-center justify-center gap-2">
+                   Edit Permissions <ChevronRight size={14} />
+                </button>
+             </BentoCard>
           </div>
 
-        </motion.div>
+        </div>
       </div>
-
     </div>
-  );
-}
-
-export default function EmployeeDetailPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <PageLoader />
-        <p className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.3em]">Memuat Halaman...</p>
-      </div>
-    }>
-      <EmployeeDetailContent />
-    </Suspense>
   );
 }

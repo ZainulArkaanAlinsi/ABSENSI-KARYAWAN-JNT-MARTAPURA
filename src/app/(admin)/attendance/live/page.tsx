@@ -1,211 +1,229 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Activity, 
-  Search, 
-  MapPin, 
-  Clock, 
-  ShieldCheck, 
-  AlertCircle,
+import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Activity,
+  Search,
+  MapPin,
+  Clock,
+  ShieldCheck,
   ChevronLeft,
+  Download,
+  Filter,
+  ArrowUpRight,
+  Zap,
+  UserCheck,
+  Terminal,
+  AlertCircle,
+  MoreHorizontal,
+  Plus,
   RefreshCw
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { subscribeToTodayAttendance } from '@/lib/firestore';
-import type { AttendanceRecord } from '@/types';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import { subscribeToTodayAttendance, db } from '@/lib/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { timeValueToISO } from '@/lib/departmentRules';
 import { useDebounce } from '@/hooks/useDebounce';
-import { InteractiveButton, GlassCard } from '@/components/ui/Interactive';
+import type { AttendanceRecord } from '@/types';
+import { BentoCard } from '@/components/ui/BentoCard';
+import { StatusBadge } from '@/components/ui/Badge';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+
+// ── SKELETONS ──
+
+const Skeleton = ({ className }: { className: string }) => (
+  <div className={`animate-pulse bg-slate-100 rounded-2xl ${className}`} />
+);
+
+// ── COMPONENTS ──
+
+function LiveStatCard({ label, value, icon: Icon, color, index }: any) {
+  return (
+    <BentoCard 
+      index={index}
+      className="p-10 flex flex-col justify-between"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} bg-opacity-10`}>
+          <Icon size={24} className={color.replace('bg-', 'text-')} />
+        </div>
+        <div className="w-1.5 h-1.5 rounded-full bg-slate-100" />
+      </div>
+      <div>
+        <p className="text-desc font-medium text-slate-400 mb-2 uppercase tracking-widest">{label}</p>
+        <h3 className="text-stats font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
+          {value}
+        </h3>
+      </div>
+    </BentoCard>
+  );
+}
 
 export default function LiveAttendancePage() {
   const router = useRouter();
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'present' | 'late' | 'absent'>('all');
   const debouncedSearch = useDebounce(search, 300);
-  const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
-    const unsub = subscribeToTodayAttendance(today, (data) => {
-      setRecords(data);
+    const unsub = subscribeToTodayAttendance(format(new Date(), 'yyyy-MM-dd'), (data: AttendanceRecord[]) => {
+      setAttendance(data);
       setLoading(false);
     });
     return () => unsub();
-  }, [today]);
+  }, []);
 
-  const filtered = records.filter(r => 
-    r.employeeName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    r.employeeId.toLowerCase().includes(debouncedSearch.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return attendance.filter((r) => {
+      const matchSearch = r.employeeName?.toLowerCase().includes(debouncedSearch.toLowerCase()) || 
+                          r.employeeId?.toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchFilter = filter === 'all' || r.status === filter;
+      return matchSearch && matchFilter;
+    });
+  }, [attendance, debouncedSearch, filter]);
+
+  const stats = useMemo(() => ({
+    total: attendance.length,
+    present: attendance.filter(r => ['present', 'late', 'overtime'].includes(r.status)).length,
+    late: attendance.filter(r => r.status === 'late').length,
+    alerts: attendance.filter(r => r.isSos).length
+  }), [attendance]);
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-300 pb-20">
+    <div className="flex flex-col gap-10 w-full pb-20 max-w-[1440px] mx-auto">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-        <div className="flex items-center gap-8">
-          <InteractiveButton 
-            onClick={() => router.back()}
-            className="w-14 h-14 rounded-[20px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 hover:text-cyan-600 hover:border-cyan-600 transition-all shadow-xl"
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-6">
+        <div className="space-y-6">
+          <button 
+            onClick={() => router.back()} 
+            className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest hover:text-mustard transition-colors group"
           >
-            <ChevronLeft size={24} strokeWidth={3} />
-          </InteractiveButton>
+            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            Back to Dashboard
+          </button>
           <div>
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">Live <span className="text-cyan-600">Feed</span></h1>
-              <div className="px-3 py-1 bg-cyan-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse shadow-lg shadow-cyan-600/20">Streaming</div>
-            </div>
-            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mt-2 ml-1">Real-Time Operational Monitoring Nexus</p>
+            <h1 className="text-h1 font-extrabold text-slate-900 tracking-tight leading-none mb-3">
+              Live <span className="text-mustard">Monitor</span>
+            </h1>
+            <p className="text-desc font-medium text-slate-400 max-w-xl">
+              Real-time synchronization of biometric attendance data for the Martapura Hub.
+            </p>
           </div>
         </div>
+        
+        <div className="flex items-center gap-4">
+          <AnimatedButton className="h-14 px-8 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-slate-600 shadow-sm hover:border-mustard transition-all flex items-center gap-3">
+            <Download size={18} />
+            Export Feed
+          </AnimatedButton>
+          <AnimatedButton className="h-14 w-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-mustard transition-all group">
+            <RefreshCw size={24} className="group-active:rotate-180 transition-transform duration-500" />
+          </AnimatedButton>
+        </div>
+      </div>
 
-        <div className="flex items-center gap-6">
-           <div className="hidden md:flex flex-col text-right">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">System Status</p>
-              <p className="text-xs font-black text-emerald-500 italic uppercase flex items-center gap-2 justify-end">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                Synchronized
-              </p>
+      {/* ── STATS GRID ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <LiveStatCard index={0} label="Total Records" value={stats.total} icon={Activity} color="bg-indigo-600" />
+        <LiveStatCard index={1} label="On-Duty" value={stats.present} icon={UserCheck} color="bg-emerald-600" />
+        <LiveStatCard index={2} label="Late Entry" value={stats.late} icon={Clock} color="bg-amber-600" />
+        <LiveStatCard index={3} label="Alerts" value={stats.alerts} icon={AlertCircle} color="bg-rose-600" />
+      </div>
+
+      {/* ── FILTERS ── */}
+      <BentoCard className="p-4" hoverEffect={false}>
+        <div className="flex flex-col lg:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-mustard transition-colors" />
+            <input
+              type="text"
+              placeholder="Filter by name, ID, or position..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-14 bg-slate-50 border border-transparent rounded-xl pl-16 pr-8 text-desc font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-mustard focus:border-opacity-20 transition-all"
+            />
+          </div>
+          <div className="flex gap-4 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-56">
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as any)}
+                className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 pr-12 text-[11px] font-bold text-slate-600 uppercase tracking-widest outline-none cursor-pointer hover:border-mustard transition-all appearance-none"
+              >
+                <option value="all">ALL ACTIVITY</option>
+                <option value="present">PRESENT</option>
+                <option value="late">LATE</option>
+                <option value="absent">ABSENT</option>
+              </select>
+              <Filter size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+      </BentoCard>
+
+      {/* ── LIVE FEED ── */}
+      <BentoCard className="p-10">
+        <div className="flex items-center justify-between mb-10">
+           <div>
+              <h3 className="text-[20px] font-extrabold text-slate-900 tracking-tight mb-1">Activity Stream</h3>
+              <p className="text-[13px] font-medium text-slate-400">Continuous feed of personnel biometric sync events.</p>
            </div>
-           <GlassCard className="w-14 h-14 bg-emerald-500/5 text-emerald-500 rounded-[20px] flex items-center justify-center border-emerald-500/10 border">
-              <RefreshCw size={24} className="animate-spin-slow" />
-           </GlassCard>
-        </div>
-      </div>
-
-      {/* ── STATS ROW ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[
-            { label: 'Punctual', val: records.filter(r => r.status === 'present').length, color: 'text-emerald-500', bg: 'bg-emerald-500/5', icon: ShieldCheck },
-            { label: 'Tardy / Late', val: records.filter(r => r.status === 'late').length, color: 'text-cyan-600', bg: 'bg-cyan-600/5', icon: Clock },
-            { label: 'Authorized Leave', val: records.filter(r => r.status === 'leave').length, color: 'text-amber-500', bg: 'bg-amber-500/5', icon: AlertCircle },
-            { label: 'Total Operations', val: records.length, color: 'text-white', bg: 'bg-slate-950', icon: Activity },
-          ].map((s, i) => (
-           <GlassCard key={i} className={`p-8 border-none flex items-center justify-between group ${s.bg}`}>
-              <div>
-                <p className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${s.color}`}>{s.label}</p>
-                <h3 className={`text-3xl font-black mt-3 tracking-tighter italic ${s.color}`}>{s.val}</h3>
-              </div>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${s.color} bg-white/10 group-hover:scale-110 transition-transform`}>
-                <s.icon size={22} />
-              </div>
-           </GlassCard>
-         ))}
-      </div>
-
-      {/* ── MAIN LOG FEED ── */}
-      <GlassCard className="overflow-hidden p-0! border-none bg-white/50 dark:bg-slate-900/50">
-        <div className="p-8 border-b border-slate-100 dark:border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-cyan-600/10 rounded-xl flex items-center justify-center text-cyan-600">
-                <Activity size={20} />
-              </div>
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-950 dark:text-white">Active Logs Today</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{format(new Date(), 'EEEE, dd MMMM yyyy')}</p>
-              </div>
-            </div>
-            <div className="relative w-full lg:w-96 group">
-              <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Filter by Name or ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-14 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 rounded-2xl pl-12 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-cyan-600/5 focus:border-cyan-600/30 transition-all shadow-sm"
-              />
-            </div>
+           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[11px] font-bold border border-emerald-100 uppercase tracking-widest">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Feed
+           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden rounded-2xl border border-slate-100">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/30 dark:bg-black/20 border-b border-slate-100 dark:border-white/5">
-                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Operative</th>
-                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
-                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Classification</th>
-                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Auth Method</th>
-                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Geographic Link</th>
+              <tr className="bg-slate-50">
+                <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Personnel</th>
+                <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Department</th>
+                <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Timestamp</th>
+                <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Location</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+            <tbody>
               <AnimatePresence mode="popLayout">
-                {filtered.map((r, idx) => (
+                {filtered.map((r, i) => (
                   <motion.tr 
-                    key={r.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ delay: Math.min(idx * 0.02, 0.2) }}
-                    className="group hover:bg-white dark:hover:bg-slate-800/40 transition-colors"
+                    key={r.id || i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="border-t border-slate-100 hover:bg-slate-50 transition-colors group"
                   >
-                    <td className="px-10 py-7">
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center text-sm font-black text-white italic shadow-xl group-hover:rotate-3 transition-transform">
-                          {r.employeeName.charAt(0).toUpperCase()}
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-sm group-hover:bg-mustard transition-colors">
+                          {r.employeeName?.charAt(0) || '?'}
                         </div>
                         <div>
-                          <p className="text-base font-black text-slate-950 dark:text-white italic uppercase tracking-tighter leading-none">{r.employeeName}</p>
-                          <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest mt-1.5">{r.employeeId}</p>
+                          <p className="text-desc font-bold text-slate-900">{r.employeeName}</p>
+                          <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">{r.employeeId}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-10 py-7">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black text-slate-950 dark:text-white">
-                          {(() => {
-                            try {
-                              return r.checkIn?.time ? format(new Date(r.checkIn.time), 'HH:mm:ss') : '--:--:--';
-                            } catch (e) {
-                              return '--:--:--';
-                            }
-                          })()}
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Registry Signal</span>
-                      </div>
+                    <td className="px-8 py-5 text-[13px] font-bold text-slate-600">
+                      {r.department}
                     </td>
-                    <td className="px-10 py-7">
-                        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border-2 ${
-                          r.status === 'present' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' :
-                          r.status === 'late' ? 'bg-cyan-600/5 border-cyan-600/20 text-cyan-600' :
-                          'bg-amber-500/5 border-amber-500/20 text-amber-500'
-                       }`}>
-                          <div className={`w-2 h-2 rounded-full ${r.status === 'present' ? 'bg-emerald-500' : r.status === 'late' ? 'bg-cyan-600' : 'bg-amber-500'} animate-pulse`} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{r.status}</span>
-                       </div>
+                    <td className="px-8 py-5 text-[13px] font-medium text-slate-500 tabular-nums">
+                      {typeof r.checkIn === 'string' ? r.checkIn : format(new Date(), 'HH:mm')}
                     </td>
-                    <td className="px-10 py-7">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 group-hover:bg-cyan-600/10 transition-all">
-                             <ShieldCheck size={20} />
-                          </div>
-                          <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest italic">Biometric AI</span>
-                       </div>
+                    <td className="px-8 py-5">
+                      <StatusBadge status={r.status} />
                     </td>
-                     <td className="px-10 py-7 text-right">
-                       <div className="flex flex-col items-end gap-2">
-                          <InteractiveButton 
-                            onClick={() => {
-                              if (r.checkIn?.latitude) {
-                                window.open(`https://www.google.com/maps?q=${r.checkIn.latitude},${r.checkIn.longitude}`, '_blank');
-                              }
-                            }}
-                            className="flex items-center gap-2 text-slate-400 hover:text-cyan-600 transition-colors"
-                          >
-                             <MapPin size={14} />
-                             <span className="text-[10px] font-black uppercase tracking-widest italic underline decoration-dotted underline-offset-4">
-                               Pinpoint Location
-                             </span>
-                          </InteractiveButton>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${(r.checkIn?.distance ?? 0) > 100 ? 'bg-rose-500' : 'bg-emerald-500'} shadow-sm`} />
-                            <p className={`text-[10px] font-black italic uppercase tracking-tighter ${(r.checkIn?.distance ?? 0) > 100 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                              {(r.checkIn?.distance ?? 0) > 100 ? 'External Node' : 'Hub Proximity'}
-                            </p>
-                          </div>
+                    <td className="px-8 py-5 text-[12px] font-medium text-slate-400">
+                       <div className="flex items-center gap-2">
+                          <MapPin size={12} className="group-hover:text-mustard transition-colors" />
+                          Hub Martapura
                        </div>
                     </td>
                   </motion.tr>
@@ -213,22 +231,14 @@ export default function LiveAttendancePage() {
               </AnimatePresence>
             </tbody>
           </table>
-          
           {filtered.length === 0 && !loading && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="py-32 flex flex-col items-center text-center"
-            >
-               <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center text-slate-300 mb-6 border border-slate-100 dark:border-white/5">
-                  <AlertCircle size={40} />
-               </div>
-               <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-widest italic">No Signal Detected</h3>
-               <p className="text-xs font-bold text-slate-500 mt-3 uppercase tracking-widest opacity-60">Scanning for operative activity in Nexus...</p>
-            </motion.div>
+             <div className="py-20 text-center flex flex-col items-center">
+               <AlertCircle size={32} className="text-slate-200 mb-4" />
+               <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">No activity detected for this filter</p>
+             </div>
           )}
         </div>
-      </GlassCard>
+      </BentoCard>
     </div>
   );
 }

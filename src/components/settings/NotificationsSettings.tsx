@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import ToggleSwitch from './ToggleSwitch';
 import type { Settings } from '@/types';
-import { Bell, UserPlus, ShieldAlert, Mail, Smartphone, Radio } from 'lucide-react';
+import { Bell, UserPlus, ShieldAlert, Mail } from 'lucide-react';
 
 interface NotificationsSettingsProps {
   settings: Settings['notifications'];
@@ -12,51 +12,54 @@ interface NotificationsSettingsProps {
 
 export default function NotificationsSettings({ settings, update }: NotificationsSettingsProps) {
   return (
-    <div className="space-y-10">
-      {/* Real-time Alerts */}
-      <div className="space-y-6">
+    <div className="space-y-6">
+      {/* Broadcast Protocol */}
+      <div className="space-y-5">
         <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-cyan-600/10 text-cyan-600 flex items-center justify-center">
-              <Radio size={18} />
-           </div>
-           <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white italic">Broadcast Protocol</h4>
+          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Bell size={16} />
+          </div>
+          <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-wider">Broadcast Protocol</h4>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
             {
               key: 'notifyOnLeaveRequest',
               label: 'Leave Submission',
-              desc: 'Notifikasi instan untuk pengajuan izin baru.',
-              icon: Bell
+              desc: 'Instant notification for new leave requests.',
+              icon: Bell,
             },
             {
               key: 'notifyOnFaceEnrollment',
               label: 'Identity Verification',
-              desc: 'Konfirmasi pendaftaran biometrik sukses.',
-              icon: Smartphone
+              desc: 'Confirmation on successful biometric enrollment.',
+              icon: UserPlus,
             },
             {
               key: 'notifyOnFaceFailure',
-              label: 'Security Breaches',
-              desc: 'Peringatan kegagalan verifikasi berulang.',
-              icon: ShieldAlert
+              label: 'Security Alerts',
+              desc: 'Warning on repeated verification failures.',
+              icon: ShieldAlert,
             },
             {
               key: 'notifyOnNewEmployee',
               label: 'Personnel Onboarding',
-              desc: 'Status login pertama karyawan baru.',
-              icon: UserPlus
+              desc: 'Notification when new employee logs in first time.',
+              icon: UserPlus,
             },
           ].map((item) => (
-            <div key={item.key} className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-cyan-600/30 transition-all group">
-              <div className="flex items-center gap-4 mb-4">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 transition-colors">
-                    <item.icon size={20} />
-                 </div>
-                 <div className="flex-1">
-                    <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">{item.label}</p>
-                 </div>
+            <div
+              key={item.key}
+              className="p-5 rounded-xl border border-border-primary bg-secondary/50 hover:border-border-hover transition-all"
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-text-tertiary group-hover:text-primary transition-colors">
+                  <item.icon size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">{item.label}</p>
+                </div>
               </div>
               <ToggleSwitch
                 checked={Boolean((settings as any)[item.key])}
@@ -70,39 +73,40 @@ export default function NotificationsSettings({ settings, update }: Notification
       </div>
 
       {/* External Channels */}
-      <div className="pt-8 border-t border-(--border-color)">
-        <div className="p-6 rounded-[24px] border border-(--border-color) bg-(--bg-main) hover:border-cyan-600/30 transition-all group">
+      <div className="pt-6 border-t border-border-primary">
+        <div className="p-5 rounded-xl border border-border-primary bg-secondary/50">
           <div className="flex items-center gap-4 mb-4">
-             <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-cyan-600 transition-colors">
-                <Mail size={20} />
-             </div>
-             <div className="flex-1">
-                <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">Enterprise Email Bridge</p>
-             </div>
+            <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-text-tertiary">
+              <Mail size={18} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Email Notifications</p>
+            </div>
+            <ToggleSwitch
+              checked={settings.emailNotifications}
+              onChange={() => update('notifications', 'emailNotifications', !settings.emailNotifications)}
+              label=""
+            />
           </div>
-          <ToggleSwitch
-            checked={settings.emailNotifications}
-            onChange={() => update('notifications', 'emailNotifications', !settings.emailNotifications)}
-            label=""
-            description="Kirim ringkasan operasional harian ke email pusat."
-          />
-          
+
           <AnimatePresence>
             {settings.emailNotifications && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden mt-8"
+                className="overflow-hidden"
               >
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Destination Address</label>
+                <div className="pt-4 space-y-3 border-t border-border-primary/50">
+                  <label className="text-[9px] font-bold text-text-tertiary uppercase tracking-wider">
+                    Destination Address
+                  </label>
                   <div className="relative">
-                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary/50" />
                     <input
                       type="email"
-                      className="w-full h-14 bg-(--bg-main) border border-(--border-color) rounded-2xl pl-12 pr-6 text-sm font-black text-(--text-primary) outline-none focus:border-cyan-600/50 transition-all shadow-sm"
-                      placeholder="admin.nexus@jne.mtp.com"
+                      className="w-full h-10 bg-primary/5 border border-border-primary rounded-lg pl-10 pr-4 text-sm font-medium text-text-primary outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 transition-all placeholder:text-text-tertiary/40"
+                      placeholder="admin@company.com"
                       value={settings.adminEmail ?? ''}
                       onChange={(e) => update('notifications', 'adminEmail', e.target.value)}
                     />

@@ -17,7 +17,9 @@ import {
   QueryConstraint,
   DocumentData, 
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+export { db, auth };
+import { fortressRetry } from './fortress';
 import { initializeApp, getApps, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import type {
@@ -30,6 +32,7 @@ import type {
   LeaveStatus,
   CalendarEvent,
   DepartmentItem,
+  AuditLogEntry,
 } from '@/types';
 
 
@@ -45,6 +48,9 @@ export const COLLECTIONS = {
   NOTIFICATIONS: 'adminNotifications',
   EVENTS: 'events',
   DEPARTMENTS: 'departments',
+  AUDIT_LOG: 'audit_log',
+  PRESENCE: 'user_presence',
+  FCM_TOKENS: 'fcm_tokens',
 } as const;
 
 
@@ -421,14 +427,16 @@ export async function updateLeaveStatus(
   reviewedBy: string,
   rejectionReason?: string
 ): Promise<void> {
-  await updateDoc(doc(db, COLLECTIONS.LEAVES, id), {
-    status,
-    reviewedBy,
-    rejectionReason: rejectionReason || null,
-    reviewedAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-}
+  await fortressRetry(async () => {
+    await updateDoc(doc(db, COLLECTIONS.LEAVES, id), {
+      status,
+      reviewedBy,
+      rejectionReason: rejectionReason || null,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+   }, { taskName: `Update Leave Status ${id}` });
+ }
 
 export async function deleteLeave(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTIONS.LEAVES, id));
@@ -666,5 +674,91 @@ export function subscribeToDepartments(callback: (departments: DepartmentItem[])
   return onSnapshot(collection(db, COLLECTIONS.DEPARTMENTS), (snap) => {
     const data = snap.docs.map((d) => mapDepartment(d.id, d.data()));
     callback(data.sort((a, b) => a.name.localeCompare(b.name)));
+  });
+}
+
+// ============================================================
+// Audit Log
+// ============================================================
+export async function logAudit(action: string, targetUserId: string, metadata?: Record<string, any>): Promise<void> {
+  try {
+    const currentUser = auth.currentUser;
+    
+    await addDoc(collection(db, COLLECTIONS.AUDIT_LOG), {
+      action,
+      actorId: currentUser?.uid || 'system',
+      actorEmail: currentUser?.email || 'system@jne.mtp.com',
+      actorName: currentUser?.displayName || 'System',
+      targetUserId,
+      metadata: metadata || {},
+      timestamp: serverTimestamp(),
+    });
+  } catch (e) {
+    console.warn('Audit log failed:', e);
+    // Non-blocking - don't throw
+  }
+}
+
+// ============================================================
+// Presence System (Firestore-based Heartbeat)
+// ============================================================
+export function updatePresence(userId: string, isOnline: boolean, deviceId?: string): Promise<void> {
+  return setDoc(doc(db, COLLECTIONS.PRESENCE, userId), {
+    userId,
+    isOnline,
+    lastSeen: serverTimestamp(),
+    deviceId: deviceId,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+export function subscribeToPresence(userId: string, callback: (isOnline: boolean, lastSeen?: Date) => void) {
+  const ref = doc(db, COLLECTIONS.PRESENCE, userId);
+  return onSnapshot(ref, (snap) => {
+    const data = snap.data();
+    if (data) {
+      const lastSeen = data.lastSeen?.toDate?.() || new Date(data.lastSeen as any);
+      callback(data.isOnline === true, lastSeen);
+    } else {
+      callback(false);
+    }
+  });
+}
+
+export function subscribeToAllPresence(callback: Record<string, boolean>) {
+  const q = query(collection(db, COLLECTIONS.PRESENCE));
+  return onSnapshot(q, (snap) => {
+    snap.docs.forEach(doc => {
+      const data = doc.data();
+      if (data?.isOnline === true) {
+        callback[doc.id] = true;
+      } else if (callback[doc.id] !== undefined) {
+        callback[doc.id] = false;
+      }
+    });
+  });
+}
+
+// ============================================================
+// FCM Token Management
+// ============================================================
+export async function saveFCMToken(userId: string, token: string): Promise<void> {
+  await setDoc(doc(db, COLLECTIONS.FCM_TOKENS, token), {
+    userId,
+    token,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+export async function deleteFCMToken(token: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.FCM_TOKENS, token));
+}
+
+export function subscribeToUserFCMTokens(userId: string, callback: (tokens: string[]) => void) {
+  const q = query(collection(db, COLLECTIONS.FCM_TOKENS), where('userId', '==', userId));
+  return onSnapshot(q, (snap) => {
+    const tokens = snap.docs.map(d => d.id); // doc ID is the token
+    callback(tokens);
   });
 }

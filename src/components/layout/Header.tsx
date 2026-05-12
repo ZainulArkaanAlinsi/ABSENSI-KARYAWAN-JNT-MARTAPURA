@@ -1,67 +1,62 @@
 'use client';
 
-import { 
-  Bell, 
-  Search, 
-  User,
-  Sun,
-  Moon,
-  ChevronLeft
-} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { Search, Settings, Bell, User, Layout } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const router = useRouter();
-  const pathname = usePathname();
 
-  const isDashboard = pathname === '/dashboard';
+  const getInitials = (name: string) => {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'AD';
+  };
 
   return (
-    <header className="flex items-center justify-between h-16 px-6 bg-(--bg-card)/60 backdrop-blur-md border border-(--border-color) rounded-2xl shadow-sm transition-all duration-300">
-      {/* ── BACK BUTTON & SEARCH ── */}
-      <div className="flex items-center gap-4 flex-1 max-w-md">
-        {!isDashboard && (
-          <button 
-            onClick={() => router.back()}
-            className="w-10 h-10 shrink-0 bg-(--bg-main) border border-(--border-color) rounded-xl flex items-center justify-center text-(--text-secondary) hover:text-(--accent-primary) hover:border-(--accent-primary)/50 transition-all shadow-sm group/back"
-          >
-            <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
-          </button>
-        )}
-        <div className="flex-1 relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
-          <input 
-            type="text" 
-            placeholder="Quick search personnel..." 
-            className="w-full bg-(--bg-main)/50 border border-(--border-color) rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-(--text-primary) placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
+    <div className="w-full h-full flex items-center justify-between px-6 lg:px-10 bg-white border-b border-slate-100">
+      
+      {/* ── SEARCH (Balanced Minimal) ── */}
+      <div className="flex-1 max-w-[400px]">
+        <div className="relative group w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search system..."
+            className="w-full h-10 bg-slate-50 border border-slate-200/50 rounded-xl pl-11 pr-4 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/5 transition-all"
           />
         </div>
       </div>
 
-      {/* ── ACTIONS ── */}
-      <div className="flex items-center gap-3">
-        {/* User Profile */}
-        <div className="flex items-center gap-3 pl-4 border-l border-(--border-color)">
+      {/* ── ACTIONS & PROFILE ── */}
+      <div className="flex items-center gap-4 lg:gap-8 ml-6">
+        
+        <div className="flex items-center gap-1 text-slate-400">
+           <button className="w-9 h-9 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center">
+              <Bell size={18} />
+           </button>
+           <button className="w-9 h-9 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center">
+              <Settings size={18} />
+           </button>
+        </div>
+
+        <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+
+        {/* PROFILE SECTOR */}
+        <div className="flex items-center gap-3.5 group cursor-pointer">
           <div className="text-right hidden md:block">
-            <p className="text-[11px] font-black text-(--text-primary) leading-tight tracking-tighter uppercase italic">
-              {user?.name || 'ADMIN PERSONNEL'}
+            <p className="text-[13px] font-bold text-slate-900 leading-none">
+              {user?.name || 'Administrator'}
             </p>
-            <div className="flex items-center justify-end gap-1.5 mt-0.5">
-               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-               <p className="text-[9px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">
-                {user?.role || 'SYSTEM ADMIN'}
-              </p>
-            </div>
+            <p className="text-[10px] font-medium text-slate-500 mt-1.5 uppercase tracking-wider">
+              {user?.role || 'Admin'}
+            </p>
           </div>
-          <div className="w-10 h-10 bg-slate-950 dark:bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-white text-xs font-black italic shadow-xl shadow-black/20 group-hover:scale-105 transition-transform">
-             {user?.name?.charAt(0).toUpperCase() || 'A'}
+          <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-600 transition-all duration-300 overflow-hidden">
+             <span className="text-[12px] font-black tracking-tight">
+               {getInitials(user?.name || 'Admin')}
+             </span>
           </div>
         </div>
       </div>
-    </header>
+    </div>
   );
 }

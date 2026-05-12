@@ -118,6 +118,8 @@ export interface JamKerja {
 // ============================================================
 // Attendance
 // ============================================================
+export type TimeValue = string | { seconds: number } | { toDate: () => Date };
+
 export interface AttendanceRecord {
   id: string;
   userId: string;
@@ -129,7 +131,7 @@ export interface AttendanceRecord {
 
   status: AttendanceStatus;
   checkIn?: {
-    time: string;
+    time: TimeValue;
     latitude: number;
     longitude: number;
     distance: number;
@@ -137,7 +139,7 @@ export interface AttendanceRecord {
     photoUrl?: string;
   };
   checkOut?: {
-    time: string;
+    time: TimeValue;
     latitude: number;
     longitude: number;
     distance: number;
@@ -148,6 +150,7 @@ export interface AttendanceRecord {
   overtimeMinutes?: number;
   lateMinutes?: number;
   notes?: string;
+  isSos?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -227,6 +230,7 @@ export interface AttendanceSettings {
   faceSimilarityThreshold: number; // 0-100
   allowOfflineAttendance: boolean;
   overtimeCalculation: boolean;
+  courierBypassGeofence: boolean;
 }
 
 export interface NotificationSettings {
@@ -361,6 +365,7 @@ export interface Settings {
     faceSimilarityThreshold: number;
     allowOfflineAttendance: boolean;
     overtimeCalculation: boolean;
+    courierBypassGeofence: boolean;
   };
   notifications: {
     notifyOnLeaveRequest: boolean;
@@ -370,4 +375,36 @@ export interface Settings {
     emailNotifications: boolean;
     adminEmail: string;
   };
+}
+
+// ============================================================
+// Audit Log
+// ============================================================
+export type AuditAction = 
+  | 'leave_approved'
+  | 'leave_rejected'
+  | 'leave_requested'
+  | 'attendance_approved'
+  | 'attendance_rejected'
+  | 'attendance_created'
+  | 'overtime_approved'
+  | 'overtime_rejected'
+  | 'overtime_requested'
+  | 'employee_created'
+  | 'employee_updated'
+  | 'employee_deleted'
+  | 'login'
+  | 'logout'
+  | 'settings_updated'
+  | 'sos_triggered';
+
+export interface AuditLogEntry {
+  id: string;
+  action: AuditAction;
+  actorId: string;
+  actorEmail: string;
+  actorName: string;
+  targetUserId: string;
+  metadata: Record<string, any>;
+  timestamp: string;
 }

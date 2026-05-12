@@ -1,15 +1,51 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { FaceBadge } from '@/components/ui/Badge';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { InteractiveButton, GlassCard } from '@/components/ui/Interactive';
 import { Pagination } from '@/components/ui/Pagination';
-import { Trash2, ChevronRight, UserPlus, Search, Users, ShieldCheck, AlertCircle, Filter } from 'lucide-react';
+import {
+  Trash2,
+  ChevronRight,
+  UserPlus,
+  Search,
+  Users,
+  ShieldCheck,
+  AlertCircle,
+  Building2,
+  CheckCircle2,
+  Filter,
+  MoreVertical,
+  Mail
+} from 'lucide-react';
+import { BentoCard } from '@/components/ui/BentoCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+
+// ── COMPONENTS ──
+
+const StatCard = ({ label, val, icon: Icon, color, index }: any) => (
+  <BentoCard 
+    index={index}
+    className="p-10 flex flex-col justify-between"
+  >
+    <div className="flex items-center justify-between mb-8">
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} bg-opacity-10`}>
+        <Icon size={24} className={color.replace('bg-', 'text-')} />
+      </div>
+      <div className="w-1.5 h-1.5 rounded-full bg-slate-100" />
+    </div>
+    <div>
+      <p className="text-desc font-medium text-slate-400 mb-2 uppercase tracking-widest">{label}</p>
+      <h3 className="text-stats font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
+        {val}
+      </h3>
+    </div>
+  </BentoCard>
+);
 
 export default function EmployeesPage() {
   const {
@@ -39,182 +75,183 @@ export default function EmployeesPage() {
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const paginatedEmployees = filteredEmployees.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="flex flex-col gap-10 w-full pb-20 max-w-[1440px] mx-auto">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pt-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter italic uppercase">
-            Personnel <span className="text-cyan-600">Archive</span>
+          <div className="flex items-center gap-3 mb-4">
+             <span className="flex items-center gap-2 px-3 py-1.5 bg-mustard bg-opacity-10 text-mustard rounded-full text-[10px] font-bold uppercase tracking-wider border border-mustard border-opacity-10">
+               <Users size={12} />
+               Personnel Directory
+             </span>
+          </div>
+          <h1 className="text-h1 font-extrabold text-slate-900 tracking-tight leading-none">
+            Employee <span className="text-mustard">Database</span>
           </h1>
-          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mt-2 ml-1">Manajemen Sumber Daya Manusia JNE Martapura</p>
+          <p className="text-desc font-medium text-slate-400 mt-4 max-w-xl">
+            Central repository for JNE Martapura personnel. Currently managing {employees.length} active records.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <InteractiveButton 
+        
+        <div className="flex items-center gap-4">
+          <AnimatedButton
             onClick={() => setShowAddModal(true)}
-            className="h-14 px-10 bg-slate-950 dark:bg-cyan-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-2xl hover:bg-cyan-600 dark:hover:bg-cyan-500"
+            className="h-14 px-8 bg-slate-900 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest shadow-lg hover:bg-mustard transition-all flex items-center gap-3"
           >
-             <UserPlus size={18} />
-             Add Operative
-          </InteractiveButton>
+            <UserPlus size={18} />
+            Onboard Personnel
+          </AnimatedButton>
         </div>
       </div>
 
-      {/* ── METRICS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Personnel', val: employees.length, icon: Users, color: 'text-cyan-600', bg: 'bg-cyan-600/5' },
-          { label: 'Face Verified', val: employees.filter(e => e.faceRegistered).length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
-          { label: 'Action Required', val: employees.filter(e => !e.faceRegistered).length, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/5' },
-          { label: 'Filtered Result', val: filteredEmployees.length, icon: Filter, color: 'text-slate-950 dark:text-white', bg: 'bg-slate-950 text-white!' },
-        ].map((m, i) => (
-          <GlassCard key={i} className={`p-6 flex items-center justify-between group border-none ${m.bg}`}>
-            <div className="space-y-1">
-              <p className={`${m.color} opacity-60 text-[9px] font-black uppercase tracking-widest leading-none`}>{m.label}</p>
-              <h3 className={`text-2xl font-black ${m.color} tracking-tighter italic`}>{loading ? '...' : m.val}</h3>
-            </div>
-            <div className={`w-12 h-12 bg-white/20 dark:bg-black/20 rounded-2xl flex items-center justify-center ${m.color} shadow-sm group-hover:scale-110 transition-transform`}>
-              <m.icon size={22} />
-            </div>
-          </GlassCard>
-        ))}
+      {/* ── STATS GRID ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <StatCard index={0} label="Total Records" val={employees.length} icon={Users} color="bg-indigo-600" />
+        <StatCard index={1} label="Verified Units" val={employees.filter((e) => e.faceRegistered).length} icon={ShieldCheck} color="bg-emerald-600" />
+        <StatCard index={2} label="Pending Sync" val={employees.filter((e) => !e.faceRegistered).length} icon={AlertCircle} color="bg-amber-600" />
+        <StatCard index={3} label="Live Status" val={employees.filter(e => e.isOnline).length} icon={CheckCircle2} color="bg-cyan-600" />
       </div>
 
-      {/* ── FILTER & SEARCH ── */}
-      <GlassCard className="p-4 flex flex-col lg:flex-row items-center gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="relative flex-1 w-full group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search by name, ID, or unit..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-14 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl py-2.5 pl-12 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-cyan-600/5 focus:border-cyan-600/30 transition-all"
-          />
+      {/* ── FILTERS ── */}
+      <BentoCard className="p-4" hoverEffect={false}>
+        <div className="flex flex-col lg:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-mustard transition-colors" />
+            <input
+              type="text"
+              placeholder="Search by name, ID, or department..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-14 bg-slate-50 border border-transparent rounded-xl pl-16 pr-8 text-desc font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-mustard focus:border-opacity-20 transition-all"
+            />
+          </div>
+          <div className="flex gap-4 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-56">
+              <select
+                value={filterDept}
+                onChange={(e) => setFilterDept(e.target.value)}
+                className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 pr-12 text-[11px] font-bold text-slate-600 uppercase tracking-widest outline-none cursor-pointer hover:border-mustard transition-all appearance-none"
+              >
+                <option value="all">ALL DEPARTMENTS</option>
+                {departmentItems.map((d) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+              <Filter size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+            </div>
+            <div className="relative flex-1 lg:w-56">
+              <select
+                value={filterFace}
+                onChange={(e) => setFilterFace(e.target.value as any)}
+                className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 pr-12 text-[11px] font-bold text-slate-600 uppercase tracking-widest outline-none cursor-pointer hover:border-mustard transition-all appearance-none"
+              >
+                <option value="all">VERIFICATION STATUS</option>
+                <option value="registered">VERIFIED</option>
+                <option value="unregistered">UNVERIFIED</option>
+              </select>
+              <ShieldCheck size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+            </div>
+          </div>
         </div>
-        <div className="flex gap-3 w-full lg:w-auto">
-          <select 
-            value={filterDept}
-            onChange={(e) => setFilterDept(e.target.value)}
-            className="h-14 flex-1 lg:w-48 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl px-5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:border-cyan-600/30 transition-all appearance-none cursor-pointer"
-          >
-            <option value="all">All Units</option>
-            {departmentItems.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-          </select>
-          <select 
-            value={filterFace}
-            onChange={(e) => setFilterFace(e.target.value as any)}
-            className="h-14 flex-1 lg:w-48 bg-white dark:bg-slate-950 border border-(--border-color) rounded-2xl px-5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:border-cyan-600/30 transition-all appearance-none cursor-pointer"
-          >
-            <option value="all">Verification Status</option>
-            <option value="registered">Verified</option>
-            <option value="unregistered">Unregistered</option>
-          </select>
-        </div>
-      </GlassCard>
+      </BentoCard>
 
-      {/* ── EMPLOYEE GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      {/* ── DIRECTORY GRID ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
           {loading ? (
             <div className="col-span-full py-40 flex flex-col items-center gap-6">
               <PageLoader />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Scanning Bio-Matrix...</p>
+              <p className="text-[12px] font-bold uppercase tracking-widest text-slate-400">
+                Synchronizing Database...
+              </p>
             </div>
           ) : paginatedEmployees.map((emp, idx) => (
-            <motion.div
+            <BentoCard
               key={emp.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-              transition={{ 
-                type: 'spring', 
-                damping: 20, 
-                stiffness: 300,
-                layout: { duration: 0.4 }
-              }}
-              className="bento-card group flex flex-col bg-white dark:bg-slate-900 overflow-hidden"
+              index={idx}
+              className="p-10 flex flex-col justify-between group"
             >
-              <div className="flex items-start justify-between mb-8">
-                <div className="relative">
-                  <div className="h-16 w-16 rounded-[24px] bg-slate-950 border border-white/10 flex items-center justify-center text-2xl font-black text-white italic shadow-2xl group-hover:rotate-6 transition-transform uppercase">
-                    {emp.name.charAt(0)}
+              <div>
+                <div className="flex items-start justify-between mb-8">
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[20px] font-black group-hover:bg-mustard transition-colors shadow-sm">
+                      {emp.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="text-[18px] font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-mustard transition-colors">
+                        {emp.name}
+                      </h3>
+                      <p className="text-[12px] font-medium text-slate-400 uppercase tracking-widest mt-1">{emp.employeeId}</p>
+                    </div>
                   </div>
-                  <div className={`absolute -bottom-1 -right-1 h-7 w-7 rounded-xl border-4 border-white dark:border-slate-900 shadow-lg flex items-center justify-center ${emp.faceRegistered ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-800'}`}>
-                    <ShieldCheck size={14} className="text-white" />
-                  </div>
-                  {emp.isOnline && (
-                    <div className="absolute -top-1 -left-1 h-4 w-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  )}
+                  <button className="text-slate-200 hover:text-slate-400 transition-colors">
+                    <MoreVertical size={20} />
+                  </button>
                 </div>
-                <div className="text-right">
-                  <FaceBadge registered={emp.faceRegistered} />
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Class: {emp.contractType || 'Permanent'}</p>
+
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-white group-hover:border-mustard group-hover:border-opacity-10 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100">
+                        <Building2 size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</p>
+                        <p className="text-[13px] font-bold text-slate-900">{emp.department || 'Operations'}</p>
+                      </div>
+                    </div>
+                    <FaceBadge registered={emp.faceRegistered} />
+                  </div>
+
+                  <div className="flex items-center gap-3 px-1">
+                    <Mail size={14} className="text-slate-300" />
+                    <p className="text-[12px] font-medium text-slate-500 truncate">{emp.email || 'no-email@jne.com'}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-2 mb-8">
-                <h3 className="text-xl font-black text-slate-950 dark:text-white uppercase tracking-tighter italic leading-none group-hover:text-cyan-600 transition-colors">
-                  {emp.name}
-                </h3>
-                <div className="flex items-center gap-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{emp.employeeId}</p>
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
-                  <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest italic">{emp.position || 'Operative'}</p>
-                </div>
-                <p className="text-[10px] font-bold text-slate-500 truncate mt-4 opacity-0 group-hover:opacity-100 transition-opacity">{emp.email}</p>
-              </div>
-
-              <div className="pt-6 border-t border-(--border-color) flex items-center justify-between">
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Node / Unit</p>
-                  <div className="px-3 py-1.5 bg-slate-950 dark:bg-slate-800 text-white text-[9px] font-black uppercase tracking-widest rounded-xl">
-                    {emp.department}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <InteractiveButton 
-                    stopPropagation
-                    onClick={() => {
-                      if(confirm(`TERMINATE: Are you sure you want to remove ${emp.name} from the system?`)) {
-                        deleteEmployeeOptimistic(emp.id);
-                      }
-                    }}
-                    className="w-11 h-11 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center"
-                    title="Terminate Access"
+              <div className="pt-10 flex items-center gap-3 mt-auto">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Archive record for ${emp.name}?`)) {
+                      deleteEmployeeOptimistic(emp.id);
+                    }
+                  }}
+                  className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center"
+                >
+                  <Trash2 size={20} />
+                </button>
+                
+                <Link href={`/employees/detail?id=${emp.uid}`} className="flex-1">
+                  <button
+                    className="w-full h-14 bg-slate-900 text-white rounded-2xl text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-mustard transition-all shadow-sm"
                   >
-                    <Trash2 size={18} />
-                  </InteractiveButton>
-                  <Link href={`/employees/detail?id=${emp.id}`}>
-                    <InteractiveButton 
-                      className="w-11 h-11 rounded-xl bg-slate-950 dark:bg-cyan-600 text-white flex items-center justify-center shadow-lg"
-                    >
-                      <ChevronRight size={20} />
-                    </InteractiveButton>
-                  </Link>
-                </div>
+                    View Full Profile
+                    <ChevronRight size={18} />
+                  </button>
+                </Link>
               </div>
-            </motion.div>
+            </BentoCard>
           ))}
         </AnimatePresence>
       </div>
 
-      <div className="flex justify-center pt-10">
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+      {/* ── PAGINATION ── */}
+      {totalPages > 1 && (
+        <div className="flex justify-center pt-10">
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </div>
+      )}
 
-      <AddEmployeeModal 
-        isOpen={showAddModal} 
-        onClose={() => setShowAddModal(false)} 
+      <AddEmployeeModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
         jamKerjas={jamKerjas}
         departmentItems={departmentItems}
       />

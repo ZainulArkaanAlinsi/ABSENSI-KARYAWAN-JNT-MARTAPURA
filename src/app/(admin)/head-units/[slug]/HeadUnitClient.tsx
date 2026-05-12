@@ -16,7 +16,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 
-import { DEPARTMENT_RULES } from '@/lib/departmentRules';
+import { DEPARTMENT_RULES, timeValueToISO } from '@/lib/departmentRules';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion } from 'framer-motion';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
@@ -156,7 +156,7 @@ export default function HeadUnitClient() {
                         </td>
                         <td className="px-6 py-4">
                           {record?.checkIn?.time ? (
-                            <span className="text-[11px] font-black text-emerald-600 font-mono">{format(new Date(record.checkIn.time), 'HH:mm:ss')}</span>
+                            <span className="text-[11px] font-black text-emerald-600 font-mono">{format(new Date(timeValueToISO(record.checkIn.time)), 'HH:mm:ss')}</span>
                           ) : <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest">No Signal</span>}
                         </td>
                         <td className="px-6 py-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -13,124 +13,100 @@ import {
   LogOut,
   Clock,
   ScanFace,
-  Inbox,
+  Inbox
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
-import NotificationPanel from './NotificationPanel';
-import ThemeToggle from '../ui/ThemeToggle';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
   { id: 'requests', label: 'Inbox', icon: Inbox, path: '/requests' },
-  { id: 'attendance', label: 'Absensi', icon: Clock, path: '/attendance' },
-  { id: 'employees', label: 'Personel', icon: Users, path: '/employees' },
-  { id: 'chat', label: 'Pesan', icon: MessageSquare, path: '/chat' },
-  { id: 'calendar', label: 'Kalender', icon: Calendar, path: '/calendar' },
-  { id: 'face-enrollment', label: 'Scan Wajah', icon: ScanFace, path: '/face-enrollment' },
-  { id: 'settings', label: 'Sistem', icon: Settings, path: '/settings' },
+  { id: 'attendance', label: 'Attendance', icon: Clock, path: '/attendance' },
+  { id: 'employees', label: 'Personnel', icon: Users, path: '/employees' },
+  { id: 'chat', label: 'Messages', icon: MessageSquare, path: '/chat' },
+  { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
+  { id: 'face-enrollment', label: 'Face Scan', icon: ScanFace, path: '/face-enrollment' },
+  { id: 'settings', label: 'System', icon: Settings, path: '/settings' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const { unreadCount } = useNotifications();
-  const [showNotifications, setShowNotifications] = useState(false);
 
   return (
-    <>
-      <aside className="w-[240px] h-screen bg-(--sidebar-bg) flex flex-col py-6 border-r border-black/5 relative z-50 transition-all duration-500 overflow-hidden">
-        {/* LOGO AREA */}
-        <div className="px-6 mb-10">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-10 h-10 bg-slate-950 rounded-xl flex items-center justify-center shadow-2xl shadow-black/20 transition-all duration-500 group-hover:rotate-6">
-              <span className="text-white font-black italic text-lg tracking-tighter">J</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-white font-black text-sm tracking-tighter uppercase italic leading-none">Martapura</span>
-              <span className="text-cyan-600 font-bold text-[8px] uppercase tracking-[0.2em] mt-1">Control Tower</span>
-            </div>
+    <div className="w-full h-full flex flex-col bg-primary border-r border-white/5 overflow-hidden">
+      
+      {/* ── BRANDING SECTOR ── */}
+      <div className="p-8 lg:p-10 pb-12">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_15px_30px_-10px_rgba(79,70,229,0.5)] shrink-0">
+            <span className="text-white font-black italic text-2xl select-none">J</span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-white font-black text-base uppercase tracking-tighter truncate leading-none">Martapura</span>
+            <span className="text-slate-500 font-bold text-[8px] uppercase tracking-[0.4em] mt-2 leading-none opacity-60">Tactical Hub</span>
           </div>
         </div>
+      </div>
 
-        {/* NAVIGATION */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto no-scrollbar">
-          <div className="px-4 mb-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-40">Main Systems</p>
-          </div>
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.id}
-                href={item.path}
-                className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden ${
-                  isActive 
-                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' 
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                }`}
-              >
+      {/* ── NAVIGATION SECTOR ── */}
+      <nav className="flex-1 px-6 space-y-2 overflow-y-auto custom-scrollbar">
+        <div className="px-5 mb-8">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-700">Command Control</p>
+        </div>
+        
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname.startsWith(item.path);
+          return (
+            <Link
+              key={item.id}
+              href={item.path}
+              className={`flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-500 group relative ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-[0_10px_25px_-5px_rgba(79,70,229,0.4)]'
+                  : 'text-slate-500 hover:text-slate-200 hover:bg-white/3'
+              }`}
+            >
+              <div className="flex items-center gap-4 relative z-10">
                 <item.icon 
                   size={18} 
-                  strokeWidth={isActive ? 3 : 2} 
-                  className={isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'} 
+                  strokeWidth={isActive ? 2.5 : 2} 
+                  className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-200 transition-colors'} 
                 />
-                <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'italic' : ''}`}>
+                <span className={`text-[11px] font-black tracking-tight uppercase ${isActive ? 'opacity-100' : 'opacity-80'}`}>
                   {item.label}
                 </span>
-
-                {isActive && (
-                  <motion.div
-                    layoutId="sidebar-active-rect"
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-l-full"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* FOOTER ACTIONS */}
-        <div className="mt-auto px-4 pt-6 border-t border-white/5 space-y-3">
-          <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-             <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Appearance</span>
-             </div>
-          </div>
-
-          <button 
-            onClick={() => setShowNotifications(true)}
-            className={`w-full flex items-center justify-between px-5 py-3 rounded-xl transition-all group relative ${
-              showNotifications ? 'bg-white text-slate-950' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Bell size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Notifikasi</span>
-            </div>
-            {unreadCount > 0 && (
-              <div className="w-4 h-4 bg-orange-600 rounded-md flex items-center justify-center">
-                <span className="text-[8px] font-black text-white">{unreadCount}</span>
               </div>
-            )}
-          </button>
+              {isActive && (
+                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
 
-          <button
-            onClick={() => signOut()}
-            className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all font-black uppercase tracking-widest text-[10px]"
-          >
-            <LogOut size={16} />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
-
-      <NotificationPanel 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
-      />
-    </>
+      {/* ── OPERATIONAL FOOTER ── */}
+      <div className="p-6 mt-auto border-t border-white/5 space-y-1">
+        <button className="w-full flex items-center justify-between px-5 py-4 rounded-2xl text-slate-500 hover:text-slate-200 hover:bg-white/3 transition-all group">
+          <div className="flex items-center gap-4">
+            <Bell size={18} strokeWidth={2} />
+            <span className="text-[11px] font-black uppercase tracking-tight">Telemetry</span>
+          </div>
+          {unreadCount > 0 && (
+            <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-cyan-400 text-primary text-[9px] font-black flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => signOut()}
+          className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 transition-all group"
+        >
+          <LogOut size={18} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[11px] font-black uppercase tracking-tight italic">Terminate Session</span>
+        </button>
+      </div>
+    </div>
   );
 }

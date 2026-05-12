@@ -1,4 +1,4 @@
-import type { DepartmentRule } from '@/types';
+import type { DepartmentRule, TimeValue } from '@/types';
 
 // ============================================================
 //  Department Rules Configuration
@@ -104,33 +104,51 @@ export function getRuleByDept(name: string): DepartmentRule | undefined {
 // ============================================================
 
 /**
+ * Convert TimeValue to ISO string
+ */
+export function timeValueToISO(t: TimeValue): string {
+  if (typeof t === 'string') return t;
+  if (typeof t === 'object') {
+    if ('toDate' in t && typeof (t as any).toDate === 'function') {
+      return (t as any).toDate().toISOString();
+    }
+    if ('seconds' in t) {
+      return new Date((t as any).seconds * 1000).toISOString();
+    }
+  }
+  return new Date().toISOString();
+}
+
+/**
  * Calculate effective work minutes, accounting for:
  *  - next-day checkouts (night shift)
  *  - tardiness deducted from effective hours (NOT counted as overtime)
  */
 export function calcEffectiveMinutes(
-  checkInISO: string,
-  checkOutISO: string,
+  checkIn: TimeValue,
+  checkOut: TimeValue,
   rule: DepartmentRule,
 ): {
   totalMinutes: number;
   lateMinutes: number;
   effectiveMinutes: number;
 } {
-  const checkIn = new Date(checkInISO);
-  const checkOut = new Date(checkOutISO);
+  const checkInISO = timeValueToISO(checkIn);
+  const checkOutISO = timeValueToISO(checkOut);
+  const checkInDate = new Date(checkInISO);
+  const checkOutDate = new Date(checkOutISO);
 
   // Scheduled check-in on the same date as actual check-in
   const [h, m] = rule.checkInTime.split(':').map(Number);
-  const scheduled = new Date(checkIn);
+  const scheduled = new Date(checkInDate);
   scheduled.setHours(h, m, 0, 0);
 
   // Late = diff in minutes (0 if on time or early)
-  const rawLate = Math.floor((checkIn.getTime() - scheduled.getTime()) / 60000);
+  const rawLate = Math.floor((checkInDate.getTime() - scheduled.getTime()) / 60000);
   const lateMinutes = Math.max(0, rawLate - rule.toleranceMinutes);
 
   // Total actual minutes worked (handles cross-midnight automatically)
-  const totalMinutes = Math.max(0, Math.floor((checkOut.getTime() - checkIn.getTime()) / 60000));
+  const totalMinutes = Math.max(0, Math.floor((checkOutDate.getTime() - checkInDate.getTime()) / 60000));
 
   // Effective = total - late deduction
   const effectiveMinutes = Math.max(0, totalMinutes - lateMinutes);

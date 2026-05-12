@@ -10,12 +10,12 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
-interface AdminUser {
-  uid: string;
-  email: string | null;
-  name: string;
-  role: 'admin' | 'superadmin' | 'employee';
-}
+  interface AdminUser {
+    uid: string;
+    email: string | null;
+    name: string;
+    role: 'admin' | 'superadmin';
+  }
 
 interface AuthContextType {
   user: AdminUser | null;
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            if (data.role === 'admin' || data.role === 'superadmin' || data.role === 'employee') {
+            if (data.role === 'admin' || data.role === 'superadmin') {
               setUser({
                 uid: fbUser.uid,
                 email: fbUser.email,
@@ -88,39 +88,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // NORMALISASI EMAIL
       const normalizedEmail = email.trim().toLowerCase();
       
-      // DOMAIN CHECK (Warning only or relaxed)
-      const isOfficialDomain = normalizedEmail.endsWith('@jne.mtp.com') || normalizedEmail.endsWith('@jnemtp.com') || normalizedEmail.endsWith('@jne.co.id');
-      
-      // If you want to keep it strictly official, keep this. 
-      // But let's allow common domains for dev testing if needed, 
-      // or at least provide a clearer way to bypass.
-      if (!isOfficialDomain && !normalizedEmail.includes('admin')) {
-         console.warn('Login using non-official domain:', normalizedEmail);
-         // Uncomment below to enforce strict domain again
-         // setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
-         // setLoading(false);
-         // return false;
-      }
+       // DOMAIN CHECK: Only allow official JNE email domains
+       const isOfficialDomain = normalizedEmail.endsWith('@jne.mtp.com') || normalizedEmail.endsWith('@jnemtp.com') || normalizedEmail.endsWith('@jne.co.id');
+       
+       if (!isOfficialDomain) {
+         setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
+         setLoading(false);
+         return false;
+       }
 
       const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const fbUser = userCredential.user;
 
       const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
       
-      if (!userDoc.exists()) {
-        await firebaseSignOut(auth);
-        setError('Akun tidak ditemukan di database. Hubungi Administrator.');
-        setLoading(false);
-        return false;
-      }
+       if (!userDoc.exists()) {
+         await firebaseSignOut(auth);
+         setError('Akun tidak ditemukan di database. Hubungi Administrator.');
+         setLoading(false);
+         return false;
+       }
 
-      const data = userDoc.data();
-      if (data.role !== 'admin' && data.role !== 'superadmin' && data.role !== 'employee') {
-        await firebaseSignOut(auth);
-        setError('Akses ditolak. Akun ini tidak memiliki hak akses.');
-        setLoading(false);
-        return false;
-      }
+       const data = userDoc.data();
+       if (data.role !== 'admin' && data.role !== 'superadmin') {
+         await firebaseSignOut(auth);
+         setError('Akses ditolak. Akun ini tidak memiliki hak akses.');
+         setLoading(false);
+         return false;
+       }
 
       // Set cookie on success
       document.cookie = `jne_admin_session=${fbUser.uid}; path=/; max-age=86400; SameSite=Lax`;

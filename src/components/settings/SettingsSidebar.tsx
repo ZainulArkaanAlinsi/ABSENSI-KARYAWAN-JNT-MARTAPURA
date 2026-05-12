@@ -16,53 +16,59 @@ interface SettingsSidebarProps {
   activeTab: TabKey;
   setActiveTab: (tab: TabKey) => void;
   tabs: readonly { key: TabKey; label: string; icon: keyof typeof iconMap }[];
+  className?: string;
 }
 
-export default function SettingsSidebar({ activeTab, setActiveTab, tabs }: SettingsSidebarProps) {
+export default function SettingsSidebar({ activeTab, setActiveTab, tabs, className = '' }: SettingsSidebarProps) {
   return (
-    <div className="w-full xl:w-72 shrink-0">
-      <div 
-        className="p-6 flex flex-col gap-2 xl:sticky xl:top-28 relative rounded-[32px] overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar"
-        style={{ 
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-color)',
-          boxShadow: 'var(--shadow-premium)'
-        }}
-      >
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] px-3 mb-3 relative z-10 text-(--text-secondary)">
-          Menu Pengaturan
-        </p>
-        <div className="space-y-2 relative z-10">
-          {tabs.map((tab) => {
-            const Icon = iconMap[tab.icon] || MapPin;
-            const isActive = activeTab === tab.key;
-            
-            return (
-              <motion.button
-                key={tab.key}
-                whileHover={{ y: isActive ? 0 : -2, backgroundColor: isActive ? undefined : 'var(--bg-main)' }}
-                whileTap={{ y: 1 }}
-                onClick={() => setActiveTab(tab.key)}
-                className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-[12px] font-bold transition-all text-left relative overflow-hidden group`}
-                style={{
-                  background: isActive ? 'var(--accent-primary)' : 'transparent',
-                  color: isActive ? '#fff' : 'var(--text-primary)',
-                  boxShadow: isActive ? '0 10px 20px -5px var(--accent-primary)/30' : 'none',
-                }}
-              >
-                <Icon size={18} className={isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100 transition-opacity'} />
-                <span className="tracking-wide z-10">{tab.label}</span>
-                {isActive && (
-                   <motion.div 
-                    layoutId="active-pill"
-                    className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent pointer-events-none" 
-                   />
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
+    <div className={`shrink-0 flex flex-col p-8 gap-4 ${className}`}>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] px-4 mb-4 text-slate-400">
+        System Configuration
+      </p>
+      <div className="space-y-2">
+        {tabs.map((tab) => {
+          const Icon = iconMap[tab.icon] || MapPin;
+          const isActive = activeTab === tab.key;
+          
+          return (
+            <motion.button
+              key={tab.key}
+              whileHover={isActive ? {} : { x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab(tab.key)}
+              className={`
+                w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black transition-all text-left group relative
+                ${isActive 
+                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' 
+                  : 'text-slate-500 hover:bg-slate-100/50 hover:text-slate-900'
+                }
+              `}
+            >
+              <Icon 
+                size={18} 
+                strokeWidth={isActive ? 2.5 : 2}
+                className={isActive ? 'text-primary' : 'opacity-40 group-hover:opacity-100 transition-opacity'} 
+              />
+              <span className="tracking-widest uppercase">{tab.label}</span>
+              
+              {isActive && (
+                <motion.div 
+                  layoutId="active-nav-indicator"
+                  className="absolute right-4 w-1.5 h-1.5 rounded-full bg-primary"
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
+      
+      <div className="mt-auto p-6 rounded-2xl bg-primary/5 border border-primary/10">
+         <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Operational State</p>
+         <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-bold text-slate-600">Terminal Synchronized</span>
+         </div>
       </div>
     </div>
   );
-}
+}

@@ -9,20 +9,22 @@ interface CompanySettingsProps {
 
 export default function CompanySettings({ settings, update }: CompanySettingsProps) {
   const fields = [
-    { label: 'Nama Perusahaan', key: 'companyName', placeholder: 'PT. Example', type: 'text' },
-    { label: 'URL Download APK', key: 'appDownloadUrl', placeholder: 'https://...', type: 'url' },
-    { label: 'Email HR', key: 'hrEmail', placeholder: 'hr@example.com', type: 'email' },
-    { label: 'No. Telepon HR', key: 'hrPhone', placeholder: '+62...', type: 'text' },
+    { label: 'Company Name', key: 'companyName', placeholder: 'PT. JNE Martapura', type: 'text' },
+    { label: 'App Download URL', key: 'appDownloadUrl', placeholder: 'https://...', type: 'url' },
+    { label: 'HR Email', key: 'hrEmail', placeholder: 'hr@company.com', type: 'email' },
+    { label: 'HR Phone', key: 'hrPhone', placeholder: '+62...', type: 'text' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {fields.map((field) => (
-        <div key={field.key} className="space-y-3">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary)">{field.label}</label>
+        <div key={field.key} className="space-y-2">
+          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-tertiary">
+            {field.label}
+          </label>
           <input
             type={field.type}
-            className="w-full bg-(--bg-main) border border-(--border-color) rounded-2xl px-5 py-4 text-sm font-black text-(--text-primary) outline-none focus:border-(--accent-info)/50 transition-all shadow-sm placeholder:text-(--text-secondary) placeholder:opacity-30"
+            className="w-full h-10 bg-secondary border border-border-primary rounded-lg px-4 text-sm font-medium text-text-primary outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 transition-all placeholder:text-text-tertiary/40"
             placeholder={field.placeholder}
             value={(settings as any)[field.key] ?? ''}
             onChange={(e) => update('company', field.key, e.target.value)}

@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Database, 
-  Trash2, 
-  Zap, 
-  CheckCircle2, 
+import {
+  Database,
+  Trash2,
+  Zap,
+  CheckCircle2,
   AlertTriangle,
   History,
-  Loader2
+  Loader2,
+  RefreshCcw,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { 
-  collection, 
-  getDocs, 
-  doc, 
+import {
+  collection,
+  getDocs,
+  doc,
   writeBatch,
-  serverTimestamp
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS, getEmployees, getJamKerjas } from '@/lib/firestore';
@@ -27,21 +28,17 @@ export default function MaintenanceSettings() {
   const [status, setStatus] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
 
-  const logStatus = (msg: string) => {
-    setStatus(msg);
-  };
-
   const clearAttendance = async () => {
-    if (!confirm('Hapus SEMUA riwayat absensi? Tindakan ini tidak bisa dibatalkan.')) return;
-    
+    if (!confirm('Delete ALL attendance history? This cannot be undone.')) return;
+
     setLoading(true);
-    logStatus('Menghapus data absensi...');
-    
+    setStatus('Deleting attendance data...');
+
     try {
       const snap = await getDocs(collection(db, COLLECTIONS.ATTENDANCE));
       const total = snap.size;
       let deleted = 0;
-      
+
       const batchSize = 500;
       const docs = snap.docs;
       for (let i = 0; i < docs.length; i += batchSize) {
@@ -52,12 +49,12 @@ export default function MaintenanceSettings() {
         deleted += chunk.length;
         setProgress(Math.round((deleted / total) * 100));
       }
-      
-      logStatus(`Berhasil menghapus ${deleted} data.`);
+
+      setStatus(`Deleted ${deleted} records.`);
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       console.error(err);
-      logStatus('Gagal menghapus data.');
+      setStatus('Delete failed. Please try again.');
     } finally {
       setLoading(false);
       setProgress(0);
@@ -66,14 +63,14 @@ export default function MaintenanceSettings() {
 
   const seedAttendance = async () => {
     setLoading(true);
-    logStatus('Menyiapkan data seeding...');
-    
+    setStatus('Preparing seed data...');
+
     try {
       const employees = await getEmployees();
       const shifts = await getJamKerjas();
-      
+
       if (employees.length === 0) {
-        logStatus('Tidak ada karyawan ditemukan.');
+        setStatus('No employees found.');
         setLoading(false);
         return;
       }
@@ -81,27 +78,27 @@ export default function MaintenanceSettings() {
       const totalDays = 30;
       const totalOperations = employees.length * totalDays;
       let completed = 0;
-      
-      logStatus(`Memulai seeding untuk ${employees.length} karyawan...`);
+
+      setStatus(`Seeding for ${employees.length} employees...`);
 
       for (const emp of employees) {
         const batch = writeBatch(db);
-        const empShift = shifts.find(s => s.id === emp.jamKerjaId) || shifts[0];
-        
+        const empShift = shifts.find((s) => s.id === emp.jamKerjaId) || shifts[0];
+
         for (let i = 0; i < totalDays; i++) {
           const currentDate = subDays(new Date(), i);
           if (isWeekend(currentDate)) continue;
 
           const dateStr = format(currentDate, 'yyyy-MM-dd');
-          
+
           const rand = Math.random();
           let status: 'present' | 'late' | 'absent' | 'leave' = 'present';
           if (rand > 0.95) status = 'absent';
-          else if (rand > 0.90) status = 'leave';
-          else if (rand > 0.70) status = 'late';
+          else if (rand > 0.9) status = 'leave';
+          else if (rand > 0.7) status = 'late';
 
           const attRef = doc(collection(db, COLLECTIONS.ATTENDANCE));
-          
+
           if (status === 'absent' || status === 'leave') {
             batch.set(attRef, {
               userId: emp.uid,
@@ -145,30 +142,35 @@ export default function MaintenanceSettings() {
             status,
             checkIn: {
               time: format(checkInTime, 'HH:mm'),
-              location: 'Kantor JNE Martapura',
-              photoUrl: emp.photoUrl || null
+              location: 'JNE Martapura Office',
+              photoUrl: emp.photoUrl || null,
             },
             checkOut: {
               time: format(checkOutTime, 'HH:mm'),
-              location: 'Kantor JNE Martapura'
+              location: 'JNE Martapura Office',
             },
-            totalWorkMinutes: Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 60000),
-            lateMinutes: status === 'late' ? Math.floor((checkInTime.getTime() - baseIn.getTime()) / 60000) : 0,
+            totalWorkMinutes: Math.floor(
+              (checkOutTime.getTime() - checkInTime.getTime()) / 60000,
+            ),
+            lateMinutes:
+              status === 'late'
+                ? Math.floor((checkInTime.getTime() - baseIn.getTime()) / 60000)
+                : 0,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });
         }
-        
+
         await batch.commit();
         completed += totalDays;
         setProgress(Math.min(100, Math.round((completed / totalOperations) * 100)));
       }
 
-      logStatus('Seeding selesai!');
+      setStatus('Seeding complete!');
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       console.error(err);
-      logStatus('Gagal seeding.');
+      setStatus('Seeding failed. Please try again.');
     } finally {
       setLoading(false);
       setProgress(0);
@@ -176,80 +178,87 @@ export default function MaintenanceSettings() {
   };
 
   return (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Seeding Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-(--accent-info)">
-            <Zap size={20} />
-            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Generator Data Simulasi</h4>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Generate */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-primary">
+            <Database size={18} />
+            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">Simulated Data Generator</h4>
           </div>
-          <p className="text-xs text-(--text-secondary) leading-relaxed opacity-70">
-            Isi database dengan riwayat absensi otomatis selama 30 hari terakhir untuk melihat visualisasi dashboard yang lengkap.
+          <p className="text-[11px] font-medium text-text-tertiary leading-relaxed">
+            Populate the database with 30 days of simulated attendance for visualization and testing.
           </p>
           <button
             onClick={seedAttendance}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-(--accent-info)/10 text-(--accent-info) border border-(--accent-info)/20 font-black text-[10px] uppercase tracking-widest hover:bg-(--accent-info) hover:text-white transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2.5 h-10 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all disabled:opacity-50"
           >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />}
-            Hasilkan Riwayat 30 Hari
+            {loading ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Zap size={15} />
+            )}
+            Generate 30-Day History
           </button>
         </div>
 
-        {/* Cleanup Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-red-500">
-            <Trash2 size={20} />
-            <h4 className="text-sm font-black text-(--text-primary) uppercase tracking-tighter">Pembersihan Database</h4>
+        {/* Cleanup */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-danger">
+            <Trash2 size={18} />
+            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">Data Cleanup</h4>
           </div>
-          <p className="text-xs text-(--text-secondary) leading-relaxed opacity-70">
-            Bersihkan semua riwayat absensi untuk memulai dari awal. Data yang dihapus tidak dapat dikembalikan.
+          <p className="text-[11px] font-medium text-text-tertiary leading-relaxed">
+            Remove all attendance records. This action is irreversible.
           </p>
           <button
             onClick={clearAttendance}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2.5 h-10 rounded-lg bg-danger/10 text-danger border border-danger/20 font-bold text-[10px] uppercase tracking-widest hover:bg-danger hover:text-white transition-all disabled:opacity-50"
           >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-            Hapus Semua Riwayat
+            {loading ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Trash2 size={15} />
+            )}
+            Delete All Records
           </button>
         </div>
       </div>
 
-      {/* Progress / Status Bar */}
+      {/* Progress */}
       {(loading || status) && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-3xl bg-white/5 border border-(--border-primary) space-y-4"
+          className="p-4 rounded-xl bg-secondary border border-border-primary space-y-3"
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <History size={14} className="text-(--text-muted)" />
-              <span className="text-[10px] font-black text-(--text-primary) uppercase tracking-widest">{status}</span>
+              <History size={13} className="text-text-tertiary" />
+              <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">{status}</span>
             </div>
-            {loading && <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest">{progress}%</span>}
+            {loading && <span className="text-[9px] font-medium text-text-tertiary">{progress}%</span>}
           </div>
-          
           {loading && (
-            <div className="w-full h-1.5 bg-(--bg-main) rounded-full overflow-hidden border border-(--border-color)">
-              <motion.div 
-                className="h-full bg-(--accent-info)" 
-                animate={{ width: `${progress}%` }} 
+            <div className="w-full h-1 bg-secondary rounded-full overflow-hidden border border-border-primary/50">
+              <motion.div
+                className="h-full bg-primary transition-all duration-300"
+                animate={{ width: `${progress}%` }}
               />
             </div>
           )}
         </motion.div>
       )}
 
-      {/* Warning Info */}
-      <div className="p-6 rounded-3xl bg-amber-500/5 border border-amber-500/10 flex items-start gap-4">
-        <AlertTriangle className="text-amber-500 shrink-0" size={20} />
+      {/* Warning */}
+      <div className="p-4 rounded-xl bg-mustard/5 border border-mustard/10/50 flex items-start gap-3">
+        <AlertTriangle className="text-mustard shrink-0" size={18} />
         <div className="space-y-1">
-          <p className="text-xs font-black text-amber-500 uppercase tracking-tight">Perhatian</p>
-          <p className="text-[11px] text-amber-600/70 font-medium leading-relaxed">
-            Fitur ini sebaiknya hanya digunakan untuk keperluan pengujian atau demonstrasi. Seeding data akan memakan waktu tergantung jumlah karyawan yang terdaftar.
+          <p className="text-[10px] font-bold text-mustard uppercase tracking-tight">Notice</p>
+          <p className="text-[10px] font-medium text-text-tertiary leading-relaxed">
+            These tools are intended for testing and demonstration. Data generation time depends on the number of employees.
           </p>
         </div>
       </div>

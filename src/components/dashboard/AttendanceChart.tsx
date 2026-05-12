@@ -15,48 +15,62 @@ interface AttendanceChartProps {
   data: any[];
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#121826] border border-white/10 p-5 rounded-2xl shadow-2xl backdrop-blur-xl">
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{label}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-[#4F46E5] shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
+          <p className="text-sm font-black text-white">
+            {payload[0].value} <span className="text-[9px] font-bold text-slate-500 ml-1 uppercase">Personnel</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const AttendanceChart = ({ data }: AttendanceChartProps) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data}>
+      <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--sidebar-bg)" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="var(--sidebar-bg)" stopOpacity={0} />
+            <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid
-          strokeDasharray="3 3"
+          strokeDasharray="4 4"
           vertical={false}
-          stroke="currentColor"
-          className="opacity-5"
+          stroke="#F1F5F9"
         />
         <XAxis
           dataKey="day"
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--text-secondary)' }}
+          tick={{ fontSize: 9, fontWeight: 900, fill: '#94A3B8' }}
+          dy={15}
         />
-        <YAxis hide />
-        <Tooltip
-          contentStyle={{
-            borderRadius: '16px',
-            backgroundColor: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-            fontSize: '10px',
-            fontWeight: 'bold',
-            color: 'var(--text-primary)',
-          }}
-          itemStyle={{ color: 'var(--text-primary)' }}
+        <YAxis 
+          axisLine={false}
+          tickLine={false}
+          tick={{ fontSize: 9, fontWeight: 900, fill: '#94A3B8' }}
+        />
+        <Tooltip 
+          content={<CustomTooltip />} 
+          cursor={{ stroke: '#4F46E5', strokeWidth: 1, strokeDasharray: '6 6' }} 
         />
         <Area
           type="monotone"
           dataKey="present"
-          stroke="var(--sidebar-bg)"
-          strokeWidth={4}
+          stroke="#4F46E5"
+          strokeWidth={3}
           fillOpacity={1}
           fill="url(#colorPresent)"
+          animationDuration={2500}
         />
       </AreaChart>
     </ResponsiveContainer>

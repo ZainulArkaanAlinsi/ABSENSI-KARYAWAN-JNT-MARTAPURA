@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getSettings, updateSettings } from '@/lib/firestore/settings';
-import { useDebounce } from './useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
+import {
+  getSettings,
+  updateSettings,
+  subscribeToSettings,
+} from '@/lib/firestore/settings';
 import type { Settings } from '@/types';
 
 export const TABS = [
@@ -19,75 +23,180 @@ export function useSettingsManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+  const mountedRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // ── EFFECT: Real-time settings stream from DB ──
   useEffect(() => {
-    const fetchSettings = async () => {
-      setLoading(true);
-      try {
-        const data = await getSettings();
-        if (data) {
-          setSettings(data);
-        } else {
-          // Default settings
-          setSettings({
-            office: { name: '', address: '', latitude: null, longitude: null, radiusMeters: 50 },
-            company: { companyName: '', appDownloadUrl: '', hrEmail: '', hrPhone: '' },
-            attendance: { maxFaceAttempts: 3, faceSimilarityThreshold: 60, allowOfflineAttendance: false, overtimeCalculation: true },
-            notifications: { notifyOnLeaveRequest: true, notifyOnFaceEnrollment: true, notifyOnFaceFailure: false, notifyOnNewEmployee: true, emailNotifications: false, adminEmail: '' }
-          });
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      } finally {
-        setLoading(false);
+    const unsubscribe = subscribeToSettings((data) => {
+      if (data) {
+        // Normalize settings: ensure all nested fields exist to prevent null-reference crashes
+        const normalized: Settings = {
+          office: {
+            name: data.office?.name ?? '',
+            address: data.office?.address ?? '',
+            latitude: data.office?.latitude ?? null,
+            longitude: data.office?.longitude ?? null,
+            radiusMeters: data.office?.radiusMeters ?? 50,
+          },
+          company: {
+            companyName: data.company?.companyName ?? '',
+            appDownloadUrl: data.company?.appDownloadUrl ?? '',
+            hrEmail: data.company?.hrEmail ?? '',
+            hrPhone: data.company?.hrPhone ?? '',
+          },
+          attendance: {
+            maxFaceAttempts: data.attendance?.maxFaceAttempts ?? 3,
+            faceSimilarityThreshold: data.attendance?.faceSimilarityThreshold ?? 60,
+            allowOfflineAttendance: data.attendance?.allowOfflineAttendance ?? false,
+            overtimeCalculation: data.attendance?.overtimeCalculation ?? true,
+            // Support mobile config keys
+            courierBypassGeofence: data.attendance?.courierBypassGeofence ?? false,
+          },
+          notifications: {
+            notifyOnLeaveRequest: data.notifications?.notifyOnLeaveRequest ?? true,
+            notifyOnFaceEnrollment: data.notifications?.notifyOnFaceEnrollment ?? true,
+            notifyOnFaceFailure: data.notifications?.notifyOnFaceFailure ?? false,
+            notifyOnNewEmployee: data.notifications?.notifyOnNewEmployee ?? true,
+            emailNotifications: data.notifications?.emailNotifications ?? false,
+            adminEmail: data.notifications?.adminEmail ?? '',
+          },
+        };
+
+        setSettings(normalized);
+        setLastSync(new Date());
+        setError(null);
       }
-    };
-    fetchSettings();
-  }, []);
-
-  const update = useCallback((
-    section: keyof Settings,
-    field: string,
-    value: any
-  ) => {
-    setSettings(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        Section: section, // For tracking
-        [section]: {
-          ...prev[section],
-          [field]: value
-        }
-      };
+      setLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
+  // ── EFFECT: Initial load fallback (in case stream fires null first) ──
+  useEffect(() => {
+    async function loadFallback() {
+      if (settings === null) {
+        try {
+          const data = await getSettings();
+          if (data) {
+            setSettings(data);
+          } else {
+            // Default settings when nothing in DB yet
+            setSettings({
+              office: {
+                name: '',
+                address: '',
+                latitude: null,
+                longitude: null,
+                radiusMeters: 50,
+              },
+              company: {
+                companyName: '',
+                appDownloadUrl: '',
+                hrEmail: '',
+                hrPhone: '',
+              },
+              attendance: {
+                maxFaceAttempts: 3,
+                faceSimilarityThreshold: 60,
+                allowOfflineAttendance: false,
+                overtimeCalculation: true,
+                courierBypassGeofence: false,
+              },
+              notifications: {
+                notifyOnLeaveRequest: true,
+                notifyOnFaceEnrollment: true,
+                notifyOnFaceFailure: false,
+                notifyOnNewEmployee: true,
+                emailNotifications: false,
+                adminEmail: '',
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Error loading settings:', error);
+          setError('Gagal memuat pengaturan. Periksa koneksi internet.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+
+    const timeout = setTimeout(loadFallback, 3000); // Wait 3s for stream before fallback
+    return () => clearTimeout(timeout);
+  }, [settings]);
+
+  // ── Update: immutable field-level update ──
+  const update = useCallback(
+    (section: keyof Settings, field: string, value: any) => {
+      setSettings((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: value,
+          },
+        };
+      });
+      // Clear any previous error on new edit
+      setError(null);
+    },
+    [],
+  );
+
+  // ── Save with robust error handling ──
   const handleSave = useCallback(async () => {
-    if (!settings) return;
+    if (!settings) return false;
     setSaving(true);
     setSaved(false);
+    setError(null);
     try {
       await updateSettings(settings);
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (error) {
+
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => setSaved(false), 3000);
+
+      return true;
+    } catch (error: any) {
       console.error('Error saving settings:', error);
+      setError(
+        error.message ||
+          'Gagal menyimpan pengaturan. Periksa koneksi internet dan coba lagi.',
+      );
+      return false;
     } finally {
       setSaving(false);
     }
   }, [settings]);
 
-  const debouncedSettings = useDebounce(settings, 1000);
-  const mounted = useRef(false);
+  // ── Auto-save with debounce ──
+  const debouncedSettings = useDebounce(settings, 1500);
 
   useEffect(() => {
-    if (debouncedSettings && mounted.current) {
-      handleSave();
-    } else {
-      mounted.current = true;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
     }
-  }, [debouncedSettings, handleSave]);
+    if (debouncedSettings) {
+      // Don't auto-save if there's already an error
+      if (!error) {
+        handleSave();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSettings]);
+
+  // ── Cleanup ──
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   return {
     activeTab,
@@ -96,8 +205,11 @@ export function useSettingsManagement() {
     loading,
     saving,
     saved,
+    error,
+    lastSync,
     update,
     handleSave,
     TABS,
+    setError,
   };
 }

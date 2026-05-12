@@ -1,68 +1,95 @@
 @import "tailwindcss";
 
-:root {
-  /* 🎨 Enterprise Pro - Light Mode (Clean & Sharp) */
-  --bg-main: #F8FAFC; /* Slate 50 - Very clean */
-  --bg-card: #FFFFFF; /* Pure White */
-  --accent-primary: #3B82F6; /* Professional Blue */
-  --accent-success: #10B981; /* Emerald */
-  --accent-warning: #F59E0B; /* Amber */
-  --accent-danger: #EF4444;  /* Red */
-  --text-primary: #0F172A;   /* Slate 900 */
-  --text-secondary: #64748B; /* Slate 500 */
-  --border-color: #E2E8F0;   /* Slate 200 */
+/* ── PREMIUM SAAS DESIGN SYSTEM ── */
+
+@theme {
+  /* Colors */
+  --color-primary: #121826;
+  --color-secondary: #F9F7F2;
+  --color-accent: #E67E22;
+  --color-mustard: #E67E22;
+  --color-warm-cream: #F9F7F2;
   
-  --radius-bento: 16px;
-  --sidebar-bg: #0F172A; /* Keep sidebar dark for contrast */
-  --sidebar-text: #F8FAFC;
+  /* Borders */
+  --color-border: rgba(18, 24, 38, 0.05);
+  
+  /* Radius */
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-3xl: 40px;
+
+  /* Typography */
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  
+  --text-h1: 30px;
+  --text-stats: 36px;
+  --text-desc: 14px;
+
+  /* Custom Shadow */
+  --shadow-premium: 0 4px 20px -2px rgba(18, 24, 38, 0.04);
+}
+
+:root {
+  --zen-navy: #121826;
+  --zen-mustard: #E67E22;
+  --zen-cream: #F9F7F2;
+
+  /* Legacy Utility Bridge */
+  --bg-secondary: var(--zen-cream);
+  --text-primary: var(--zen-navy);
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
 }
 
 [data-theme="dark"] {
-  /* 🌙 Enterprise Pro - Dark Mode (Deep Depth) */
-  --bg-main: #020617; /* Slate 950 - Deep Navy Black */
-  --bg-card: #0F172A; /* Slate 900 - Card Depth */
-  --accent-primary: #60A5FA; /* Lighter Blue */
-  --accent-success: #34D399; 
-  --accent-warning: #FBBF24;
-  --accent-danger: #F87171;
-  --text-primary: #F8FAFC;   /* Slate 50 */
-  --text-secondary: #94A3B8; /* Slate 400 */
-  --border-color: #1E293B;   /* Slate 800 */
+  --bg-secondary: #121212;
+  --text-primary: #F9F7F2;
+  --text-muted: #94A3B8;
+  --color-border: rgba(255, 255, 255, 0.05);
+}
+
+/* ── BASE RESET ── */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
   
-  --sidebar-bg: #000000;
+  body {
+    @apply bg-secondary text-primary antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: background-color 0.4s ease;
+  }
 }
 
-* {
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
-}
-
-body {
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  font-family: 'Inter', 'Outfit', sans-serif;
-  letter-spacing: -0.01em;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── UTILITIES ── */
+/* ── UTILITY CLASSES ── */
 @layer components {
-  .glass-card {
-    @apply bg-(--bg-card) border border-(--border-color) shadow-sm;
+  .text-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
   
-  .text-title {
-    @apply text-slate-900 dark:text-white font-black tracking-tight;
+  .bento-card {
+    @apply bg-white rounded-xl shadow-premium border border-border transition-all duration-300;
+  }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 2rem;
   }
 }
 
+/* ── SCROLLBAR ── */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
-
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--zen-navy);
+  border-radius: 10px;
+}
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
 }

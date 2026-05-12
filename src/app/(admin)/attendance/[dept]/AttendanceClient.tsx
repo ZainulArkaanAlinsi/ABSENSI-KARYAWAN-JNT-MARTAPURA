@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { DEPARTMENT_RULES, fmtMinutes, calcEffectiveMinutes } from '@/lib/departmentRules';
+import { DEPARTMENT_RULES, fmtMinutes, calcEffectiveMinutes, timeValueToISO } from '@/lib/departmentRules';
 import { subscribeToTodayAttendance } from '@/lib/firestore';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -236,8 +236,8 @@ export default function AttendanceClient() {
                           </div>
                         </td>
                         <td className="px-6 py-5"><StatusBadge status={rec.status} /></td>
-                        <td className="px-6 py-5 font-mono text-white/90">{rec.checkIn?.time ? format(new Date(rec.checkIn.time), 'HH:mm:ss') : '—'}</td>
-                        <td className="px-6 py-5 font-mono text-white/90">{rec.checkOut?.time ? format(new Date(rec.checkOut.time), 'HH:mm:ss') : '—'}</td>
+                        <td className="px-6 py-5 font-mono text-white/90">{rec.checkIn?.time ? format(new Date(timeValueToISO(rec.checkIn.time)), 'HH:mm:ss') : '—'}</td>
+                        <td className="px-6 py-5 font-mono text-white/90">{rec.checkOut?.time ? format(new Date(timeValueToISO(rec.checkOut.time)), 'HH:mm:ss') : '—'}</td>
                         <td className="px-6 py-5 text-right font-mono text-att-absent">{lateDisplay}</td>
                         <td className="px-6 py-5 text-right font-black text-white/80">{yieldDisplay}</td>
                       </motion.tr>
