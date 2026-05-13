@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { useAdminFCM } from '@/hooks/useAdminFCM';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Loader2 } from 'lucide-react';
 
@@ -52,18 +52,15 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
     <NotificationProvider>
       <AdminFCMInit />
       <AdminLayout>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full h-full"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+          className="w-full h-full"
+        >
+          {children}
+        </motion.div>
       </AdminLayout>
     </NotificationProvider>
   );
