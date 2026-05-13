@@ -13,22 +13,6 @@
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ],
       "source": "functions"
-    },
-    {
-      "source": "attendance_jne_martapura_backend",
-      "codebase": "attendance_jne_martapura_backend",
-      "disallowLegacyRuntimeConfig": true,
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
     }
   ],
   "firestore": {
@@ -53,7 +37,8 @@
         "destination": "/index.html"
       }
     ],
-    "trailingSlash": false
+    "trailingSlash": true
+
   },
   "emulators": {
     "functions": {
@@ -68,32 +53,5 @@
     "ui": {
       "enabled": true
     }
-  },
-  "apphosting": [
-    {
-      "backendId": "admin-attendance-jne-mtrpr",
-      "rootDir": "/",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "functions"
-      ]
-    },
-    {
-      "backendId": "admin-jne-martapura",
-      "rootDir": "/",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "functions"
-      ]
-    }
-  ],
-  "dataconnect": {
-    "source": "dataconnect"
   }
 }
