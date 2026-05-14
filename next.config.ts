@@ -1,26 +1,18 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-const projectRoot = path.resolve(__dirname);
-
 const nextConfig: NextConfig = {
-  /* config options here */
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
-  reactCompiler: true,
-  // Required for next/image when using static export
+  // Pin workspace root so Turbopack doesn't latch onto a stray
+  // C:\Users\USER\package-lock.json and try to resolve modules from there.
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
+  output: 'export',
+  trailingSlash: true,
+  reactCompiler: false,
   images: {
     unoptimized: true,
   },
-  // Force Turbopack to use the correct project root
-  // @ts-ignore
-  turbopack: {
-    root: projectRoot,
-    resolveAlias: {
-      'tailwindcss': path.resolve(projectRoot, 'node_modules/tailwindcss'),
-      '@tailwindcss/postcss': path.resolve(projectRoot, 'node_modules/@tailwindcss/postcss'),
-    },
-  },
-  outputFileTracingRoot: projectRoot,
 };
 
 export default nextConfig;
