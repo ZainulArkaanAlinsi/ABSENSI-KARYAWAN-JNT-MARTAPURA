@@ -4,13 +4,14 @@ import { useEffect, useState, use } from 'react';
 import Image from 'next/image';
 import { getEmployee, getAttendanceByRange } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
-import { format, subDays, parseISO } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { id as dateFnsId } from 'date-fns/locale';
 import { safeFormatTime } from '@/utils/dateFormatters';
 import {
   ArrowLeft, Mail, Briefcase, Calendar, AlertTriangle,
   XCircle, Clock, MapPin, Building, Smartphone,
   ExternalLink, ShieldCheck, Fingerprint,
+  Camera, ImageOff, X, LogIn, LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,6 +53,7 @@ export default function EmployeeDetailClient({ params }: { params: Promise<{ id:
   const [employee,   setEmployee]   = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [preview,    setPreview]    = useState<{ url: string; label: string; date: string } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -333,6 +335,235 @@ export default function EmployeeDetailClient({ params }: { params: Promise<{ id:
           </motion.div>
         </div>
       </div>
+
+      {/* ── PHOTO GALLERY — captured faces per day ── */}
+      <AttendancePhotoGallery
+        records={attendance}
+        onPreview={(p) => setPreview(p)}
+      />
+
+      {/* ── FULL-SIZE PREVIEW MODAL ── */}
+      <AnimatePresence>
+        {preview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreview(null)}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
+            >
+              <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{preview.label}</p>
+                  <p className="text-[14px] font-black text-slate-800 mt-0.5">{preview.date}</p>
+                </div>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={preview.url}
+                  alt={preview.label}
+                  className="w-full max-h-[70vh] object-contain"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// ─── Photo Gallery ───────────────────────────────────────────────
+interface PreviewState { url: string; label: string; date: string; }
+
+function pickPhotoUrl(side: { photoUrl?: string | null } | null | undefined, fallback?: string | null): string | null {
+  return side?.photoUrl ?? fallback ?? null;
+}
+
+function AttendancePhotoGallery({
+  records,
+  onPreview,
+}: {
+  records: AttendanceRecord[];
+  onPreview: (p: PreviewState) => void;
+}) {
+  const withPhotos = records
+    .filter((r) => {
+      const ci = pickPhotoUrl(r.checkIn, (r as any).checkInPhotoUrl);
+      const co = pickPhotoUrl(r.checkOut, (r as any).checkOutPhotoUrl);
+      return ci || co;
+    })
+    .slice(0, 12);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+    >
+      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #E31E24, #A8151A)' }}
+          >
+            <Camera size={16} />
+          </div>
+          <div>
+            <p className="text-desc font-bold text-slate-800">Galeri Foto Absensi</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Foto wajah saat absen masuk &amp; keluar (klik untuk perbesar)
+            </p>
+          </div>
+        </div>
+        <span className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-500">
+          {withPhotos.length} hari
+        </span>
+      </div>
+
+      {withPhotos.length === 0 ? (
+        <div className="px-5 py-16 flex flex-col items-center gap-3 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+            <ImageOff size={22} className="text-slate-300" />
+          </div>
+          <div>
+            <p className="text-[13px] font-bold text-slate-500">Belum ada foto absensi</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Foto akan muncul di sini setiap kali karyawan melakukan absen masuk atau keluar.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5">
+          {withPhotos.map((r) => {
+            const ci = pickPhotoUrl(r.checkIn, (r as any).checkInPhotoUrl);
+            const co = pickPhotoUrl(r.checkOut, (r as any).checkOutPhotoUrl);
+            const dateLabel = format(toDate(r.date), 'EEEE, dd MMM yyyy', { locale: dateFnsId });
+            const shortDate = format(toDate(r.date), 'dd MMM yyyy', { locale: dateFnsId });
+
+            return (
+              <div
+                key={r.id}
+                className="rounded-2xl border border-slate-100 bg-slate-50/50 overflow-hidden flex flex-col"
+              >
+                <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-black text-slate-800 truncate">
+                      {format(toDate(r.date), 'EEEE', { locale: dateFnsId })}
+                    </p>
+                    <p className="text-[10px] font-semibold text-slate-400">
+                      {format(toDate(r.date), 'dd MMM yyyy', { locale: dateFnsId })}
+                    </p>
+                  </div>
+                  <StatusChip status={r.status} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-px bg-slate-200 mt-1">
+                  <PhotoTile
+                    side="in"
+                    url={ci}
+                    time={safeFormatTime(r.checkIn?.time)}
+                    onClick={ci ? () => onPreview({ url: ci, label: 'Absen Masuk', date: dateLabel }) : undefined}
+                  />
+                  <PhotoTile
+                    side="out"
+                    url={co}
+                    time={safeFormatTime(r.checkOut?.time)}
+                    onClick={co ? () => onPreview({ url: co, label: 'Absen Keluar', date: dateLabel }) : undefined}
+                  />
+                </div>
+
+                {r.checkIn && (
+                  <div className="px-4 py-2.5 flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 border-t border-slate-100 bg-white">
+                    <MapPin size={11} className="shrink-0" />
+                    <span>{(r.checkIn.distance ?? 0).toFixed(0)}m dari kantor</span>
+                    <span className="mx-1.5 text-slate-200">•</span>
+                    <span className="truncate">{shortDate}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function PhotoTile({
+  side,
+  url,
+  time,
+  onClick,
+}: {
+  side: 'in' | 'out';
+  url: string | null;
+  time: string;
+  onClick?: () => void;
+}) {
+  const isIn = side === 'in';
+  const Icon = isIn ? LogIn : LogOut;
+  const label = isIn ? 'MASUK' : 'KELUAR';
+  const accent = isIn ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!url}
+      className="relative aspect-square bg-white group disabled:cursor-default"
+    >
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={`Foto ${label}`}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-active:scale-100"
+        />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-50">
+          <ImageOff size={20} className="text-slate-300" />
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            Tidak ada foto
+          </span>
+        </div>
+      )}
+
+      {/* gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+
+      {/* badge */}
+      <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md backdrop-blur-md ${accent}`}>
+        <Icon size={9} strokeWidth={3} />
+        <span className="text-[8px] font-black tracking-widest">{label}</span>
+      </div>
+
+      {/* time */}
+      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white">
+        <span className="text-[11px] font-black tabular-nums drop-shadow">{time || '—'}</span>
+        {url && (
+          <span className="text-[8px] font-bold uppercase tracking-wider opacity-80 drop-shadow">
+            Klik perbesar
+          </span>
+        )}
+      </div>
+    </button>
   );
 }
