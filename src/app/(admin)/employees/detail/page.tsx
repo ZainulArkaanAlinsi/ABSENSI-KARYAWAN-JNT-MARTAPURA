@@ -350,7 +350,7 @@ export default function EmployeeDetailPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setPreview(null)}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.92, opacity: 0 }}
@@ -363,7 +363,7 @@ export default function EmployeeDetailPage() {
               <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{preview.label}</p>
-                  <p className="text-[14px] font-black text-slate-800 mt-0.5">{preview.date}</p>
+                  <p className="text-desc font-black text-slate-800 mt-0.5">{preview.date}</p>
                 </div>
                 <button
                   onClick={() => setPreview(null)}
@@ -550,7 +550,7 @@ function PhotoTile({
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Tidak ada foto</span>
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/70 to-transparent pointer-events-none" />
       <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md backdrop-blur-md ${accent}`}>
         <Icon size={9} strokeWidth={3} />
         <span className="text-[8px] font-black tracking-widest">{label}</span>
