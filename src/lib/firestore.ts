@@ -41,16 +41,22 @@ import type {
 // ============================================================
 export const COLLECTIONS = {
   USERS: 'users',
-  JAM_KERJA: 'shifts', // Keeping 'shifts' as collection name for now but renaming constant
+  JAM_KERJA: 'shifts',
   ATTENDANCE: 'attendance',
   LEAVES: 'leaves',
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
-  EVENTS: 'events',
+  USER_NOTIFICATIONS: 'userNotifications',
+  EVENTS: 'calendarEvents',
   DEPARTMENTS: 'departments',
   AUDIT_LOG: 'audit_log',
   PRESENCE: 'user_presence',
   FCM_TOKENS: 'fcm_tokens',
+  MESSAGES: 'messages',
+  CHATS: 'chats',
+  BROADCASTS: 'broadcasts',
+  SOS_ALERTS: 'sos_alerts',
+  EDIT_REQUESTS: 'edit_requests',
 } as const;
 
 
@@ -133,15 +139,19 @@ function mapLeave(id: string, data: DocumentData): LeaveRequest {
 }
 
 function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
-  // Helper to safely extract time as string from various formats
-  const extractTime = (obj: any) => {
+  // Always return "HH:mm" string — never ISO or raw Timestamp
+  const extractTime = (obj: any): string | undefined => {
     if (!obj) return undefined;
-    if (typeof obj === 'string') return obj;
-    if (obj.time) {
-      if (typeof obj.time === 'string') return obj.time;
-      if (obj.time.toDate) return obj.time.toDate().toISOString();
+    const toHHMM = (d: Date) =>
+      `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    if (obj.time !== undefined && obj.time !== null) {
+      if (typeof obj.time === 'string') {
+        if (obj.time.includes('T')) return toHHMM(new Date(obj.time)); // ISO → HH:mm
+        return obj.time.slice(0, 5); // Already "HH:mm"
+      }
+      if (obj.time.toDate) return toHHMM(obj.time.toDate()); // Firestore Timestamp
     }
-    if (obj.toDate) return obj.toDate().toISOString();
+    if (obj.toDate) return toHHMM(obj.toDate()); // obj itself is a Timestamp
     return undefined;
   };
 
@@ -177,7 +187,7 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     employeeId: data.employeeId || '',
     department: data.department || '',
     jamKerjaId: data.jamKerjaId || '',
-    date: data.date || '',
+    date: data.date || data.attendanceDate || '',
     status: data.status || 'absent',
     checkIn,
     checkOut,
@@ -314,7 +324,9 @@ export async function registerEmployee(
       email: finalEmail,
       faceRegistered: false,
       isActive: true,
-      firstLogin: true, // Menandai untuk ganti password di HP
+      firstLogin: true,        // legacy flag (admin panel reads this)
+      passwordChanged: false,  // mobile app reads this — must be false on create
+                               // so the auto-bridge first-login path triggers
       allowRemoteAttendance: employeeData.allowRemoteAttendance ?? (employeeData.role === 'kurir' || employeeData.role === 'driver'),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
