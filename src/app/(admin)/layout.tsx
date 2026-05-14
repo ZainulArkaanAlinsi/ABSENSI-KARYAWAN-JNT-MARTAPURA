@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { useAdminFCM } from '@/hooks/useAdminFCM';
-import { motion } from 'framer-motion';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Loader2 } from 'lucide-react';
 
@@ -17,8 +16,7 @@ function AdminFCMInit() {
 
 export default function AdminGroupLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const router   = useRouter();
-  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login');
@@ -51,17 +49,7 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
   return (
     <NotificationProvider>
       <AdminFCMInit />
-      <AdminLayout>
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="w-full h-full"
-        >
-          {children}
-        </motion.div>
-      </AdminLayout>
+      <AdminLayout>{children}</AdminLayout>
     </NotificationProvider>
   );
 }
