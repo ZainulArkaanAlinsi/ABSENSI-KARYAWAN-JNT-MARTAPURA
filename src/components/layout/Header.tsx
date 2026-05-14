@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Search, Bell, Menu } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '@/context/NotificationContext';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import ThemeToggle from '../ui/ThemeToggle';
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
 function getDisplayName(name: string) {
   if (!name) return 'Administrator';
@@ -35,10 +37,35 @@ function getGreeting() {
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
-  const today = format(new Date(), 'EEEE, dd MMMM yyyy', { locale: idLocale });
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [panelOpen, setPanelOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  // Memoize date calculation so it doesn't re-run on every keystroke
+  const today = useMemo(() => {
+    return format(new Date(), 'EEEE, dd MMMM yyyy', { locale: idLocale });
+  }, []);
+
+  // Close the panel when clicking anywhere outside the bell / panel.
+  useEffect(() => {
+    if (!panelOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setPanelOpen(false);
+      }
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') setPanelOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [panelOpen]);
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -112,23 +139,39 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
         <ThemeToggle />
 
-        {/* Bell */}
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          className="relative w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
-          style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}
-        >
-          <Bell size={16} />
-          {unreadCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }} animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-black flex items-center justify-center border-2"
-              style={{ background: '#E31E24', borderColor: 'var(--surface-header)' }}
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </motion.span>
-          )}
-        </motion.button>
+        {/* Bell + popover */}
+        <div ref={bellRef} className="relative">
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={() => setPanelOpen((v) => !v)}
+            aria-label="Notifikasi"
+            className="relative w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
+            style={{
+              background: panelOpen ? 'rgba(227,30,36,0.08)' : 'var(--surface-hover)',
+              borderColor: panelOpen ? 'rgba(227,30,36,0.3)' : 'var(--border-default)',
+              color: panelOpen ? '#E31E24' : 'var(--text-dim)',
+            }}
+          >
+            <Bell size={16} />
+            {unreadCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }} animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-white text-[9px] font-black flex items-center justify-center border-2"
+                style={{ background: '#E31E24', borderColor: 'var(--surface-header)' }}
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </motion.span>
+            )}
+          </motion.button>
+
+          <AnimatePresence>
+            {panelOpen && (
+              <div className="absolute right-0 mt-2 z-50">
+                <NotificationPanel onClose={() => setPanelOpen(false)} />
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Divider */}
         <div className="w-px h-6 mx-1" style={{ background: 'var(--border-default)' }} />

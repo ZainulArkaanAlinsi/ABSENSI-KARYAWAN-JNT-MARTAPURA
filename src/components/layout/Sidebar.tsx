@@ -126,7 +126,7 @@ function NavLink({
 export default function Sidebar({ onClose, collapsed = false, onToggle }: SidebarProps) {
   const pathname          = usePathname();
   const { signOut, user } = useAuth();
-  const { unreadCount }   = useNotifications();
+  const { unreadNotifCount, unreadChatCount } = useNotifications();
 
   return (
     <div
@@ -265,16 +265,22 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
           )}
         </AnimatePresence>
 
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.id}
-            item={item}
-            isActive={pathname.startsWith(item.path)}
-            collapsed={collapsed}
-            onClose={onClose}
-            badge={item.id === 'requests' ? unreadCount : undefined}
-          />
-        ))}
+        {NAV_ITEMS.map((item) => {
+          // Per-menu badge: requests = admin notifications, chat = chat unread.
+          let badge: number | undefined;
+          if (item.id === 'requests') badge = unreadNotifCount;
+          else if (item.id === 'chat') badge = unreadChatCount;
+          return (
+            <NavLink
+              key={item.id}
+              item={item}
+              isActive={pathname.startsWith(item.path)}
+              collapsed={collapsed}
+              onClose={onClose}
+              badge={badge}
+            />
+          );
+        })}
       </nav>
 
       {/* ── LOGOUT ── */}

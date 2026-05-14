@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { subscribeToNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/firestore';
 import type { AdminNotification } from '@/types';
 import { useAuth } from './AuthContext';
@@ -38,7 +40,12 @@ function playAdminDing() {
 
 interface NotificationContextType {
   notifications: AdminNotification[];
+  /** Total bell counter: unread admin notifications + unread chat messages. */
   unreadCount: number;
+  /** Just the adminNotifications portion (used by panel header copy). */
+  unreadNotifCount: number;
+  /** Just the chat messages portion (used by sidebar chat badge / pulse). */
+  unreadChatCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   isLoading: boolean;
@@ -50,15 +57,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   // Track unread count sebelumnya untuk deteksi notif baru
   const prevUnreadRef = useRef<number>(-1);
+  const prevChatUnreadRef = useRef<number>(-1);
 
   useEffect(() => {
     if (!user) {
       setNotifications([]);
+      setUnreadChatCount(0);
       setIsLoading(false);
       prevUnreadRef.current = -1;
+      prevChatUnreadRef.current = -1;
       return;
     }
 
@@ -76,14 +87,36 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setIsLoading(false);
     });
 
+    // Live count of unread chat messages addressed to this admin.
+    // Status 'sent' / 'delivered' = unread; 'read' = read. Filter client-side
+    // to avoid needing a composite index on receiverId + status.
+    const chatQuery = query(
+      collection(db, 'messages'),
+      where('receiverId', '==', user.uid),
+    );
+    const unsubChat = onSnapshot(chatQuery, (snap) => {
+      const unread = snap.docs.filter((d) => {
+        const data = d.data();
+        return data.status !== 'read' && !data.isDeleted;
+      }).length;
+      if (prevChatUnreadRef.current !== -1 && unread > prevChatUnreadRef.current) {
+        playAdminDing();
+      }
+      prevChatUnreadRef.current = unread;
+      setUnreadChatCount(unread);
+    });
+
     return () => {
       unsubscribe();
+      unsubChat();
     };
   }, [user]);
 
-  const unreadCount = useMemo(() => {
+  const unreadNotifCount = useMemo(() => {
     return notifications.filter((n) => !n.isRead).length;
   }, [notifications]);
+
+  const unreadCount = unreadNotifCount + unreadChatCount;
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -110,10 +143,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const value = useMemo(() => ({
     notifications,
     unreadCount,
+    unreadNotifCount,
+    unreadChatCount,
     markAsRead,
     markAllAsRead,
     isLoading,
-  }), [notifications, unreadCount, markAsRead, markAllAsRead, isLoading]);
+  }), [notifications, unreadCount, unreadNotifCount, unreadChatCount, markAsRead, markAllAsRead, isLoading]);
 
   return (
     <NotificationContext.Provider value={value}>
