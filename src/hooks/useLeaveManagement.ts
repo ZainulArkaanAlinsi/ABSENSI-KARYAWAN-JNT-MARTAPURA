@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { subscribeToLeaves, updateLeaveStatus } from '@/lib/firestore';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { subscribeToLeaves, updateLeaveStatus, deleteLeave } from '@/lib/firestore';
 import type { LeaveRequest, LeaveStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
-import { db } from '@/lib/firebase';
 
 export const TABS: { key: LeaveStatus | 'all'; label: string }[] = [
   { key: 'pending', label: 'Menunggu' },
@@ -20,25 +18,11 @@ export const LEAVE_TYPE_LABELS: Record<string, string> = {
   emergency: 'Darurat', other: 'Lainnya',
 };
 
-async function sendNotification(userId: string, status: LeaveStatus, reviewedBy: string) {
-  const title = status === 'approved' ? '✅ Izin Disetujui' : '❌ Izin Ditolak';
-  const body = `Pengajuan izin Anda telah ${status === 'approved' ? 'disetujui' : 'ditolak'} oleh ${reviewedBy}.`;
-  
-  try {
-    await fetch('/api/notify-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        title,
-        body,
-        data: { type: 'leave_status', status },
-      }),
-    });
-  } catch (e) {
-    console.warn('Failed to send notification:', e);
-  }
-}
+// Notifications (push + userNotifications mirror) are produced server-side by
+// the onLeaveStatusUpdate Cloud Function the moment the leave doc's status
+// flips. The previous client-side fetch('/api/notify-user') was a no-op
+// because /api routes are disabled by output: 'export' — and the duplicate
+// userNotifications write created two bell entries per decision.
 
 export function useLeaveManagement() {
   const { user } = useAuth();
@@ -75,17 +59,6 @@ export function useLeaveManagement() {
     setProcessing(leave.id);
     try {
       await updateLeaveStatus(leave.id, 'approved', user?.name || 'Admin');
-      await sendNotification(leave.userId, 'approved', user?.name || 'Admin');
-      
-      // Create in-app notification
-      await addDoc(collection(db, 'userNotifications'), {
-        userId: leave.userId,
-        type: 'leave_request',
-        title: 'Izin Disetujui',
-        message: `Pengajuan izin ${leave.type} telah disetujui oleh ${user?.name || 'Admin'}.`,
-        isRead: false,
-        createdAt: serverTimestamp(),
-      });
       toast.success('Pengajuan izin berhasil disetujui');
     } catch (e) {
       console.error('Approve failed:', e);
@@ -100,18 +73,6 @@ export function useLeaveManagement() {
     setProcessing(selectedLeave.id);
     try {
       await updateLeaveStatus(selectedLeave.id, 'rejected', user?.name || 'Admin', rejectReason);
-      await sendNotification(selectedLeave.userId, 'rejected', user?.name || 'Admin');
-      
-      // Create in-app notification
-      await addDoc(collection(db, 'userNotifications'), {
-        userId: selectedLeave.userId,
-        type: 'leave_request',
-        title: 'Izin Ditolak',
-        message: `Pengajuan izin ${selectedLeave.type} telah ditolak oleh ${user?.name || 'Admin'}. Alasan: ${rejectReason}`,
-        isRead: false,
-        createdAt: serverTimestamp(),
-      });
-      
       setShowRejectModal(false);
       setRejectReason('');
       setSelectedLeave(null);
@@ -119,6 +80,28 @@ export function useLeaveManagement() {
     } catch (e) {
       console.error('Reject failed:', e);
       toast.error('Gagal menolak. Coba lagi.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDelete = async (leave: LeaveRequest) => {
+    const isConfirmed = await confirm({
+      title: 'Hapus Pengajuan Izin',
+      message: `Yakin hapus pengajuan izin ${leave.employeeName}? Tindakan ini tidak bisa dibatalkan.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!isConfirmed) return;
+
+    setProcessing(leave.id);
+    try {
+      await deleteLeave(leave.id);
+      toast.success('Pengajuan izin dihapus');
+    } catch (e) {
+      console.error('Delete leave failed:', e);
+      toast.error('Gagal menghapus. Coba lagi.');
     } finally {
       setProcessing(null);
     }
@@ -146,6 +129,7 @@ export function useLeaveManagement() {
     processing,
     handleApprove,
     handleRejectSubmit,
+    handleDelete,
     openReject,
     pendingCount,
   };

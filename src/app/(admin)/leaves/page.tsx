@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { safeFormatDate } from '@/utils/dateFormatters';
 import {
   CheckCircle, XCircle, FileText, Inbox, Loader2,
-  UserCheck, Search, Calendar,
+  UserCheck, Search, Calendar, Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import { Pagination } from '@/components/ui/Pagination';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 const TABS = [
@@ -27,6 +29,7 @@ const LEAVE_TYPES: Record<string, string> = {
   annual:     'Cuti Tahunan',
   permission: 'Izin Keperluan',
   personal:   'Keperluan Pribadi',
+  urgent:     'Keperluan Keluarga',
 };
 
 const toDate = (val: any): Date => {
@@ -56,7 +59,9 @@ export default function LeavesPage() {
   const [rejectReason,    setRejectReason]    = useState('');
   const [currentPage,     setCurrentPage]     = useState(1);
   const { confirm } = useConfirm();
+  const { user } = useAuth();
   const itemsPerPage = 10;
+  const reviewerName = user?.name || user?.email || 'Admin';
 
   useEffect(() => {
     const q = query(collection(db, 'leaves'), orderBy('createdAt', 'desc'));
@@ -90,13 +95,17 @@ export default function LeavesPage() {
     setProcessing(leave.id);
     try {
       await updateDoc(doc(db, 'leaves', leave.id), {
-        status: 'approved', reviewedAt: new Date().toISOString(), reviewedBy: 'Admin',
+        status: 'approved',
+        reviewedAt: serverTimestamp(),
+        reviewedBy: reviewerName,
+        updatedAt: serverTimestamp(),
       });
       toast.success('Pengajuan cuti disetujui');
-    } catch { 
-      toast.error('Gagal menyetujui pengajuan.'); 
-    } finally { 
-      setProcessing(null); 
+    } catch (err) {
+      console.error('Approve failed:', err);
+      toast.error('Gagal menyetujui pengajuan.');
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -107,15 +116,42 @@ export default function LeavesPage() {
     setProcessing(selectedLeave.id);
     try {
       await updateDoc(doc(db, 'leaves', selectedLeave.id), {
-        status: 'rejected', rejectReason, reviewedAt: new Date().toISOString(), reviewedBy: 'Admin',
+        status: 'rejected',
+        rejectionReason: rejectReason,
+        reviewedAt: serverTimestamp(),
+        reviewedBy: reviewerName,
+        updatedAt: serverTimestamp(),
       });
       toast.success('Pengajuan cuti ditolak');
       setShowRejectModal(false);
       setRejectReason('');
-    } catch { 
-      toast.error('Gagal menolak pengajuan.'); 
-    } finally { 
-      setProcessing(null); 
+    } catch (err) {
+      console.error('Reject failed:', err);
+      toast.error('Gagal menolak pengajuan.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDelete = async (leave: LeaveRequest) => {
+    const isConfirmed = await confirm({
+      title: 'Hapus Pengajuan Izin',
+      message: `Yakin hapus pengajuan ${leave.type} dari ${leave.employeeName}? Tindakan ini permanen dan tidak bisa dibatalkan.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!isConfirmed) return;
+
+    setProcessing(leave.id);
+    try {
+      await deleteDoc(doc(db, 'leaves', leave.id));
+      toast.success('Pengajuan izin dihapus');
+    } catch (err) {
+      console.error('Delete leave failed:', err);
+      toast.error('Gagal menghapus pengajuan.');
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -267,9 +303,9 @@ export default function LeavesPage() {
                         <div className="flex items-center gap-2">
                           <Calendar size={13} className="text-slate-400" />
                           <p className="text-[13px] font-bold text-slate-800">
-                            {leave.startDate ? format(toDate(leave.startDate), 'dd MMM', { locale: id }) : '—'}
+                            {safeFormatDate(leave.startDate, 'dd MMM')}
                             {' '}<span className="text-slate-400">→</span>{' '}
-                            {leave.endDate ? format(toDate(leave.endDate), 'dd MMM yyyy', { locale: id }) : '—'}
+                            {safeFormatDate(leave.endDate, 'dd MMM yyyy')}
                             {leave.totalDays ? <span className="ml-1 text-emerald-600">({leave.totalDays}h)</span> : null}
                           </p>
                         </div>
@@ -297,31 +333,47 @@ export default function LeavesPage() {
                       )}
                       {leave.status !== 'pending' && <span />}
 
-                      {leave.status === 'pending' && (
-                        <div className="flex items-center gap-2 ml-auto">
+                      <div className="flex items-center gap-2 ml-auto">
+                        {leave.status === 'pending' ? (
+                          <>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                              onClick={() => openReject(leave)}
+                              disabled={!!processing}
+                              className="flex items-center gap-1.5 h-9 px-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-[12px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                            >
+                              <XCircle size={14} /> Tolak
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                              onClick={() => handleApprove(leave)}
+                              disabled={!!processing}
+                              className="flex items-center gap-1.5 h-9 px-4 text-white rounded-xl text-[12px] font-bold disabled:opacity-50"
+                              style={{ background: '#10B981', boxShadow: 'none' }}
+                            >
+                              {processing === leave.id
+                                ? <Loader2 size={13} className="animate-spin" />
+                                : <CheckCircle size={14} />
+                              }
+                              Setujui
+                            </motion.button>
+                          </>
+                        ) : (
                           <motion.button
                             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                            onClick={() => openReject(leave)}
+                            onClick={() => handleDelete(leave)}
                             disabled={!!processing}
-                            className="flex items-center gap-1.5 h-9 px-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-[12px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
-                          >
-                            <XCircle size={14} /> Tolak
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                            onClick={() => handleApprove(leave)}
-                            disabled={!!processing}
-                            className="flex items-center gap-1.5 h-9 px-4 text-white rounded-xl text-[12px] font-bold disabled:opacity-50"
-                            style={{ background: '#10B981', boxShadow: 'none' }}
+                            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-slate-200 text-slate-400 rounded-xl text-[11px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                            title="Hapus pengajuan ini"
                           >
                             {processing === leave.id
-                              ? <Loader2 size={13} className="animate-spin" />
-                              : <CheckCircle size={14} />
+                              ? <Loader2 size={12} className="animate-spin" />
+                              : <Trash2 size={12} />
                             }
-                            Setujui
+                            Hapus
                           </motion.button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
