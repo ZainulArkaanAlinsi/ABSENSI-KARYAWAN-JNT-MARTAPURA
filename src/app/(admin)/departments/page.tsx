@@ -5,7 +5,8 @@ import { PageLoader } from '@/components/ui/LoadingSpinner';
 import DepartmentCard from '@/components/departments/DepartmentCard';
 import DepartmentModal from '@/components/departments/DepartmentModal';
 import { Pagination } from '@/components/ui/Pagination';
-import { Plus, Search, Layers } from 'lucide-react';
+import { Plus, Layers } from 'lucide-react';
+import SearchBar from '@/components/ui/SearchBar';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
@@ -66,17 +67,12 @@ export default function DepartmentsPage() {
 
       {/* ── SEARCH + STAT ── */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Cari unit atau departemen..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 bg-white border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-400 transition-all"
-            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
-          />
-        </div>
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Cari unit atau departemen..."
+          className="flex-1 max-w-sm"
+        />
         <div className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-slate-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <Layers size={15} className="text-emerald-500" />
           <p className="text-[12px] font-bold text-slate-700">{departments.length} unit aktif</p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getAttendanceByRange } from '@/lib/firestore';
+import { getAttendanceByRange, deleteAttendance } from '@/lib/firestore';
 import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { safeFormatDate, safeFormatTime } from '@/utils/dateFormatters';
@@ -9,9 +9,12 @@ import {
   Search, Calendar, Filter, ArrowLeft, Building2,
   ChevronLeft, ChevronRight, History, Clock3,
   FileSpreadsheet, Users, CheckCircle2, AlertCircle, Clock, Camera,
+  Trash2, Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 // ─── Status Chip ──────────────────────────────────────────────
 function StatusChip({ status }: { status: string }) {
@@ -53,7 +56,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, bg, delay }: any) => (
 // ─── Skeleton Row ─────────────────────────────────────────────
 const SkeletonRow = () => (
   <tr className="border-b border-slate-100">
-    {[140, 100, 120, 80, 60].map((w, i) => (
+    {[140, 100, 120, 80, 80, 36, 60, 32].map((w, i) => (
       <td key={i} className="px-5 py-4">
         <div className="h-3.5 bg-slate-100 rounded-full animate-pulse" style={{ width: w }} />
       </td>
@@ -75,6 +78,34 @@ export default function AttendanceHistoryPage() {
   const [month,      setMonth]      = useState(format(new Date(), 'yyyy-MM'));
   const [deptFilter, setDeptFilter] = useState(initialDept);
   const [page,       setPage]       = useState(1);
+  const [deleting,   setDeleting]   = useState<string | null>(null);
+  const { confirm } = useConfirm();
+
+  const handleDelete = async (rec: AttendanceRecord) => {
+    const ok = await confirm({
+      title: 'Hapus Catatan Absensi',
+      message: `Hapus catatan absen ${rec.employeeName} tanggal ${safeFormatDate(rec.date, 'dd MMM yyyy')}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setDeleting(rec.id);
+    // Optimistic remove so the table reacts instantly even before Firestore
+    // confirms (we re-add on failure).
+    const snapshot = records;
+    setRecords(prev => prev.filter(r => r.id !== rec.id));
+    try {
+      await deleteAttendance(rec.id);
+      toast.success('Catatan absensi dihapus');
+    } catch (e) {
+      console.error('Delete attendance failed:', e);
+      setRecords(snapshot);
+      toast.error('Gagal menghapus. Coba lagi.');
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -234,7 +265,7 @@ export default function AttendanceHistoryPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/60">
-                {['Karyawan', 'Tanggal', 'Unit / Dept', 'Jam Masuk', 'Jam Keluar', 'Foto', 'Status'].map(h => (
+                {['Karyawan', 'Tanggal', 'Unit / Dept', 'Jam Masuk', 'Jam Keluar', 'Foto', 'Status', 'Aksi'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
                     {h}
                   </th>
@@ -246,7 +277,7 @@ export default function AttendanceHistoryPage() {
                 Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center">
+                  <td colSpan={8} className="py-20 text-center">
                     <motion.div
                       animate={{ y: [0, -6, 0] }}
                       transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -339,6 +370,20 @@ export default function AttendanceHistoryPage() {
                       {/* Status */}
                       <td className="px-5 py-3.5">
                         <StatusChip status={rec.status} />
+                      </td>
+
+                      {/* Aksi — Delete */}
+                      <td className="px-5 py-3.5">
+                        <button
+                          onClick={() => handleDelete(rec)}
+                          disabled={deleting === rec.id}
+                          title="Hapus catatan"
+                          className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                        >
+                          {deleting === rec.id
+                            ? <Loader2 size={13} className="animate-spin" />
+                            : <Trash2 size={13} />}
+                        </button>
                       </td>
                     </motion.tr>
                   ))}

@@ -179,7 +179,13 @@ function EmployeeCard({
 }
 
 // ── List row ───────────────────────────────────────────────────
-function EmployeeRow({ emp, idx, onDelete }: { emp: any; idx: number; onDelete: () => void }) {
+function EmployeeRow({ emp, idx, onDelete, selected, onSelectToggle }: {
+  emp: any;
+  idx: number;
+  onDelete: () => void;
+  selected: boolean;
+  onSelectToggle: () => void;
+}) {
   const { confirm } = useConfirm();
   const avatarGradient = getAvatarColor(emp.name);
   return (
@@ -190,8 +196,18 @@ function EmployeeRow({ emp, idx, onDelete }: { emp: any; idx: number; onDelete: 
       exit={{ opacity: 0, x: 12 }}
       transition={{ delay: idx * 0.03 }}
       whileHover={{ backgroundColor: '#fafafa' }}
-      className="flex items-center gap-4 px-5 py-4 border-b border-slate-100 last:border-0 group transition-colors"
+      className={`flex items-center gap-4 px-5 py-4 border-b border-slate-100 last:border-0 group transition-colors ${selected ? 'bg-red-50/30' : ''}`}
     >
+      {/* Bulk select checkbox */}
+      <label className="shrink-0 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onSelectToggle}
+          className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-2 focus:ring-red-200 cursor-pointer"
+        />
+      </label>
+
       {/* Avatar */}
       <div className="relative shrink-0">
         <div className={`w-10 h-10 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-desc font-black text-white`}>
@@ -303,8 +319,59 @@ export default function EmployeesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const itemsPerPage = viewMode === 'grid' ? 9 : 12;
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const { confirm } = useConfirm();
 
   useEffect(() => { setCurrentPage(1); }, [filteredEmployees]);
+
+  // Clear selection when filter changes — selected ids may no longer be visible.
+  useEffect(() => { setSelected(new Set()); }, [search, filterDept, filterFace]);
+
+  const toggleOne = (id: string) =>
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  const togglePage = () => {
+    const visibleIds = paginatedEmployees.map(e => e.id);
+    const allSelected = visibleIds.every(id => selected.has(id));
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (allSelected) visibleIds.forEach(id => next.delete(id));
+      else visibleIds.forEach(id => next.add(id));
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.size === 0) return;
+    const ok = await confirm({
+      title: `Hapus ${selected.size} Karyawan`,
+      message: `Aksi ini akan menghapus ${selected.size} karyawan beserta SEMUA data absensi & izin terkait. Tindakan permanen.`,
+      variant: 'danger',
+      confirmLabel: `Ya, hapus ${selected.size}`,
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setBulkDeleting(true);
+    const ids = Array.from(selected);
+    let okCount = 0, failCount = 0;
+    for (const id of ids) {
+      try {
+        await deleteEmployeeOptimistic(id);
+        okCount++;
+      } catch {
+        failCount++;
+      }
+    }
+    setSelected(new Set());
+    setBulkDeleting(false);
+    if (failCount === 0) toast.success(`${okCount} karyawan dihapus`);
+    else toast.error(`${okCount} berhasil, ${failCount} gagal. Coba ulangi yang gagal.`);
+  };
 
   const totalPages         = Math.ceil(filteredEmployees.length / itemsPerPage);
   const paginatedEmployees = filteredEmployees.slice(
@@ -469,6 +536,41 @@ export default function EmployeesPage() {
         </div>
       </motion.div>
 
+      {/* ── BULK ACTION BAR ── */}
+      <AnimatePresence>
+        {selected.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center justify-between gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-2.5 -mt-1"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-red-500 text-white flex items-center justify-center font-black text-[12px]">
+                {selected.size}
+              </div>
+              <span className="text-[12px] font-bold text-red-700">
+                karyawan terpilih
+              </span>
+              <button
+                onClick={() => setSelected(new Set())}
+                className="text-[11px] font-semibold text-red-500 hover:text-red-700 underline ml-2"
+              >
+                Batal
+              </button>
+            </div>
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="flex items-center gap-1.5 h-9 px-4 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[12px] font-bold transition-all disabled:opacity-50"
+            >
+              <Trash2 size={13} />
+              {bulkDeleting ? 'Menghapus...' : 'Hapus Terpilih'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Active filter chips */}
       <AnimatePresence>
         {hasFilter && (
@@ -539,12 +641,19 @@ export default function EmployeesPage() {
           className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
           style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
         >
-          {/* List header */}
-          <div className="hidden sm:grid px-5 py-3 bg-slate-50 border-b border-slate-100"
-            style={{ gridTemplateColumns: '52px 176px 1fr 1fr 120px 100px' }}>
-            {['', 'Nama', 'Departemen', 'Email', 'Status', ''].map((h, i) => (
-              <p key={i} className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{h}</p>
-            ))}
+          {/* List header — checkbox + select-all + columns */}
+          <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-100">
+            <label className="cursor-pointer shrink-0" title="Pilih semua di halaman ini">
+              <input
+                type="checkbox"
+                checked={paginatedEmployees.length > 0 && paginatedEmployees.every(e => selected.has(e.id))}
+                onChange={togglePage}
+                className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-2 focus:ring-red-200 cursor-pointer"
+              />
+            </label>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              {selected.size > 0 ? `${selected.size} terpilih` : 'Pilih untuk hapus massal'}
+            </p>
           </div>
           <AnimatePresence mode="popLayout">
             {paginatedEmployees.length === 0
@@ -553,6 +662,8 @@ export default function EmployeesPage() {
                   <EmployeeRow
                     key={emp.id} emp={emp} idx={idx}
                     onDelete={() => deleteEmployeeOptimistic(emp.id)}
+                    selected={selected.has(emp.id)}
+                    onSelectToggle={() => toggleOne(emp.id)}
                   />
                 ))
             }
