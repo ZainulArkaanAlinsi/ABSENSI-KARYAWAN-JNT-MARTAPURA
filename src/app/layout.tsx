@@ -1,7 +1,7 @@
 'use client';
 
 import { Inter, Outfit, Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google';
-import './globals.css';
+import '@/app/globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ConfirmProvider } from '@/context/ConfirmContext';

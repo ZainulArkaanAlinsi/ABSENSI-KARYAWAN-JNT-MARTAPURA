@@ -47,9 +47,16 @@ service cloud.firestore {
     }
 
     // ── Overtime ──────────────────────────────────────────────
+    // Owner bisa create / cancel selama status masih 'pending'.
+    // Admin write (approve/reject) di-handle catch-all rule di atas.
     match /overtime/{overtimeId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid
+                                  && request.resource.data.status == 'pending';
+      allow update: if isAuth() && isOwner(resource.data.userId)
+                                  && resource.data.status == 'pending';
+      allow delete: if isAuth() && isOwner(resource.data.userId)
+                                  && resource.data.status == 'pending';
     }
 
     // ── Notifications (personal) ──────────────────────────────

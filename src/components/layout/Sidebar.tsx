@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutGrid, Users, Calendar, MessageSquare,
   Settings, LogOut, Clock, ScanFace, Inbox,
-  X, ChevronLeft, ChevronRight,
+  X, ChevronLeft, ChevronRight, FileText, Timer,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -16,6 +16,8 @@ const NAV_ITEMS = [
   { id: 'dashboard',       label: 'Beranda',     icon: LayoutGrid,    path: '/dashboard' },
   { id: 'requests',        label: 'Kotak Masuk', icon: Inbox,         path: '/requests' },
   { id: 'attendance',      label: 'Kehadiran',   icon: Clock,         path: '/attendance' },
+  { id: 'leaves',          label: 'Cuti & Izin', icon: FileText,      path: '/leaves' },
+  { id: 'overtime',        label: 'Lembur',      icon: Timer,         path: '/overtime' },
   { id: 'employees',       label: 'Karyawan',    icon: Users,         path: '/employees' },
   { id: 'chat',            label: 'Pesan',        icon: MessageSquare, path: '/chat' },
   { id: 'calendar',        label: 'Kalender',    icon: Calendar,      path: '/calendar' },

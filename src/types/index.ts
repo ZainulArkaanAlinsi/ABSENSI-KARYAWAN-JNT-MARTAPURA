@@ -14,6 +14,7 @@ export type AttendanceStatus =
 
 export type LeaveType = 'sick' | 'annual' | 'personal' | 'emergency' | 'other';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+export type OvertimeStatus = 'pending' | 'approved' | 'rejected';
 
 export type WorkDay =
   | 'monday'
@@ -178,6 +179,28 @@ export interface LeaveRequest {
   reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ============================================================
+// Overtime Request
+// ============================================================
+export interface OvertimeRequest {
+  id: string;
+  userId: string;
+  employeeName: string;
+  employeeId: string;
+  department: Department;
+  date: string;                // YYYY-MM-DD
+  overtimeMinutes: number;
+  overtimeHours: number;
+  status: OvertimeStatus;
+  reason: string;
+  adminReason?: string;
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // ============================================================

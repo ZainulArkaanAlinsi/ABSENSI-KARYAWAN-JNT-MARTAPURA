@@ -33,6 +33,8 @@ import type {
   CalendarEvent,
   DepartmentItem,
   AuditLogEntry,
+  OvertimeRequest,
+  OvertimeStatus,
 } from '@/types';
 
 
@@ -44,6 +46,7 @@ export const COLLECTIONS = {
   JAM_KERJA: 'shifts',
   ATTENDANCE: 'attendance',
   LEAVES: 'leaves',
+  OVERTIME: 'overtime',
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
   USER_NOTIFICATIONS: 'userNotifications',
@@ -471,6 +474,72 @@ export function subscribeToLeaves(
     callback(sorted.slice(0, 50));
   });
 }
+
+
+// ============================================================
+// Overtime
+// ============================================================
+function mapOvertime(id: string, data: DocumentData): OvertimeRequest {
+  const minutes = (data.overtimeMinutes as number | undefined) ?? 0;
+  return {
+    id,
+    userId: data.userId || '',
+    employeeName: data.employeeName || '',
+    employeeId: data.employeeId || '',
+    department: data.department || '',
+    date: data.date || '',
+    overtimeMinutes: minutes,
+    overtimeHours: (data.overtimeHours as number | undefined) ?? Math.ceil(minutes / 60),
+    status: (data.status as OvertimeStatus) || 'pending',
+    reason: data.reason || '',
+    adminReason: data.adminReason ?? data.rejectionReason ?? undefined,
+    rejectionReason: data.rejectionReason ?? undefined,
+    reviewedBy: data.reviewedBy ?? undefined,
+    reviewedAt: toDate(data.reviewedAt),
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
+  };
+}
+
+export async function updateOvertimeStatus(
+  id: string,
+  status: OvertimeStatus,
+  reviewedBy: string,
+  rejectionReason?: string,
+): Promise<void> {
+  await fortressRetry(async () => {
+    await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), {
+      status,
+      reviewedBy,
+      rejectionReason: rejectionReason || null,
+      adminReason: rejectionReason || null,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }, { taskName: `Update Overtime Status ${id}` });
+}
+
+export async function deleteOvertime(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.OVERTIME, id));
+}
+
+export function subscribeToOvertimes(
+  status: OvertimeStatus | 'all',
+  callback: (overtimes: OvertimeRequest[]) => void,
+) {
+  const constraints: QueryConstraint[] = [];
+  if (status !== 'all') constraints.push(where('status', '==', status));
+
+  const q = query(collection(db, COLLECTIONS.OVERTIME), ...constraints);
+  return onSnapshot(q, (snap) => {
+    const data = snap.docs.map((d) => mapOvertime(d.id, d.data()));
+    const sorted = data.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    callback(sorted.slice(0, 100));
+  });
+}
+
 
 // ============================================================
 // Attendance

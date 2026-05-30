@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userData = userDoc.data();
-    if (userData.role !== 'admin' && userData.role !== 'superadmin') {
+    if (!userData || (userData.role !== 'admin' && userData.role !== 'superadmin')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
