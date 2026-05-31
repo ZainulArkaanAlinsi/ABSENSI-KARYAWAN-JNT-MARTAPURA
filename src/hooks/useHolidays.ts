@@ -6,27 +6,15 @@ export function useHolidays(year: number) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchHolidays = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`https://libur.deno.dev/api?year=${year}`);
-        if (!response.ok) throw new Error('Gagal mengambil data libur');
-        const data = await response.json(); // data: [{ date, name }]
-        const map: Record<string, string[]> = {};
-        data.forEach((item: { date: string; name: string }) => {
-          if (!map[item.date]) map[item.date] = [];
-          map[item.date].push(item.name);
-        });
-        setHolidaysMap(map);
-      } catch (error) {
-        console.error('Error fetching holidays:', error);
-        setHolidaysMap({});
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHolidays();
+    setLoading(true);
+    setHolidaysMap({
+      [`${year}-01-01`]: ['Tahun Baru Masehi'],
+      [`${year}-05-01`]: ['Hari Buruh Internasional'],
+      [`${year}-06-01`]: ['Hari Lahir Pancasila'],
+      [`${year}-08-17`]: ['Hari Kemerdekaan Republik Indonesia'],
+      [`${year}-12-25`]: ['Hari Raya Natal'],
+    });
+    setLoading(false);
   }, [year]);
 
   return { holidaysMap, loading };
