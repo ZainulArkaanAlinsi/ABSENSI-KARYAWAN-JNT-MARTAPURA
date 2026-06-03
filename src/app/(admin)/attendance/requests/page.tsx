@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { EditRequest } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +27,7 @@ export default function EditRequestsPage() {
 
   useEffect(() => {
     const q     = query(collection(db, 'edit_requests'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => {
+    const unsub = listen(q, snap => {
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as EditRequest)));
       setLoading(false);
     });

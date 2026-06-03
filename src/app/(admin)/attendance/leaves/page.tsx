@@ -4,9 +4,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import {
-  collection, onSnapshot, query, orderBy,
+  collection, query, orderBy,
   doc, updateDoc, where, addDoc,
 } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -77,7 +78,7 @@ export default function LeaveRequestsPage() {
     if (filter !== 'all')
       q = query(collection(db, 'leaves'), where('status', '==', filter), orderBy('createdAt', 'desc'));
 
-    const unsub = onSnapshot(q, snap => {
+    const unsub = listen(q, snap => {
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as LeaveRequest)));
       setLoading(false);
     });

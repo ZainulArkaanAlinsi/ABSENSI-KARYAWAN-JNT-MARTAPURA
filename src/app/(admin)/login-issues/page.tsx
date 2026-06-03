@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
 import { AlertCircle, BellRing, Filter, Search, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -71,8 +72,10 @@ export default function LoginIssuesPage() {
         setError(null);
       },
       (err) => {
-        console.error('Failed to load login issues:', err);
-        setError('Gagal memuat login issues. Periksa koneksi atau rules Firestore.');
+        handleListenerError(err, 'login-issues');
+        if (!isBenignListenerError(err)) {
+          setError('Gagal memuat login issues. Periksa koneksi atau rules Firestore.');
+        }
         setLoading(false);
       },
     );

@@ -11,7 +11,8 @@ import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { db } from '@/lib/firebase';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
@@ -176,7 +177,7 @@ export default function ChatPage() {
 
   // ── Listen to chats collection for last message timestamps ──
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'chats'), snap => {
+    const unsub = listen(collection(db, 'chats'), snap => {
       const meta: Record<string, string> = {};
       snap.docs.forEach(d => {
         const ts = d.data().lastTimestamp;

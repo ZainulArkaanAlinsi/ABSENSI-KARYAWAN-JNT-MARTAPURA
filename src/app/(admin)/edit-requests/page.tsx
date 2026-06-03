@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
 import { AlertCircle, Clock3, Edit3, Filter, RefreshCw, Search, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -88,8 +89,10 @@ export default function EditRequestsPage() {
         setError(null);
       },
       (err) => {
-        console.error('Failed to load edit requests:', err);
-        setError('Gagal memuat edit requests. Periksa koneksi atau aturan Firestore.');
+        handleListenerError(err, 'edit-requests');
+        if (!isBenignListenerError(err)) {
+          setError('Gagal memuat edit requests. Periksa koneksi atau aturan Firestore.');
+        }
         setLoading(false);
       },
     );

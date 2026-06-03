@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { doc, collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { COLLECTIONS } from '@/lib/firestore';
 import {
   ArrowLeft, Mail, Phone, Briefcase, Building2, ShieldCheck,
@@ -80,7 +81,7 @@ export default function EmployeeDetailPage() {
 
     // FIX: previously read from 'employees' (wrong collection that doesn't
     // exist). Real employee docs live in COLLECTIONS.USERS keyed by uid.
-    const unsubEmp = onSnapshot(doc(db, COLLECTIONS.USERS, uid), snap => {
+    const unsubEmp = listen(doc(db, COLLECTIONS.USERS, uid), snap => {
       if (snap.exists()) setEmployee({ id: snap.id, ...snap.data() } as Employee);
       setLoading(false);
     });
@@ -91,7 +92,7 @@ export default function EmployeeDetailPage() {
       orderBy('date', 'desc'),
       limit(30),
     );
-    const unsubAtt = onSnapshot(attQuery, snap => {
+    const unsubAtt = listen(attQuery, snap => {
       setAttendance(snap.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceRecord)));
     });
 

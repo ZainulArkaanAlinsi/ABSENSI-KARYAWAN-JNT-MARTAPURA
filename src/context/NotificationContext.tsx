@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { listen } from '@/lib/firestoreListener';
 import { subscribeToNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/firestore';
 import type { AdminNotification } from '@/types';
 import { useAuth } from './AuthContext';
@@ -94,7 +95,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       collection(db, 'messages'),
       where('receiverId', '==', user.uid),
     );
-    const unsubChat = onSnapshot(chatQuery, (snap) => {
+    const unsubChat = listen(chatQuery, (snap) => {
       const unread = snap.docs.filter((d) => {
         const data = d.data();
         return data.status !== 'read' && !data.isDeleted;

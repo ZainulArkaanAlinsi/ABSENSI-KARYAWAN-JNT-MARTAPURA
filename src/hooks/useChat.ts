@@ -3,7 +3,6 @@ import {
   collection,
   query,
   where,
-  onSnapshot,
   addDoc,
   serverTimestamp,
   updateDoc,
@@ -12,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from '@/lib/firebase';
+import { listen } from '@/lib/firestoreListener';
 
 export interface Message {
   id?: string;
@@ -57,7 +57,7 @@ export const useChat = (chatId: string | null) => {
       where('chatId', '==', chatId),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = listen(q, (snapshot) => {
       const msgs = snapshot.docs
         .map(d => {
           const data = d.data();
@@ -147,7 +147,7 @@ export const useChat = (chatId: string | null) => {
     if (!chatId) return;
 
     const typingRef = doc(db, 'chats', chatId, 'typing', 'status');
-    const unsubscribe = onSnapshot(typingRef, (snap) => {
+    const unsubscribe = listen(typingRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         const otherUserId = chatId.split('_').find(id => id !== auth.currentUser?.uid);

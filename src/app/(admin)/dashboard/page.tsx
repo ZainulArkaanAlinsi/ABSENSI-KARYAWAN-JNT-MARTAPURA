@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   UserX, Calendar, CheckCircle2,
   ArrowUpRight, Clock, TrendingUp,
+  Wifi, ScanFace, Timer, Target,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -158,6 +159,39 @@ function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
         <span className="text-[11px] text-slate-400 ml-1 font-medium">{sub}</span>
       </div>
       <p className="text-[11px] font-semibold text-slate-500 -mt-1">{label}</p>
+    </motion.div>
+  );
+}
+
+// ─── Mini Metric (compact summary) ─────────────────────────────────────────────
+function MiniMetric({ label, value, suffix, icon: Icon, color, bg, delay }: {
+  label: string; value: number; suffix?: string; icon: React.ElementType;
+  color: string; bg: string; delay: number;
+}) {
+  const n = useCountUp(value, 0.8, delay);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
+      whileHover={{ y: -2 }}
+      className="rounded-2xl p-3.5 flex items-center gap-3"
+      style={{
+        background: 'var(--surface-card)',
+        border: '1.5px solid var(--border-default)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+        <Icon size={17} style={{ color }} strokeWidth={2} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-1">
+          <span className="text-[22px] font-black leading-none tabular-nums" style={{ color: 'var(--text-primary)' }}>{n}</span>
+          {suffix && <span className="text-[11px] font-bold text-slate-400">{suffix}</span>}
+        </div>
+        <p className="text-[10.5px] font-semibold text-slate-500 truncate mt-1">{label}</p>
+      </div>
     </motion.div>
   );
 }
@@ -321,6 +355,11 @@ export default function Dashboard() {
   const pct     = total ? Math.round((present / total) * 100) : 0;
   const requests = (s?.pendingRequests ?? []).slice(0, 6);
 
+  const online      = s?.onlineNowCount      ?? 0;
+  const faceReg     = s?.faceRegisteredCount ?? 0;
+  const overtimeH   = s?.overtimeThisMonth   ?? 0;
+  const punctuality = s?.punctualityRate     ?? 0;
+
   return (
     <div className="flex flex-col gap-4 pb-4">
 
@@ -386,9 +425,20 @@ export default function Dashboard() {
       <PendingBannerCard pending={pending} delay={0.42} />
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 2: TREN & LAPORAN                                            */}
+      {/* SECTION 2: RINGKASAN                                                 */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <SectionDivider label="Tren & Laporan" index={2} />
+      <SectionDivider label="Ringkasan" index={2} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MiniMetric label="Online sekarang"  value={online}      icon={Wifi}     color="#059669" bg="#D1FAE5" delay={0.44} />
+        <MiniMetric label="Wajah terdaftar"  value={faceReg}     suffix={`/ ${total}`} icon={ScanFace} color="#7C3AED" bg="#EDE9FE" delay={0.48} />
+        <MiniMetric label="Lembur bulan ini" value={overtimeH}   suffix="jam"    icon={Timer}    color="#D97706" bg="#FEF3C7" delay={0.52} />
+        <MiniMetric label="Ketepatan waktu"  value={punctuality} suffix="%"      icon={Target}   color="#004080" bg="#E6EEF8" delay={0.56} />
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 3: TREN & LAPORAN                                            */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <SectionDivider label="Tren & Laporan" index={3} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 

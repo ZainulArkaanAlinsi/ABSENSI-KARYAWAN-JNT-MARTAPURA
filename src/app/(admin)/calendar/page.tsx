@@ -5,7 +5,8 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 import { getEmployees } from '@/lib/firestore';
 import { db } from '@/lib/firebase';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import EventListPanel from '@/components/calendar/EventListPanel';
@@ -65,7 +66,7 @@ export default function CalendarPage() {
     });
 
     const attQuery = query(collection(db, 'attendance'));
-    const unsub = onSnapshot(attQuery, (snap) => {
+    const unsub = listen(attQuery, (snap) => {
       const map: Record<string, number> = {};
       snap.docs.forEach(doc => {
         const data = doc.data();
