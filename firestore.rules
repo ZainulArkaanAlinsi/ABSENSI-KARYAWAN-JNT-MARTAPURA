@@ -85,17 +85,22 @@ service cloud.firestore {
     }
 
     // ── Chat messages (flat collection, filtered by chatId) ───
+    // Room-based chat: setiap room dikunci ke userId (chatId == userId).
+    // Admin boleh akses semua room; user hanya room miliknya sendiri.
+    // chatId dipakai di filter query supaya rules query-safe (bukan filter).
     match /messages/{messageId} {
       allow read: if isAuth() && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.receiverId == request.auth.uid ||
-        isAdmin()
+        isAdmin() ||
+        resource.data.chatId == request.auth.uid
       );
-      allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
+      allow create: if isAuth() && (
+        isAdmin() ||
+        (request.resource.data.senderId == request.auth.uid &&
+         request.resource.data.chatId == request.auth.uid)
+      );
       allow update: if isAuth() && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.receiverId == request.auth.uid ||
-        isAdmin()
+        isAdmin() ||
+        resource.data.chatId == request.auth.uid
       );
     }
 

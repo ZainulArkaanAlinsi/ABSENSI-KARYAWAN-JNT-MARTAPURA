@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
-import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection } from 'firebase/firestore';
@@ -30,8 +29,6 @@ import { toast } from 'sonner';
 
 const ACCENT     = '#16A34A';
 const ACCENT_LT  = '#F0FDF4';
-
-const getChatId = (a: string, b: string) => [a, b].sort().join('_');
 
 // ── AVATAR ──
 
@@ -165,8 +162,6 @@ const IconBtn = ({ onClick, children, className = '' }: { onClick?: () => void; 
 // ── MAIN PAGE ──
 
 export default function ChatPage() {
-  const { user }                                 = useAuth();
-  const adminId                                  = user?.uid ?? '';
   const { employees, loading: loadingEmployees } = useEmployeeManagement();
   const [selectedCourier, setSelectedCourier]   = useState<any>(null);
   const [inputText, setInputText]               = useState('');
@@ -192,9 +187,8 @@ export default function ChatPage() {
     return () => unsub();
   }, []);
 
-  const chatId = selectedCourier && adminId
-    ? getChatId(adminId, selectedCourier.uid)
-    : null;
+  // Room model: room dikunci ke userId. Admin membuka room user yang dipilih.
+  const chatId = selectedCourier ? selectedCourier.uid : null;
 
   const {
     messages, loading, sending, sendMessage,
@@ -271,7 +265,7 @@ export default function ChatPage() {
                 key={emp.id}
                 emp={emp}
                 isActive={selectedCourier?.id === emp.id}
-                lastTime={adminId ? chatMeta[getChatId(adminId, emp.uid)] : undefined}
+                lastTime={chatMeta[emp.uid]}
                 onClick={() => setSelectedCourier(emp)}
               />
             ))
@@ -336,7 +330,8 @@ export default function ChatPage() {
           ) : (
             <AnimatePresence>
               {messages.map((msg, idx) => {
-                const isMe = msg.senderId === adminId;
+                // Semua pesan dari admin (admin manapun) tampil di sisi kanan.
+                const isMe = msg.senderRole === 'admin';
                 const showAvatar = idx === 0 || messages[idx - 1]?.senderId !== msg.senderId;
                 return (
                   <Bubble
