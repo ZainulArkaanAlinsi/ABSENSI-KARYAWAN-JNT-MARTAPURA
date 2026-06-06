@@ -63,7 +63,7 @@ export function useSettingsManagement() {
           attendance: {
             maxFaceAttempts: data.attendance?.maxFaceAttempts ?? 3,
             faceSimilarityThreshold: data.attendance?.faceSimilarityThreshold ?? 60,
-            allowOfflineAttendance: data.attendance?.allowOfflineAttendance ?? false,
+            allowOfflineAttendance: data.attendance?.allowOfflineAttendance ?? true,
             overtimeCalculation: data.attendance?.overtimeCalculation ?? true,
             // Support mobile config keys
             courierBypassGeofence: data.attendance?.courierBypassGeofence ?? false,
@@ -115,7 +115,7 @@ export function useSettingsManagement() {
               attendance: {
                 maxFaceAttempts: 3,
                 faceSimilarityThreshold: 60,
-                allowOfflineAttendance: false,
+                allowOfflineAttendance: true,
                 overtimeCalculation: true,
                 courierBypassGeofence: false,
               },
