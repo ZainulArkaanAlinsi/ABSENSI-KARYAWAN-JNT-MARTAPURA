@@ -11,18 +11,20 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
+import { useT } from '@/lib/i18n';
 
+// `label` di sini adalah KEY i18n, diterjemahkan saat render via t().
 const NAV_ITEMS = [
-  { id: 'dashboard',       label: 'Beranda',     icon: LayoutGrid,    path: '/dashboard' },
-  { id: 'requests',        label: 'Kotak Masuk', icon: Inbox,         path: '/requests' },
-  { id: 'attendance',      label: 'Kehadiran',   icon: Clock,         path: '/attendance' },
-  { id: 'leaves',          label: 'Cuti & Izin', icon: FileText,      path: '/leaves' },
-  { id: 'overtime',        label: 'Lembur',      icon: Timer,         path: '/overtime' },
-  { id: 'employees',       label: 'Karyawan',    icon: Users,         path: '/employees' },
-  { id: 'chat',            label: 'Pesan',        icon: MessageSquare, path: '/chat' },
-  { id: 'calendar',        label: 'Kalender',    icon: Calendar,      path: '/calendar' },
-  { id: 'face-enrollment', label: 'Wajah',        icon: ScanFace,      path: '/face-enrollment' },
-  { id: 'settings',        label: 'Pengaturan',  icon: Settings,      path: '/settings' },
+  { id: 'dashboard',       label: 'nav_dashboard',  icon: LayoutGrid,    path: '/dashboard' },
+  { id: 'requests',        label: 'nav_requests',   icon: Inbox,         path: '/requests' },
+  { id: 'attendance',      label: 'nav_attendance', icon: Clock,         path: '/attendance' },
+  { id: 'leaves',          label: 'nav_leaves',     icon: FileText,      path: '/leaves' },
+  { id: 'overtime',        label: 'nav_overtime',   icon: Timer,         path: '/overtime' },
+  { id: 'employees',       label: 'nav_employees',  icon: Users,         path: '/employees' },
+  { id: 'chat',            label: 'nav_chat',       icon: MessageSquare, path: '/chat' },
+  { id: 'calendar',        label: 'nav_calendar',   icon: Calendar,      path: '/calendar' },
+  { id: 'face-enrollment', label: 'nav_face',       icon: ScanFace,      path: '/face-enrollment' },
+  { id: 'settings',        label: 'nav_settings',   icon: Settings,      path: '/settings' },
 ];
 
 // Sidebar colors — clean corporate, no neon
@@ -129,6 +131,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
   const pathname          = usePathname();
   const { signOut, user } = useAuth();
   const { unreadNotifCount, unreadChatCount } = useNotifications();
+  const { t, lang, setLang } = useT();
 
   return (
     <div
@@ -158,7 +161,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
               >
                 <p className="text-[13px] font-bold leading-none whitespace-nowrap text-white">JNE Martapura</p>
                 <p className="text-[10px] font-medium mt-0.5 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  Sistem Absensi
+                  {t('attendance_system')}
                 </p>
               </motion.div>
             )}
@@ -177,7 +180,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
         {onToggle && (
           <button
             onClick={onToggle}
-            title={collapsed ? 'Perluas' : 'Ciutkan'}
+            title={collapsed ? t('expand') : t('collapse')}
             className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center transition-all"
             style={{ color: 'rgba(255,255,255,0.3)' }}
           >
@@ -262,7 +265,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
               className="text-[9px] font-bold uppercase tracking-[0.25em] px-2 pt-1 pb-2"
               style={{ color: 'rgba(255,255,255,0.2)' }}
             >
-              Menu Utama
+              {t('menu_main')}
             </motion.p>
           )}
         </AnimatePresence>
@@ -275,7 +278,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
           return (
             <NavLink
               key={item.id}
-              item={item}
+              item={{ ...item, label: t(item.label) }}
               isActive={pathname.startsWith(item.path)}
               collapsed={collapsed}
               onClose={onClose}
@@ -285,12 +288,33 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
         })}
       </nav>
 
+      {/* ── LANGUAGE SWITCHER ── */}
+      {!collapsed && (
+        <div className="px-3 pt-2 shrink-0">
+          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+            {(['id', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="flex-1 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
+                style={{
+                  background: lang === l ? C.accent : 'transparent',
+                  color: lang === l ? '#fff' : 'rgba(255,255,255,0.4)',
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── LOGOUT ── */}
       <div className="p-3 shrink-0" style={{ borderTop: `1px solid ${C.border}` }}>
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => signOut()}
-          title={collapsed ? 'Keluar' : undefined}
+          title={collapsed ? t('logout') : undefined}
           className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-2.5 py-2 rounded-xl transition-all group`}
           style={{ background: 'transparent' }}
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(227,30,36,0.08)')}
@@ -314,7 +338,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
                 className="text-[13px] font-medium whitespace-nowrap overflow-hidden transition-colors group-hover:text-red-400"
                 style={{ color: 'rgba(255,255,255,0.35)' }}
               >
-                Keluar
+                {t('logout')}
               </motion.span>
             )}
           </AnimatePresence>
