@@ -10,6 +10,12 @@ interface OfficeSettingsProps {
 }
 
 export default function OfficeSettings({ settings, update }: OfficeSettingsProps) {
+  const lat = settings.latitude;
+  const lng = settings.longitude;
+  const latInvalid = lat != null && (Number.isNaN(lat) || lat < -90 || lat > 90);
+  const lngInvalid = lng != null && (Number.isNaN(lng) || lng < -180 || lng > 180);
+  const hasValidCoords = lat != null && lng != null && !latInvalid && !lngInvalid;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
       <div className="space-y-8">
@@ -47,11 +53,11 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               Latitude
             </label>
             <div className="relative group">
-              <MapPin size={16} strokeWidth={2.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <MapPin size={16} strokeWidth={2.5} className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${latInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`} />
               <input
                 type="number"
                 step="0.000001"
-                className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 text-sm font-black text-slate-900 outline-none focus:bg-white focus:border-primary/20 transition-all"
+                className={`w-full h-14 bg-slate-50 border rounded-2xl pl-14 pr-6 text-sm font-black text-slate-900 outline-none focus:bg-white transition-all ${latInvalid ? 'border-red-400 focus:border-red-400' : 'border-slate-100 focus:border-primary/20'}`}
                 value={settings.latitude ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -59,17 +65,20 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
                 }}
               />
             </div>
+            {latInvalid && (
+              <p className="text-[10px] font-bold text-red-500">Latitude harus antara -90 dan 90 (mungkin tertukar dgn Longitude).</p>
+            )}
           </div>
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               Longitude
             </label>
             <div className="relative group">
-              <MapPin size={16} strokeWidth={2.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <MapPin size={16} strokeWidth={2.5} className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${lngInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`} />
               <input
                 type="number"
                 step="0.000001"
-                className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 text-sm font-black text-slate-900 outline-none focus:bg-white focus:border-primary/20 transition-all"
+                className={`w-full h-14 bg-slate-50 border rounded-2xl pl-14 pr-6 text-sm font-black text-slate-900 outline-none focus:bg-white transition-all ${lngInvalid ? 'border-red-400 focus:border-red-400' : 'border-slate-100 focus:border-primary/20'}`}
                 value={settings.longitude ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -77,6 +86,9 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
                 }}
               />
             </div>
+            {lngInvalid && (
+              <p className="text-[10px] font-bold text-red-500">Longitude harus antara -180 dan 180.</p>
+            )}
           </div>
         </div>
 
@@ -144,6 +156,42 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
             </p>
           </div>
         </div>
+
+        {/* Peta verifikasi — pastikan titik geofence APK benar */}
+        {hasValidCoords ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                Verifikasi Peta
+              </label>
+              <a
+                href={`https://www.google.com/maps?q=${lat},${lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+              >
+                Buka di Google Maps →
+              </a>
+            </div>
+            <div className="rounded-2xl overflow-hidden border border-slate-100">
+              <iframe
+                title="Peta Lokasi Kantor"
+                className="w-full h-56 border-0"
+                loading="lazy"
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.008}%2C${lng + 0.008}%2C${lat + 0.008}&layer=mapnik&marker=${lat}%2C${lng}`}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-slate-400">
+              Pin = titik kantor yang dipakai geofence di APK. Pastikan tepat di lokasi kantor.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center">
+            <p className="text-[11px] font-bold text-slate-400">
+              Isi Latitude &amp; Longitude yang valid untuk melihat peta verifikasi.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

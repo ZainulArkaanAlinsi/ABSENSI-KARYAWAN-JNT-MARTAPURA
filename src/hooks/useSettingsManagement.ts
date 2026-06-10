@@ -17,6 +17,19 @@ export const TABS = [
 
 export type TabKey = typeof TABS[number]['key'];
 
+/**
+ * Validasi koordinat kantor sebelum disimpan. Mencegah lat/lng tertukar atau
+ * di luar rentang bumi yang akan bikin geofence di APK salah total.
+ * null (belum diisi) dianggap valid supaya tidak memblok saat awal.
+ */
+function officeCoordsValid(settings: Settings): boolean {
+  const lat = settings.office?.latitude;
+  const lng = settings.office?.longitude;
+  if (lat != null && (Number.isNaN(lat) || lat < -90 || lat > 90)) return false;
+  if (lng != null && (Number.isNaN(lng) || lng < -180 || lng > 180)) return false;
+  return true;
+}
+
 export function useSettingsManagement() {
   const [activeTab, setActiveTab] = useState<TabKey>('office');
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -50,7 +63,7 @@ export function useSettingsManagement() {
           attendance: {
             maxFaceAttempts: data.attendance?.maxFaceAttempts ?? 3,
             faceSimilarityThreshold: data.attendance?.faceSimilarityThreshold ?? 60,
-            allowOfflineAttendance: data.attendance?.allowOfflineAttendance ?? false,
+            allowOfflineAttendance: data.attendance?.allowOfflineAttendance ?? true,
             overtimeCalculation: data.attendance?.overtimeCalculation ?? true,
             // Support mobile config keys
             courierBypassGeofence: data.attendance?.courierBypassGeofence ?? false,
@@ -102,7 +115,7 @@ export function useSettingsManagement() {
               attendance: {
                 maxFaceAttempts: 3,
                 faceSimilarityThreshold: 60,
-                allowOfflineAttendance: false,
+                allowOfflineAttendance: true,
                 overtimeCalculation: true,
                 courierBypassGeofence: false,
               },
@@ -151,6 +164,12 @@ export function useSettingsManagement() {
   // ── Save with robust error handling ──
   const handleSave = useCallback(async () => {
     if (!settings) return false;
+    if (!officeCoordsValid(settings)) {
+      setError(
+        'Koordinat kantor tidak valid. Latitude harus -90..90 dan Longitude -180..180 — pastikan tidak tertukar. Perubahan tidak disimpan.',
+      );
+      return false;
+    }
     setSaving(true);
     setSaved(false);
     setError(null);

@@ -1,6 +1,7 @@
 // src/lib/firestore/settings.ts
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase'; // ← import dari lokasi yang benar
+import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
 import type { Settings } from '@/types';
 
 // Gunakan ID dokumen yang konsisten dengan file besar (system)
@@ -47,8 +48,8 @@ export function subscribeToSettings(callback: (settings: Settings | null) => voi
       }
     },
     (error) => {
-      console.error('Settings stream error:', error);
-      callback(null);
+      handleListenerError(error, 'settings');
+      if (!isBenignListenerError(error)) callback(null);
     }
   );
 }

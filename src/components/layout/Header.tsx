@@ -8,9 +8,10 @@ import { Search, Bell, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '@/context/NotificationContext';
 import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { id as idLocale, enUS } from 'date-fns/locale';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
+import { useT } from '@/lib/i18n';
 
 function getDisplayName(name: string) {
   if (!name) return 'Administrator';
@@ -26,27 +27,28 @@ function getInitials(name: string) {
   return d.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) || 'AD';
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 11) return 'Selamat pagi';
-  if (h < 15) return 'Selamat siang';
-  if (h < 18) return 'Selamat sore';
-  return 'Selamat malam';
-}
-
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  const { t, lang } = useT();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [panelOpen, setPanelOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bellRef = useRef<HTMLDivElement>(null);
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 11) return t('greet_morning');
+    if (h < 15) return t('greet_afternoon');
+    if (h < 18) return t('greet_evening');
+    return t('greet_night');
+  })();
+
   // Memoize date calculation so it doesn't re-run on every keystroke
   const today = useMemo(() => {
-    return format(new Date(), 'EEEE, dd MMMM yyyy', { locale: idLocale });
-  }, []);
+    return format(new Date(), 'EEEE, dd MMMM yyyy', { locale: lang === 'en' ? enUS : idLocale });
+  }, [lang]);
 
   // Close the panel when clicking anywhere outside the bell / panel.
   useEffect(() => {
@@ -93,7 +95,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
         <div className="hidden sm:flex flex-col gap-0.5 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold" style={{ color: 'var(--text-dim)' }}>
-              {getGreeting()},
+              {greeting},
             </span>
             <span
               className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md"
@@ -119,7 +121,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Cari karyawan, laporan..."
+            placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
@@ -144,7 +146,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={() => setPanelOpen((v) => !v)}
-            aria-label="Notifikasi"
+            aria-label={t('notifications')}
             className="relative w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
             style={{
               background: panelOpen ? 'rgba(227,30,36,0.08)' : 'var(--surface-hover)',
@@ -197,7 +199,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
               {getDisplayName(user?.name || '')}
             </p>
             <p className="text-[10px] font-semibold mt-0.5" style={{ color: 'var(--text-dim)' }}>
-              {user?.role === 'superadmin' ? 'Super Admin' : 'Administrator'}
+              {user?.role === 'superadmin' ? t('role_superadmin') : t('role_admin')}
             </p>
           </div>
         </motion.div>

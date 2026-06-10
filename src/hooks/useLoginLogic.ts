@@ -25,8 +25,8 @@ export function useLoginLogic() {
 
     setLoading(true);
     try {
-      let finalEmail = email.trim();
-      
+      const finalEmail = email.trim();
+
       const success = await signIn(finalEmail, password);
       if (success) {
         setIsSuccess(true);

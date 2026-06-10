@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import {
-  collection, onSnapshot, query, orderBy,
+  collection, query, orderBy,
   doc, updateDoc, addDoc, serverTimestamp,
 } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import {
@@ -289,7 +290,7 @@ export default function RequestCenterPage() {
       setLoading(false);
     };
 
-    const unsubLeaves = onSnapshot(
+    const unsubLeaves = listen(
       query(collection(db, 'leaves'), orderBy('createdAt', 'desc')),
       snap => {
         leavesData = snap.docs.map(d => ({ id: d.id, ...d.data(), source: 'leave' }));
@@ -297,7 +298,7 @@ export default function RequestCenterPage() {
       },
     );
 
-    const unsubAtt = onSnapshot(
+    const unsubAtt = listen(
       query(collection(db, 'attendance'), orderBy('createdAt', 'desc')),
       snap => {
         attData = snap.docs

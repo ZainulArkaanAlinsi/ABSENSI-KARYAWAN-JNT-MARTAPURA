@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { LanguageProvider } from '@/lib/i18n';
 
 const COLLAPSED_W = 72;
 const EXPANDED_W  = 260;
@@ -13,6 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [collapsed,  setCollapsed]  = useState(false);
 
   return (
+    <LanguageProvider>
     <div className="w-full min-h-screen overflow-x-hidden transition-colors duration-300"
          style={{ background: 'var(--travigo-page)' }}>
       <div className="w-full max-w-[1600px] mx-auto flex min-h-screen relative">
@@ -92,5 +94,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     </div>
+    </LanguageProvider>
   );
 }

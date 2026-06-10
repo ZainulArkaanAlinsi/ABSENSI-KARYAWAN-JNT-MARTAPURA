@@ -5,7 +5,8 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 import { getEmployees } from '@/lib/firestore';
 import { db } from '@/lib/firebase';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import EventListPanel from '@/components/calendar/EventListPanel';
@@ -34,29 +35,23 @@ export default function CalendarPage() {
   const [holidaysMap, setHolidaysMap] = useState<Record<string, string[]>>({});
   const [loadingHolidays, setLoadingHolidays] = useState(false);
 
-  // Fetch libur nasional dari API
+  // Libur nasional tanggal-tetap. API publik (libur.deno.dev) sebelumnya
+  // dipakai, tapi sekarang mengembalikan 403 dan admin di-build sebagai
+  // static export (output: 'export') sehingga proxy server-side tidak
+  // memungkinkan. Hari libur yang ikut kalender Hijriah/Imlek/Saka
+  // sengaja tidak di-hardcode karena tanggalnya berubah tiap tahun —
+  // admin tetap bisa menambah event manual via kalender.
   useEffect(() => {
-    const fetchHolidays = async () => {
-      setLoadingHolidays(true);
-      try {
-        const response = await fetch(`https://libur.deno.dev/api?year=${currentYear}`);
-        if (!response.ok) throw new Error('Gagal mengambil data libur');
-        const data = await response.json();
-        const map: Record<string, string[]> = {};
-        data.forEach((item: { date: string; name: string }) => {
-          if (!map[item.date]) map[item.date] = [];
-          map[item.date].push(item.name);
-        });
-        setHolidaysMap(map);
-      } catch (error) {
-        console.error('Error fetching holidays:', error);
-        setHolidaysMap({});
-      } finally {
-        setLoadingHolidays(false);
-      }
+    setLoadingHolidays(true);
+    const fixed: Record<string, string[]> = {
+      [`${currentYear}-01-01`]: ['Tahun Baru Masehi'],
+      [`${currentYear}-05-01`]: ['Hari Buruh Internasional'],
+      [`${currentYear}-06-01`]: ['Hari Lahir Pancasila'],
+      [`${currentYear}-08-17`]: ['Hari Kemerdekaan Republik Indonesia'],
+      [`${currentYear}-12-25`]: ['Hari Raya Natal'],
     };
-
-    fetchHolidays();
+    setHolidaysMap(fixed);
+    setLoadingHolidays(false);
   }, [currentYear]);
 
   // State for attendance heatmap
@@ -71,7 +66,7 @@ export default function CalendarPage() {
     });
 
     const attQuery = query(collection(db, 'attendance'));
-    const unsub = onSnapshot(attQuery, (snap) => {
+    const unsub = listen(attQuery, (snap) => {
       const map: Record<string, number> = {};
       snap.docs.forEach(doc => {
         const data = doc.data();

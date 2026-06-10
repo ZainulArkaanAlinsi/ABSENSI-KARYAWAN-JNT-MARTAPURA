@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const tokens = tokensSnap.docs.map((doc: any) => doc.id);
 
     // Send to all user tokens (multicast)
-    const messagePayload = {
+    const messagePayload: import('firebase-admin/messaging').MulticastMessage = {
       notification: {
         title,
         body: message,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const response = await adminMessaging.sendMulticast(messagePayload);
+    const response = await adminMessaging.sendEachForMulticast(messagePayload);
     
     // Clean up invalid tokens
     const invalidTokens = response.responses

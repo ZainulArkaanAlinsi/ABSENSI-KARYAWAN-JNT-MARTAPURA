@@ -3,12 +3,20 @@
  *
  * Deploy: firebase deploy --only functions
  *
- * These functions handle server-side logic:
- * 1. onEmployeeCreated   → Create Auth account + notify admin when new employee is added
- * 2. onLeaveStatusUpdate → Send FCM notification to employee when leave status changes
- * 3. onFaceEnrolled      → Notify admin when employee completes face enrollment
- * 4. onAttendanceFailed  → Notify admin when employee fails face recognition 3 times
- * 5. scheduledOvertimeCalc → Daily overtime calculation at 23:00 Asia/Jakarta
+ * Functions:
+ * 1. onEmployeeCreated     → Create Auth account + send onboarding email + notify admin
+ * 2. onLeaveStatusUpdate   → FCM notification when leave approved/rejected
+ * 3. onAttendanceCreated   → Mirror to adminNotifications
+ * 4. onUserProfileUpdated  → FCM to employee when admin changes profile
+ * 5. onFaceEnrolled        → Notify admin when employee completes face enrollment
+ * 6. onAttendanceFailed    → Notify admin on 3x failed face recognition
+ * 7. onOvertimeStatusUpdate → FCM + userNotification when admin approves/rejects overtime
+ * 8. scheduledOvertimeCalc → Daily overtime calculation at 23:00 Asia/Jakarta
+ *
+ * SMTP config (set sebelum deploy):
+ *   firebase functions:config:set smtp.user="bot@jne-mtp.com" smtp.password="APP_PASSWORD" smtp.from_name="JNE Martapura HR" apk.url="https://..."
+ * App Password: aktifkan 2FA Gmail, lalu generate App Password di
+ * https://myaccount.google.com/apppasswords
  */
 
 
@@ -16,10 +24,85 @@ import * as functions from 'firebase-functions/v1';
 const functionsRegion = functions.region('asia-southeast2');
 
 import * as admin from 'firebase-admin';
+import * as crypto from 'crypto';
+import * as nodemailer from 'nodemailer';
 
 admin.initializeApp();
 const db = admin.firestore();
 const messaging = admin.messaging();
+
+// ── SMTP transporter (lazy, dibuat saat dibutuhkan agar tidak crash kalau
+// config belum diset) ───────────────────────────────────────────────────
+let _smtpTransporter: nodemailer.Transporter | null = null;
+function getSmtpTransporter(): nodemailer.Transporter | null {
+  if (_smtpTransporter) return _smtpTransporter;
+  const cfg = functions.config().smtp;
+  if (!cfg?.user || !cfg?.password) {
+    console.warn('[smtp] kredensial belum diset — email onboarding di-skip');
+    return null;
+  }
+  _smtpTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: cfg.user, pass: cfg.password },
+  });
+  return _smtpTransporter;
+}
+
+/**
+ * Kirim email onboarding berisi kredensial login + link APK ke karyawan baru.
+ * Dipanggil dari onEmployeeCreated. Tidak melempar error — kalau gagal,
+ * function tetap lanjut dan menulis admin notification.
+ */
+async function sendOnboardingEmail(opts: {
+  to: string;
+  employeeName: string;
+  loginEmail: string;
+  tempPassword: string;
+}): Promise<boolean> {
+  const transporter = getSmtpTransporter();
+  if (!transporter) return false;
+  const cfg = functions.config();
+  const fromName = cfg.smtp?.from_name || 'JNE Martapura HR';
+  const fromAddr = cfg.smtp.user;
+  const apkUrl   = cfg.apk?.url || '#';
+
+  const html = `
+  <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;padding:24px;">
+    <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,.06)">
+      <h1 style="color:#E31E24;margin:0 0 8px;font-size:22px;letter-spacing:-0.5px">Selamat Datang di JNE Martapura</h1>
+      <p style="color:#475569;font-size:14px;margin:0 0 24px">Halo <strong>${opts.employeeName}</strong>, akun Anda di sistem absensi JNE sudah aktif.</p>
+
+      <div style="background:#f1f5f9;border-radius:12px;padding:20px;margin-bottom:24px">
+        <p style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px">Kredensial Login</p>
+        <p style="margin:0;font-size:14px;color:#0f172a"><strong>Email:</strong> ${opts.loginEmail}</p>
+        <p style="margin:6px 0 0;font-size:14px;color:#0f172a"><strong>Password Sementara:</strong> <code style="background:#fef3c7;padding:3px 8px;border-radius:4px;font-family:monospace;font-size:14px">${opts.tempPassword}</code></p>
+      </div>
+
+      <p style="color:#475569;font-size:13px;line-height:1.6;margin:0 0 20px">
+        Saat login pertama, Anda akan diminta mengganti password. Setelah itu, lakukan registrasi wajah sebelum bisa melakukan absensi.
+      </p>
+
+      <a href="${apkUrl}" style="display:inline-block;background:#E31E24;color:white;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px">Download Aplikasi (APK)</a>
+
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0">
+      <p style="color:#94a3b8;font-size:11px;margin:0">Email ini dikirim otomatis. Jika ada masalah, hubungi admin HR JNE Martapura.</p>
+    </div>
+  </div>`;
+
+  try {
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromAddr}>`,
+      to: opts.to,
+      subject: 'Akun JNE Martapura Anda Sudah Aktif',
+      html,
+    });
+    console.log(`[smtp] onboarding email terkirim ke ${opts.to}`);
+    return true;
+  } catch (err) {
+    console.error('[smtp] gagal kirim onboarding email:', err);
+    return false;
+  }
+}
 
 // Helper: safely parse HH:MM time string into total minutes (returns null on invalid).
 function parseTimeToMinutes(value: unknown): number | null {
@@ -115,7 +198,10 @@ export const onEmployeeCreated = functionsRegion.firestore
     }
 
     try {
-      const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
+      // Password sementara: 12 byte random base64-url (16 char) — entropy
+      // ~96 bit. Math.random sebelumnya hanya ~40 bit dan tidak crypto-safe.
+      const tempPassword = crypto.randomBytes(12).toString('base64url');
+
       const userRecord = await admin.auth().createUser({
         uid: context.params.userId,
         email: data.email,
@@ -126,15 +212,25 @@ export const onEmployeeCreated = functionsRegion.firestore
       // Update Firestore with uid
       await snap.ref.update({ uid: userRecord.uid });
 
-      // Send welcome email via your email service (e.g., SendGrid, Nodemailer)
-      // await sendWelcomeEmail(data.email, data.name, tempPassword);
+      // Kirim email onboarding ke email pribadi (kalau ada) atau ke email
+      // login. Email pribadi dipakai supaya karyawan tetap bisa baca
+      // kredensial walaupun belum punya akses email JNE-nya.
+      const emailTo = data.personalEmail || data.email;
+      const emailOk = await sendOnboardingEmail({
+        to: emailTo,
+        employeeName: data.name,
+        loginEmail: data.email,
+        tempPassword,
+      });
 
-      // Add admin notification
+      // Add admin notification — pesan menyesuaikan apakah email berhasil
       try {
         await db.collection('adminNotifications').add({
           type: 'new_employee',
           title: 'Karyawan Baru Ditambahkan',
-          message: `${data.name} (${data.email}) telah ditambahkan. Email kredensial dikirim.`,
+          message: emailOk
+            ? `${data.name} (${data.email}) telah ditambahkan. Email kredensial sudah dikirim ke ${emailTo}.`
+            : `${data.name} (${data.email}) telah ditambahkan. Email gagal terkirim — share kredensial manual.`,
           employeeName: data.name,
           employeeId: data.employeeId || null,
           isRead: false,
@@ -144,7 +240,7 @@ export const onEmployeeCreated = functionsRegion.firestore
         console.error('Failed to write adminNotification:', notifError);
       }
 
-      console.log(`Employee created: ${data.name} (${data.email})`);
+      console.log(`Employee created: ${data.name} (${data.email}) emailSent=${emailOk}`);
     } catch (error) {
       console.error('Error creating employee auth account:', error);
     }
@@ -376,9 +472,12 @@ export const scheduledOvertimeCalc = functionsRegion.pubsub
     const today = new Date().toISOString().split('T')[0];
 
     try {
+      // Sertakan status 'late' — karyawan yang terlambat tetap bisa
+      // dapat overtime kalau pulangnya melewati shift end. Sebelumnya
+      // hanya 'present' yang dihitung dan ini sumber complaint.
       const attendanceSnap = await db.collection('attendance')
         .where('date', '==', today)
-        .where('status', '==', 'present')
+        .where('status', 'in', ['present', 'late'])
         .get();
 
       let updated = 0;
@@ -418,5 +517,62 @@ export const scheduledOvertimeCalc = functionsRegion.pubsub
       console.log(`Overtime calc done for ${today}: updated=${updated} skipped=${skipped} total=${attendanceSnap.size}`);
     } catch (error) {
       console.error('scheduledOvertimeCalc failed:', error);
+    }
+  });
+
+
+// ============================================================
+// 6. onOvertimeStatusUpdate — FCM ke karyawan saat pengajuan lembur
+//    di-approve / di-reject oleh admin (mirror dari onLeaveStatusUpdate)
+// ============================================================
+export const onOvertimeStatusUpdate = functionsRegion.firestore
+  .document('overtime/{overtimeId}')
+  .onUpdate(async (change: functions.Change<functions.firestore.QueryDocumentSnapshot>) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    if (!before || !after) return;
+    if (!after.userId) {
+      console.error('onOvertimeStatusUpdate: missing userId', { id: change.after.id });
+      return;
+    }
+    // Hanya trigger saat status berubah dari pending → approved/rejected
+    if (before.status === after.status || before.status !== 'pending') return;
+
+    try {
+      const isApproved = after.status === 'approved';
+      const title = isApproved ? 'Lembur Disetujui' : 'Lembur Ditolak';
+      const hours = after.overtimeHours ?? Math.ceil((after.overtimeMinutes || 0) / 60);
+      const body = isApproved
+        ? `Pengajuan lembur Anda (${hours} jam) telah disetujui.`
+        : `Pengajuan lembur Anda ditolak. Alasan: ${after.rejectionReason || after.adminReason || 'Tidak ada alasan'}`;
+
+      await sendPushToUser(after.userId, {
+        title,
+        body,
+        data: {
+          type: 'overtime_status',
+          overtimeId: change.after.id,
+          status: String(after.status || ''),
+          screen: 'overtime_history',
+        },
+      });
+
+      try {
+        await db.collection('userNotifications').add({
+          userId: after.userId,
+          type: 'overtime_request',
+          title,
+          message: body,
+          isRead: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          relatedId: change.after.id,
+        });
+      } catch (mirrorError) {
+        console.error('Failed to mirror overtime notification:', mirrorError);
+      }
+
+      console.log(`Overtime decision delivered to ${after.employeeName || after.userId}: ${after.status}`);
+    } catch (error) {
+      console.error('Error sending overtime FCM:', error);
     }
   });

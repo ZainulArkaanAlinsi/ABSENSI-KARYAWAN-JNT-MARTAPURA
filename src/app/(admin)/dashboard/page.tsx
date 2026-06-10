@@ -4,14 +4,16 @@ import React, { useState, useEffect } from 'react';
 import {
   UserX, Calendar, CheckCircle2,
   ArrowUpRight, Clock, TrendingUp,
+  Wifi, ScanFace, Timer, Target,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { id as idLocale, enUS } from 'date-fns/locale';
 import { motion, animate, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useT } from '@/lib/i18n';
 import Link from 'next/link';
 
 // ─── Count-up ──────────────────────────────────────────────────────────────────
@@ -64,6 +66,7 @@ function HeroCard({ present, total, pct, delay }: {
 }) {
   const n = useCountUp(present, 1.0, delay);
   const p = useCountUp(pct, 1.0, delay + 0.1);
+  const { t } = useT();
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -95,13 +98,13 @@ function HeroCard({ present, total, pct, delay }: {
 
       <div className="relative z-10">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-200 mb-1">
-          Hadir Hari Ini
+          {t('present_today')}
         </p>
         <div className="flex items-end gap-2">
           <span className="text-[52px] font-black leading-none tabular-nums text-white">{n}</span>
           <span className="text-[16px] font-bold text-red-200 mb-2">/{total}</span>
         </div>
-        <p className="text-[11px] font-medium text-red-100 mt-1">orang hadir hari ini</p>
+        <p className="text-[11px] font-medium text-red-100 mt-1">{t('people_present_today')}</p>
       </div>
 
       <div className="relative z-10">
@@ -113,7 +116,7 @@ function HeroCard({ present, total, pct, delay }: {
             transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: delay + 0.3 }}
           />
         </div>
-        <p className="text-[10px] font-bold text-red-100 mt-1.5">{p}% tingkat kehadiran</p>
+        <p className="text-[10px] font-bold text-red-100 mt-1.5">{p}% {t('attendance_rate')}</p>
       </div>
     </motion.div>
   );
@@ -162,9 +165,43 @@ function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
   );
 }
 
+// ─── Mini Metric (compact summary) ─────────────────────────────────────────────
+function MiniMetric({ label, value, suffix, icon: Icon, color, bg, delay }: {
+  label: string; value: number; suffix?: string; icon: React.ElementType;
+  color: string; bg: string; delay: number;
+}) {
+  const n = useCountUp(value, 0.8, delay);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
+      whileHover={{ y: -2 }}
+      className="rounded-2xl p-3.5 flex items-center gap-3"
+      style={{
+        background: 'var(--surface-card)',
+        border: '1.5px solid var(--border-default)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+        <Icon size={17} style={{ color }} strokeWidth={2} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-1">
+          <span className="text-[22px] font-black leading-none tabular-nums" style={{ color: 'var(--text-primary)' }}>{n}</span>
+          {suffix && <span className="text-[11px] font-bold text-slate-400">{suffix}</span>}
+        </div>
+        <p className="text-[10.5px] font-semibold text-slate-500 truncate mt-1">{label}</p>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Pending Banner Card ───────────────────────────────────────────────────────
 function PendingBannerCard({ pending, delay }: { pending: number; delay: number }) {
   const n = useCountUp(pending, 0.8, delay);
+  const { t } = useT();
   return (
     <Link href="/leaves">
       <motion.div
@@ -185,10 +222,10 @@ function PendingBannerCard({ pending, delay }: { pending: number; delay: number 
             <Calendar size={18} style={{ color: '#004080' }} strokeWidth={2} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Antrian Izin</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">{t('leave_queue')}</p>
             <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>
               <span className="text-[20px] font-black tabular-nums" style={{ color: '#004080' }}>{n}</span>
-              {' '}pengajuan menunggu review
+              {' '}{t('requests_awaiting')}
             </p>
           </div>
         </div>
@@ -197,7 +234,7 @@ function PendingBannerCard({ pending, delay }: { pending: number; delay: number 
           className="flex items-center gap-1 text-[11px] font-bold"
           style={{ color: '#004080' }}
         >
-          Lihat Semua <ArrowUpRight size={13} />
+          {t('see_all')} <ArrowUpRight size={13} />
         </motion.div>
       </motion.div>
     </Link>
@@ -206,6 +243,7 @@ function PendingBannerCard({ pending, delay }: { pending: number; delay: number 
 
 // ─── Chart Tooltip ─────────────────────────────────────────────────────────────
 const ChartTooltip = ({ active, payload, label }: any) => {
+  const { t } = useT();
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-xl shadow-lg border border-slate-100 px-3 py-2.5 text-[11px]">
@@ -214,7 +252,7 @@ const ChartTooltip = ({ active, payload, label }: any) => {
         <div key={p.dataKey} className="flex items-center gap-1.5 mb-0.5">
           <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
           <span className="text-slate-500">
-            {p.dataKey === 'present' ? 'Hadir' : p.dataKey === 'late' ? 'Telat' : 'Absen'}:
+            {p.dataKey === 'present' ? t('present') : p.dataKey === 'late' ? t('late') : t('absent')}:
           </span>
           <span className="font-bold text-slate-800 ml-auto pl-2">{p.value}</span>
         </div>
@@ -226,6 +264,7 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 // ─── Request Row ───────────────────────────────────────────────────────────────
 function RequestRow({ req, i }: { req: any; i: number }) {
   const isSOS = req.type === 'SOS';
+  const { t, lang } = useT();
   return (
     <Link href={isSOS ? '/requests' : '/leaves'}>
       <motion.div
@@ -240,7 +279,7 @@ function RequestRow({ req, i }: { req: any; i: number }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-slate-700 truncate">{req.employeeName}</p>
-          <p className="text-[11px] text-slate-400 capitalize">{req.type} · {req.totalDays ?? 1} hari</p>
+          <p className="text-[11px] text-slate-400 capitalize">{req.type} · {req.totalDays ?? 1} {t('days_short')}</p>
         </div>
         {isSOS && (
           <span className="text-[9px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase shrink-0">SOS</span>
@@ -248,7 +287,7 @@ function RequestRow({ req, i }: { req: any; i: number }) {
         <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
           {(() => {
             const dateVal = req.startDate || req.createdAt || req.timestamp;
-            if (!dateVal) return 'Hari ini';
+            if (!dateVal) return t('today');
             
             let d: Date | null = null;
             try {
@@ -263,8 +302,8 @@ function RequestRow({ req, i }: { req: any; i: number }) {
               console.error('Date parsing error:', e);
             }
             
-            if (!d || isNaN(d.getTime())) return 'Hari ini';
-            return format(d, 'dd MMM', { locale: idLocale });
+            if (!d || isNaN(d.getTime())) return t('today');
+            return format(d, 'dd MMM', { locale: lang === 'en' ? enUS : idLocale });
           })()}
         </span>
       </motion.div>
@@ -304,6 +343,7 @@ const Skeleton = () => (
 // ─── Dashboard ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { data: s, weeklyData, loading } = useDashboardStats();
+  const { t, lang } = useT();
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -321,6 +361,11 @@ export default function Dashboard() {
   const pct     = total ? Math.round((present / total) * 100) : 0;
   const requests = (s?.pendingRequests ?? []).slice(0, 6);
 
+  const online      = s?.onlineNowCount      ?? 0;
+  const faceReg     = s?.faceRegisteredCount ?? 0;
+  const overtimeH   = s?.overtimeThisMonth   ?? 0;
+  const punctuality = s?.punctualityRate     ?? 0;
+
   return (
     <div className="flex flex-col gap-4 pb-4">
 
@@ -332,27 +377,27 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Live</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">{t('live')}</span>
           </span>
           <p className="text-[11px] font-medium text-slate-400 tabular-nums">
-            {format(now, 'EEEE, dd MMMM yyyy', { locale: idLocale })}
+            {format(now, 'EEEE, dd MMMM yyyy', { locale: lang === 'en' ? enUS : idLocale })}
             {' · '}
             {format(now, 'HH:mm:ss')}
           </p>
         </div>
         <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
-          Dashboard{' '}
-          <span style={{ color: '#E31E24' }}>Kehadiran</span>
+          {t('dashboard')}{' '}
+          <span style={{ color: '#E31E24' }}>{t('nav_attendance')}</span>
         </h1>
         <p className="text-[12px] font-medium text-slate-400 mt-0.5">
-          Monitor absensi &amp; kehadiran karyawan JNE Martapura secara real-time
+          {t('dash_subtitle')}
         </p>
       </motion.div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* SECTION 1: STATISTIK HARI INI                                        */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <SectionDivider label="Statistik Hari Ini" index={1} />
+      <SectionDivider label={t('dash_sec_today')} index={1} />
 
       {/* Big card + 2 small cards */}
       <div className="grid grid-cols-3 gap-3">
@@ -364,20 +409,20 @@ export default function Dashboard() {
         {/* Small cards stacked */}
         <div className="col-span-3 sm:col-span-2 grid grid-cols-2 gap-3">
           <SmallCard
-            label="Telat Hari Ini" value={late} icon={Clock}
-            color="#D97706" bg="#FEF3C7" sub="orang" delay={0.18} tag="Telat"
+            label={t('late_today')} value={late} icon={Clock}
+            color="#D97706" bg="#FEF3C7" sub={t('people')} delay={0.18} tag={t('late')}
           />
           <SmallCard
-            label="Tidak Hadir" value={absent} icon={UserX}
-            color="#E31E24" bg="#FDECEA" sub="orang" delay={0.24} tag="Absen"
+            label={t('not_present')} value={absent} icon={UserX}
+            color="#E31E24" bg="#FDECEA" sub={t('people')} delay={0.24} tag={t('absent')}
           />
           <SmallCard
-            label="Total Karyawan" value={total} icon={TrendingUp}
-            color="#7C3AED" bg="#EDE9FE" sub="orang" delay={0.30}
+            label={t('total_employees')} value={total} icon={TrendingUp}
+            color="#7C3AED" bg="#EDE9FE" sub={t('people')} delay={0.30}
           />
           <SmallCard
-            label="Hadir Hari Ini" value={present} icon={CheckCircle2}
-            color="#059669" bg="#D1FAE5" sub="orang" delay={0.36}
+            label={t('present_today')} value={present} icon={CheckCircle2}
+            color="#059669" bg="#D1FAE5" sub={t('people')} delay={0.36}
           />
         </div>
       </div>
@@ -386,9 +431,20 @@ export default function Dashboard() {
       <PendingBannerCard pending={pending} delay={0.42} />
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 2: TREN & LAPORAN                                            */}
+      {/* SECTION 2: RINGKASAN                                                 */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <SectionDivider label="Tren & Laporan" index={2} />
+      <SectionDivider label={t('dash_sec_summary')} index={2} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MiniMetric label={t('online_now')}     value={online}      icon={Wifi}     color="#059669" bg="#D1FAE5" delay={0.44} />
+        <MiniMetric label={t('face_registered')} value={faceReg}    suffix={`/ ${total}`} icon={ScanFace} color="#7C3AED" bg="#EDE9FE" delay={0.48} />
+        <MiniMetric label={t('overtime_month')} value={overtimeH}   suffix={t('hours')} icon={Timer}    color="#D97706" bg="#FEF3C7" delay={0.52} />
+        <MiniMetric label={t('punctuality')}    value={punctuality} suffix="%"      icon={Target}   color="#004080" bg="#E6EEF8" delay={0.56} />
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 3: TREN & LAPORAN                                            */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <SectionDivider label={t('dash_sec_trends')} index={3} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
@@ -406,15 +462,15 @@ export default function Dashboard() {
           <div className="px-5 pt-5 pb-3 flex items-start justify-between" style={{ borderBottom: '1px solid var(--border-default)' }}>
             <div>
               <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
-                Tren Kehadiran Mingguan
+                {t('weekly_trend')}
               </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">7 hari terakhir · realtime</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">{t('last_7_days')}</p>
             </div>
             <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
               {[
-                { color: '#059669', label: 'Hadir' },
-                { color: '#D97706', label: 'Telat' },
-                { color: '#E31E24', label: 'Absen' },
+                { color: '#059669', label: t('present') },
+                { color: '#D97706', label: t('late') },
+                { color: '#E31E24', label: t('absent') },
               ].map(l => (
                 <span key={l.label} className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-sm inline-block" style={{ background: l.color }} />
@@ -476,9 +532,9 @@ export default function Dashboard() {
           >
             <div>
               <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
-                Antrian Approval
+                {t('approval_queue')}
               </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">Pengajuan izin menunggu review</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">{t('leave_awaiting_review')}</p>
             </div>
             <Link href="/leaves">
               <motion.span
@@ -486,7 +542,7 @@ export default function Dashboard() {
                 className="text-[11px] font-bold flex items-center gap-0.5 cursor-pointer"
                 style={{ color: '#004080' }}
               >
-                Semua <ArrowUpRight size={12} />
+                {t('all')} <ArrowUpRight size={12} />
               </motion.span>
             </Link>
           </div>
@@ -494,7 +550,7 @@ export default function Dashboard() {
             <AnimatePresence>
               {requests.length > 0
                 ? requests.map((r: any, i: number) => <RequestRow key={r.id} req={r} i={i} />)
-                : <Empty icon={CheckCircle2} text="Antrian kosong" />}
+                : <Empty icon={CheckCircle2} text={t('queue_empty')} />}
             </AnimatePresence>
           </div>
         </motion.div>

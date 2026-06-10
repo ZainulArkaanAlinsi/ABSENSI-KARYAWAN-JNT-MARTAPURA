@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -77,16 +78,16 @@ export default function LeavesPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'leaves'), orderBy('createdAt', 'desc'));
-    const unsubLeaves = onSnapshot(q, snap => {
+    const unsubLeaves = listen(q, snap => {
       setAllLeaves(snap.docs.map(d => ({ id: d.id, ...d.data() } as LeaveRequest)));
       setLoading(false);
     });
 
-    const unsubEmployees = onSnapshot(collection(db, 'users'), snap => {
+    const unsubEmployees = listen(collection(db, 'users'), snap => {
       setEmployees(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
     });
 
-    const unsubBalances = onSnapshot(collection(db, 'leave_balances'), snap => {
+    const unsubBalances = listen(collection(db, 'leave_balances'), snap => {
       setBalances(snap.docs.map(d => ({ userId: d.id, ...d.data() })));
     });
 

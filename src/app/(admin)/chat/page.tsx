@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
-import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
+import { db, auth } from '@/lib/firebase';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
 
@@ -30,8 +30,6 @@ import { toast } from 'sonner';
 const ACCENT     = '#16A34A';
 const ACCENT_LT  = '#F0FDF4';
 
-const getChatId = (a: string, b: string) => [a, b].sort().join('_');
-
 // ── AVATAR ──
 
 const Avatar = ({
@@ -48,8 +46,8 @@ const Avatar = ({
 // ── CONTACT ITEM ──
 
 const ContactItem = ({
-  emp, isActive, lastTime, onClick,
-}: { emp: any; isActive: boolean; lastTime?: string; onClick: () => void }) => (
+  emp, isActive, lastTime, online, onClick,
+}: { emp: any; isActive: boolean; lastTime?: string; online?: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition-all text-left ${
@@ -60,7 +58,7 @@ const ContactItem = ({
   >
     <div className="relative shrink-0">
       <Avatar name={emp.name} size={42} active={isActive} />
-      {emp.isOnline && (
+      {online && (
         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
       )}
     </div>
@@ -164,8 +162,6 @@ const IconBtn = ({ onClick, children, className = '' }: { onClick?: () => void; 
 // ── MAIN PAGE ──
 
 export default function ChatPage() {
-  const { user }                                 = useAuth();
-  const adminId                                  = user?.uid ?? '';
   const { employees, loading: loadingEmployees } = useEmployeeManagement();
   const [selectedCourier, setSelectedCourier]   = useState<any>(null);
   const [inputText, setInputText]               = useState('');
@@ -176,7 +172,7 @@ export default function ChatPage() {
 
   // ── Listen to chats collection for last message timestamps ──
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'chats'), snap => {
+    const unsub = listen(collection(db, 'chats'), snap => {
       const meta: Record<string, string> = {};
       snap.docs.forEach(d => {
         const ts = d.data().lastTimestamp;
@@ -191,9 +187,58 @@ export default function ChatPage() {
     return () => unsub();
   }, []);
 
-  const chatId = selectedCourier && adminId
-    ? getChatId(adminId, selectedCourier.uid)
-    : null;
+  // ── Presence realtime (akurat ala WA) ──
+  // Status online dihitung langsung di dalam listener (online && lastSeen segar).
+  // Karena admin heartbeat tiap 30 dtk, listener nyala ≤30 dtk → staleness
+  // ter-refresh otomatis tanpa timer (yang melanggar aturan purity React).
+  const PRESENCE_STALE_MS = 75000; // 2.5x heartbeat 30 dtk
+  const [onlineSet, setOnlineSet] = useState<Set<string>>(new Set());
+  const [lastSeenMap, setLastSeenMap] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const unsub = listen(collection(db, 'user_presence'), snap => {
+      const now = Date.now();
+      const online = new Set<string>();
+      const seen: Record<string, number> = {};
+      snap.docs.forEach(d => {
+        const data = d.data();
+        const ls = typeof data.lastSeen?.toMillis === 'function' ? data.lastSeen.toMillis() : 0;
+        seen[d.id] = ls;
+        if (data.isOnline === true && now - ls < PRESENCE_STALE_MS) online.add(d.id);
+      });
+      setOnlineSet(online);
+      setLastSeenMap(seen);
+    });
+    return () => unsub();
+  }, []);
+
+  // Admin menulis presence-nya sendiri → user (APK) bisa lihat admin online/offline.
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const beat = () => {
+      void setDoc(doc(db, 'user_presence', uid), {
+        userId: uid, isOnline: true, lastSeen: serverTimestamp(), updatedAt: serverTimestamp(),
+      }, { merge: true });
+    };
+    beat();
+    const iv = setInterval(beat, 30000);
+    const goOffline = () => {
+      void setDoc(doc(db, 'user_presence', uid), { isOnline: false, lastSeen: serverTimestamp() }, { merge: true });
+    };
+    window.addEventListener('beforeunload', goOffline);
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener('beforeunload', goOffline);
+      goOffline();
+    };
+  }, []);
+
+  const isUserOnline = (uid?: string) => !!uid && onlineSet.has(uid);
+  const lastSeenOf = (uid?: string) => (uid ? lastSeenMap[uid] ?? 0 : 0);
+
+  // Room model: room dikunci ke userId. Admin membuka room user yang dipilih.
+  const chatId = selectedCourier ? selectedCourier.uid : null;
 
   const {
     messages, loading, sending, sendMessage,
@@ -270,7 +315,8 @@ export default function ChatPage() {
                 key={emp.id}
                 emp={emp}
                 isActive={selectedCourier?.id === emp.id}
-                lastTime={adminId ? chatMeta[getChatId(adminId, emp.uid)] : undefined}
+                lastTime={chatMeta[emp.uid]}
+                online={isUserOnline(emp.uid)}
                 onClick={() => setSelectedCourier(emp)}
               />
             ))
@@ -289,17 +335,25 @@ export default function ChatPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Avatar name={selectedCourier.name} size={42} active />
-                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                {isUserOnline(selectedCourier.uid) && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                )}
               </div>
               <div>
                 <h3 className="text-desc font-semibold text-slate-900 leading-tight">
                   {selectedCourier.name}
                 </h3>
-                <p className="text-[12px] text-slate-400 leading-tight mt-0.5">
+                <p className="text-[12px] leading-tight mt-0.5">
                   {otherUserTyping ? (
                     <span className="text-green-500">Sedang mengetik...</span>
+                  ) : isUserOnline(selectedCourier.uid) ? (
+                    <span className="text-green-500">Online</span>
                   ) : (
-                    'Online'
+                    <span className="text-slate-400">
+                      {lastSeenOf(selectedCourier.uid)
+                        ? `Terakhir dilihat ${format(new Date(lastSeenOf(selectedCourier.uid)), 'HH:mm')}`
+                        : 'Offline'}
+                    </span>
                   )}
                 </p>
               </div>
@@ -335,7 +389,8 @@ export default function ChatPage() {
           ) : (
             <AnimatePresence>
               {messages.map((msg, idx) => {
-                const isMe = msg.senderId === adminId;
+                // Semua pesan dari admin (admin manapun) tampil di sisi kanan.
+                const isMe = msg.senderRole === 'admin';
                 const showAvatar = idx === 0 || messages[idx - 1]?.senderId !== msg.senderId;
                 return (
                   <Bubble

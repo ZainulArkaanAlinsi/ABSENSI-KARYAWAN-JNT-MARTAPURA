@@ -1,18 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot,
+import {
+  collection,
+  query,
+  where,
   getDocs,
   getCountFromServer,
-  orderBy,
-  limit
+  orderBy
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firestore';
+import { listen } from '@/lib/firestoreListener';
 import { fortressRetry } from '@/lib/fortress';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -74,6 +73,7 @@ export function useDashboardStats() {
   const [data, setData] = useState<AnalyticsStats | null>(null);
   const [sosAlerts, setSosAlerts] = useState<any[]>([]);
   const sosAlertsRef = useRef<any[]>([]);
+  const pendingLeavesRef = useRef<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,23 +91,58 @@ export function useDashboardStats() {
           const relevantRoles = ['employee', 'kurir', 'driver'];
           const empQuery = query(collection(db, COLLECTIONS.USERS), where('role', 'in', relevantRoles));
           const faceQuery = query(collection(db, COLLECTIONS.USERS), where('role', 'in', relevantRoles), where('faceRegistered', '==', true));
-          const pendingLeavesQuery = query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'));
 
-          const [empSnap, faceSnap, pendingLeavesSnap, pendingDataSnap] = await Promise.all([
+          const [empSnap, faceSnap] = await Promise.all([
             getDocs(empQuery),
             getCountFromServer(faceQuery),
-            getCountFromServer(pendingLeavesQuery),
-            getDocs(query(collection(db, COLLECTIONS.LEAVES), where('status', '==', 'pending'), orderBy('createdAt', 'desc'), limit(5)))
           ]);
 
           const employees = empSnap.docs.map(d => ({ id: d.id, ...d.data() } as Employee));
           const totalEmployees = employees.length;
           const faceRegisteredCount = faceSnap.data().count;
-          const pendingLeaves = pendingLeavesSnap.data().count;
+
+          // ── Pending approval slice (SOS + pending leaves), kept live ──
+          const buildPendingRequests = () => [
+            ...sosAlertsRef.current,
+            ...pendingLeavesRef.current,
+          ].sort((a, b) => {
+            if (a.type === 'SOS' && b.type !== 'SOS') return -1;
+            if (a.type !== 'SOS' && b.type === 'SOS') return 1;
+            return 0;
+          });
+
+          const recomputePending = () => {
+            setData(prev => prev ? {
+              ...prev,
+              pendingLeaves: pendingLeavesRef.current.length,
+              pendingRequests: buildPendingRequests(),
+            } : prev);
+          };
+
+          // Live listener for pending leaves so the approval queue and the
+          // "Antrian Izin" banner stay accurate in real time (was a one-time fetch).
+          const pendingLeavesQuery = query(
+            collection(db, COLLECTIONS.LEAVES),
+            where('status', '==', 'pending'),
+            orderBy('createdAt', 'desc'),
+          );
+          const unsubPendingLeaves = listen(pendingLeavesQuery, (pendingSnap) => {
+            pendingLeavesRef.current = pendingSnap.docs.map(d => {
+              const docData = d.data();
+              return {
+                id: d.id,
+                ...docData,
+                type: docData.type || 'Leave',
+                startDate: toDate(docData.startDate) || toDate(docData.createdAt) || new Date(),
+              };
+            });
+            recomputePending();
+          });
+          unsubs.push(unsubPendingLeaves);
 
           // NEW: Real-time online status tracking via heartbeats
           const heartbeatQuery = query(collection(db, 'user_heartbeats'));
-          const unsubHeartbeat = onSnapshot(heartbeatQuery, (heartbeatSnap) => {
+          const unsubHeartbeat = listen(heartbeatQuery, (heartbeatSnap) => {
             const now = new Date();
             const onlineThreshold = 40 * 1000; // 40 seconds in ms
             const onlineCount = heartbeatSnap.docs.filter(doc => {
@@ -123,10 +158,11 @@ export function useDashboardStats() {
 
           const sosQuery = query(collection(db, 'sos_alerts'), where('status', '==', 'active'));
           
-          const unsubSos = onSnapshot(sosQuery, (sosSnap) => {
+          const unsubSos = listen(sosQuery, (sosSnap) => {
             const activeSos = sosSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'SOS' }));
             sosAlertsRef.current = activeSos;
             setSosAlerts(activeSos);
+            recomputePending();
           });
           unsubs.push(unsubSos);
 
@@ -136,7 +172,7 @@ export function useDashboardStats() {
             where('date', '<=', monthEnd)
           );
 
-          const unsubMain = onSnapshot(attQuery, (snap) => {
+          const unsubMain = listen(attQuery, (snap) => {
             const allRecords = snap.docs.map(doc => doc.data() as AttendanceRecord);
             const todayRecords = allRecords.filter(r => r.date === todayStr);
             
@@ -235,28 +271,6 @@ export function useDashboardStats() {
                 };
               });
 
-            const pendingRequests = [
-              ...sosAlertsRef.current,
-              ...pendingDataSnap.docs.map(d => {
-                const docData = d.data();
-                return { 
-                  id: d.id, 
-                  ...docData, 
-                  type: docData.type || 'Leave',
-                  startDate: toDate(docData.startDate) || toDate(docData.createdAt) || new Date()
-                };
-              })
-            ].sort((a, b) => {
-              if (a.type === 'SOS' && b.type !== 'SOS') return -1;
-              if (a.type !== 'SOS' && b.type === 'SOS') return 1;
-              return 0;
-            });
-
-            // Initial online count calculation from heartbeats if snap is available
-            let onlineNowCount = 0;
-            // The actual count is handled by the unsubHeartbeat listener above
-            // but we can set an initial estimate or just wait for the first pulse
-
             setData(prev => ({
               totalEmployees,
               faceRegisteredCount,
@@ -266,7 +280,7 @@ export function useDashboardStats() {
               absentToday,
               onlineNowCount: prev?.onlineNowCount ?? 0,
               overtimeThisMonth,
-              pendingLeaves,
+              pendingLeaves: pendingLeavesRef.current.length,
               engagementIndex,
               punctualityRate,
               monthlyAttendanceRecordCount: allRecords.length,
@@ -279,7 +293,7 @@ export function useDashboardStats() {
               departmentDistribution,
               weeklyTrends,
               recentActivities,
-              pendingRequests,
+              pendingRequests: buildPendingRequests(),
             }));
             setLoading(false);
           });

@@ -11,13 +11,13 @@ import {
   where,
   orderBy,
   limit,
-  onSnapshot,
   serverTimestamp,
   Timestamp,
   QueryConstraint,
   DocumentData, 
 } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { listen } from './firestoreListener';
 export { db, auth };
 import { fortressRetry } from './fortress';
 import { initializeApp, getApps, deleteApp } from 'firebase/app';
@@ -33,6 +33,8 @@ import type {
   CalendarEvent,
   DepartmentItem,
   AuditLogEntry,
+  OvertimeRequest,
+  OvertimeStatus,
 } from '@/types';
 
 
@@ -44,6 +46,7 @@ export const COLLECTIONS = {
   JAM_KERJA: 'shifts',
   ATTENDANCE: 'attendance',
   LEAVES: 'leaves',
+  OVERTIME: 'overtime',
   SETTINGS: 'settings',
   NOTIFICATIONS: 'adminNotifications',
   USER_NOTIFICATIONS: 'userNotifications',
@@ -381,10 +384,10 @@ export function subscribeToEmployees(callback: (employees: Employee[]) => void) 
     collection(db, COLLECTIONS.USERS),
     where('role', 'in', ['employee', 'kurir', 'driver'])
   );
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
     callback(data.sort((a, b) => a.name.localeCompare(b.name)));
-  });
+  }, 'subscribeToEmployees');
 }
 
 // ============================================================
@@ -416,7 +419,7 @@ export async function deleteJamKerja(id: string): Promise<void> {
 }
 
 export function subscribeToJamKerjas(callback: (jamKerjas: JamKerja[]) => void) {
-  return onSnapshot(collection(db, COLLECTIONS.JAM_KERJA), (snap) => {
+  return listen(collection(db, COLLECTIONS.JAM_KERJA), (snap) => {
     callback(snap.docs.map((d) => mapJamKerja(d.id, d.data())));
   });
 }
@@ -462,7 +465,7 @@ export function subscribeToLeaves(
   if (status !== 'all') constraints.push(where('status', '==', status));
   
   const q = query(collection(db, COLLECTIONS.LEAVES), ...constraints);
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     const data = snap.docs.map((d) => mapLeave(d.id, d.data()));
     // Client-side sort to avoid index requirement for simple admin view
     const sorted = data.sort((a, b) => {
@@ -471,6 +474,72 @@ export function subscribeToLeaves(
     callback(sorted.slice(0, 50));
   });
 }
+
+
+// ============================================================
+// Overtime
+// ============================================================
+function mapOvertime(id: string, data: DocumentData): OvertimeRequest {
+  const minutes = (data.overtimeMinutes as number | undefined) ?? 0;
+  return {
+    id,
+    userId: data.userId || '',
+    employeeName: data.employeeName || '',
+    employeeId: data.employeeId || '',
+    department: data.department || '',
+    date: data.date || '',
+    overtimeMinutes: minutes,
+    overtimeHours: (data.overtimeHours as number | undefined) ?? Math.ceil(minutes / 60),
+    status: (data.status as OvertimeStatus) || 'pending',
+    reason: data.reason || '',
+    adminReason: data.adminReason ?? data.rejectionReason ?? undefined,
+    rejectionReason: data.rejectionReason ?? undefined,
+    reviewedBy: data.reviewedBy ?? undefined,
+    reviewedAt: toDate(data.reviewedAt),
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
+  };
+}
+
+export async function updateOvertimeStatus(
+  id: string,
+  status: OvertimeStatus,
+  reviewedBy: string,
+  rejectionReason?: string,
+): Promise<void> {
+  await fortressRetry(async () => {
+    await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), {
+      status,
+      reviewedBy,
+      rejectionReason: rejectionReason || null,
+      adminReason: rejectionReason || null,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }, { taskName: `Update Overtime Status ${id}` });
+}
+
+export async function deleteOvertime(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.OVERTIME, id));
+}
+
+export function subscribeToOvertimes(
+  status: OvertimeStatus | 'all',
+  callback: (overtimes: OvertimeRequest[]) => void,
+) {
+  const constraints: QueryConstraint[] = [];
+  if (status !== 'all') constraints.push(where('status', '==', status));
+
+  const q = query(collection(db, COLLECTIONS.OVERTIME), ...constraints);
+  return listen(q, (snap) => {
+    const data = snap.docs.map((d) => mapOvertime(d.id, d.data()));
+    const sorted = data.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    callback(sorted.slice(0, 100));
+  });
+}
+
 
 // ============================================================
 // Attendance
@@ -520,7 +589,7 @@ export function subscribeToTodayAttendance(
     where('date', '==', date),
     limit(limitCount)
   );
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
     // Sort newest-first client-side (avoids orderBy composite index)
     data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
@@ -538,7 +607,7 @@ export function subscribeToNotifications(callback: (notifs: AdminNotification[])
     orderBy('createdAt', 'desc'),
     limit(30)
   );
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     callback(snap.docs.map((d) => mapNotification(d.id, d.data())));
   });
 }
@@ -603,7 +672,7 @@ export async function deleteEvent(id: string): Promise<void> {
 
 export function subscribeToEvents(callback: (events: CalendarEvent[]) => void) {
   const q = query(collection(db, COLLECTIONS.EVENTS), orderBy('startDate', 'asc'));
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     callback(snap.docs.map((d) => mapEvent(d.id, d.data())));
   });
 }
@@ -686,7 +755,7 @@ export async function deleteDepartment(id: string): Promise<void> {
 }
 
 export function subscribeToDepartments(callback: (departments: DepartmentItem[]) => void) {
-  return onSnapshot(collection(db, COLLECTIONS.DEPARTMENTS), (snap) => {
+  return listen(collection(db, COLLECTIONS.DEPARTMENTS), (snap) => {
     const data = snap.docs.map((d) => mapDepartment(d.id, d.data()));
     callback(data.sort((a, b) => a.name.localeCompare(b.name)));
   });
@@ -729,7 +798,7 @@ export function updatePresence(userId: string, isOnline: boolean, deviceId?: str
 
 export function subscribeToPresence(userId: string, callback: (isOnline: boolean, lastSeen?: Date) => void) {
   const ref = doc(db, COLLECTIONS.PRESENCE, userId);
-  return onSnapshot(ref, (snap) => {
+  return listen(ref, (snap) => {
     const data = snap.data();
     if (data) {
       const lastSeen = data.lastSeen?.toDate?.() || new Date(data.lastSeen as any);
@@ -742,7 +811,7 @@ export function subscribeToPresence(userId: string, callback: (isOnline: boolean
 
 export function subscribeToAllPresence(callback: Record<string, boolean>) {
   const q = query(collection(db, COLLECTIONS.PRESENCE));
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     snap.docs.forEach(doc => {
       const data = doc.data();
       if (data?.isOnline === true) {
@@ -772,7 +841,7 @@ export async function deleteFCMToken(token: string): Promise<void> {
 
 export function subscribeToUserFCMTokens(userId: string, callback: (tokens: string[]) => void) {
   const q = query(collection(db, COLLECTIONS.FCM_TOKENS), where('userId', '==', userId));
-  return onSnapshot(q, (snap) => {
+  return listen(q, (snap) => {
     const tokens = snap.docs.map(d => d.id); // doc ID is the token
     callback(tokens);
   });
