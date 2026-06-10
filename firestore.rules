@@ -33,8 +33,11 @@ service cloud.firestore {
     }
 
     // ── Attendance ────────────────────────────────────────────
+    // resource == null → dokumen belum ada (transaction.get saat check-in
+    // pertama hari itu). Tanpa ini, transaction.get ditolak → "gagal
+    // menyimpan absensi".
     match /attendance/{attendanceId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isAuth() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
     }
@@ -141,6 +144,34 @@ service cloud.firestore {
     match /user_presence/{userId} {
       allow read: if isAuth();
       allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ── Disputes / sanggahan (two-way thread user ↔ admin) ────
+    match /disputes/{disputeId} {
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      // Pesan thread: subkoleksi disputes/{id}/messages
+      match /messages/{msgId} {
+        allow read, create: if isAuth() && (
+          isAdmin() ||
+          get(/databases/$(database)/documents/disputes/$(disputeId)).data.userId == request.auth.uid
+        );
+      }
+    }
+
+    // ── Leave balances (kuota cuti di-set admin, user baca punya sendiri) ──
+    match /leave_balances/{userId} {
+      allow read:  if isAuth() && (isOwner(userId) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // ── Login issues (dilapor user yg BELUM bisa login → unauthenticated) ──
+    // Create dibuka (user blm punya akun/sesi); baca & kelola admin only.
+    match /login_issues/{issueId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     // ── Read-only shared data ─────────────────────────────────

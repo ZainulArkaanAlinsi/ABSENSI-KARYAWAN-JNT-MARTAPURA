@@ -90,7 +90,7 @@ export default function EmployeeDetailPage() {
       collection(db, 'attendance'),
       where('userId', '==', uid),
       orderBy('date', 'desc'),
-      limit(30),
+      limit(180),
     );
     const unsubAtt = listen(attQuery, snap => {
       setAttendance(snap.docs.map(d => ({ id: d.id, ...d.data() } as AttendanceRecord)));
@@ -408,8 +408,7 @@ function AttendancePhotoGallery({
       const ci = pickPhotoUrl(r.checkIn, (r as any).checkInPhotoUrl);
       const co = pickPhotoUrl(r.checkOut, (r as any).checkOutPhotoUrl);
       return ci || co;
-    })
-    .slice(0, 12);
+    });
 
   const dateLabelFull = (d: any) => {
     try {
