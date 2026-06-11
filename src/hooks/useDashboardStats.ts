@@ -78,7 +78,7 @@ export function useDashboardStats() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let unsubs: (() => void)[] = [];
+    const unsubs: (() => void)[] = [];
     setLoading(true);
 
     async function initListeners() {

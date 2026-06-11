@@ -12,7 +12,7 @@ export type AttendanceStatus =
   | 'overtime'
   | 'holiday';
 
-export type LeaveType = 'sick' | 'annual' | 'personal' | 'emergency' | 'other';
+export type LeaveType = 'sick' | 'annual' | 'personal' | 'permission' | 'urgent';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
 export type OvertimeStatus = 'pending' | 'approved' | 'rejected';
 
