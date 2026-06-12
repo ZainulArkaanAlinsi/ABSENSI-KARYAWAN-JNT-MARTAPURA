@@ -167,6 +167,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Courier packages (jumlah paket harian per kurir, di-input admin) ──
+    match /courier_packages/{docId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
     // ── Login issues (dilapor user yg BELUM bisa login → unauthenticated) ──
     // Create dibuka (user blm punya akun/sesi); baca & kelola admin only.
     match /login_issues/{issueId} {
