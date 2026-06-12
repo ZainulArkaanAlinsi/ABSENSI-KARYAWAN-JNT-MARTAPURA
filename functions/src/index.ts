@@ -36,14 +36,18 @@ const messaging = admin.messaging();
 let _smtpTransporter: nodemailer.Transporter | null = null;
 function getSmtpTransporter(): nodemailer.Transporter | null {
   if (_smtpTransporter) return _smtpTransporter;
-  const cfg = functions.config().smtp;
-  if (!cfg?.user || !cfg?.password) {
-    console.warn('[smtp] kredensial belum diset — email onboarding di-skip');
+  // Campuran: user & from_name dari functions.config() (non-rahasia),
+  // password dari Firebase Secret Manager (process.env.SMTP_PASSWORD) yang
+  // di-bind lewat .runWith({ secrets: ['SMTP_PASSWORD'] }) di function.
+  const user = functions.config().smtp?.user;
+  const pass = process.env.SMTP_PASSWORD;
+  if (!user || !pass) {
+    console.warn('[smtp] kredensial belum lengkap (perlu config smtp.user + secret SMTP_PASSWORD) — email onboarding di-skip');
     return null;
   }
   _smtpTransporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: { user: cfg.user, pass: cfg.password },
+    auth: { user, pass },
   });
   return _smtpTransporter;
 }
@@ -193,7 +197,9 @@ async function sendPushToUser(
 // ============================================================
 // 1. onEmployeeCreated — Create Auth account + notify admin when employee is added
 // ============================================================
-export const onEmployeeCreated = functionsRegion.firestore
+export const onEmployeeCreated = functionsRegion
+  .runWith({ secrets: ['SMTP_PASSWORD'] })
+  .firestore
 
   .document('users/{userId}')
   .onCreate(async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
