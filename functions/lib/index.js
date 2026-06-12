@@ -35,13 +35,13 @@ let _smtpTransporter = null;
 function getSmtpTransporter() {
     if (_smtpTransporter)
         return _smtpTransporter;
-    // Campuran: user & from_name dari functions.config() (non-rahasia),
-    // password dari Firebase Secret Manager (process.env.SMTP_PASSWORD) yang
-    // di-bind lewat .runWith({ secrets: ['SMTP_PASSWORD'] }) di function.
+    // SMTP dari functions.config() (smtp.user + smtp.password). Kalau belum
+    // diset, email onboarding di-skip — admin tetap bisa membagikan kredensial
+    // manual dari halaman detail karyawan (lihat tempPasswordPlain).
     const user = functions.config().smtp?.user;
-    const pass = process.env.SMTP_PASSWORD;
+    const pass = functions.config().smtp?.password;
     if (!user || !pass) {
-        console.warn('[smtp] kredensial belum lengkap (perlu config smtp.user + secret SMTP_PASSWORD) — email onboarding di-skip');
+        console.warn('[smtp] kredensial belum diset — email onboarding di-skip');
         return null;
     }
     _smtpTransporter = nodemailer.createTransport({
@@ -178,9 +178,7 @@ async function sendPushToUser(userId, payload) {
 // ============================================================
 // 1. onEmployeeCreated — Create Auth account + notify admin when employee is added
 // ============================================================
-exports.onEmployeeCreated = functionsRegion
-    .runWith({ secrets: ['SMTP_PASSWORD'] })
-    .firestore
+exports.onEmployeeCreated = functionsRegion.firestore
     .document('users/{userId}')
     .onCreate(async (snap, context) => {
     const data = snap.data();
@@ -205,8 +203,14 @@ exports.onEmployeeCreated = functionsRegion
             password: tempPassword,
             displayName: data.name,
         });
-        // Update Firestore with uid
-        await snap.ref.update({ uid: userRecord.uid });
+        // Update Firestore with uid + simpan temp password supaya admin tetap
+        // bisa membagikan kredensial manual kalau email gagal / SMTP belum diset.
+        // Hanya admin & pemilik yang bisa baca (Firestore rules), dan field ini
+        // dihapus otomatis saat user mengganti password (onUserProfileUpdated).
+        await snap.ref.update({
+            uid: userRecord.uid,
+            tempPasswordPlain: tempPassword,
+        });
         // Kirim email onboarding ke email pribadi (kalau ada) atau ke email
         // login. Email pribadi dipakai supaya karyawan tetap bisa baca
         // kredensial walaupun belum punya akses email JNE-nya.
@@ -217,6 +221,7 @@ exports.onEmployeeCreated = functionsRegion
             loginEmail: data.email,
             tempPassword,
         });
+        await snap.ref.update({ onboardingEmailSent: emailOk });
         // Add admin notification — pesan menyesuaikan apakah email berhasil
         try {
             await db.collection('adminNotifications').add({
@@ -337,6 +342,17 @@ exports.onUserProfileUpdated = functionsRegion.firestore
     const after = change.after.data();
     if (!before || !after)
         return;
+    // Keamanan: hapus temp password begitu user sudah mengganti password.
+    if (after.passwordChanged && after.tempPasswordPlain) {
+        try {
+            await change.after.ref.update({
+                tempPasswordPlain: admin.firestore.FieldValue.delete(),
+            });
+        }
+        catch (e) {
+            console.error('Failed to clear tempPasswordPlain:', e);
+        }
+    }
     // Surface the small set of admin-driven changes the employee actually
     // needs to know about. Skip the high-volume churn fields (isOnline,
     // updatedAt, fcmToken legacy field, faceRegistered — handled elsewhere,

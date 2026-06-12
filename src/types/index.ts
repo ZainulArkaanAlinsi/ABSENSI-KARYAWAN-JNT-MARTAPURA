@@ -96,6 +96,11 @@ export interface Employee {
   allowRemoteAttendance: boolean;
   createdAt: string;
   updatedAt: string;
+  // Onboarding: temp password disimpan agar admin bisa bagi manual bila email
+  // gagal/SMTP belum diset. Dihapus otomatis saat user mengganti password.
+  tempPasswordPlain?: string;
+  onboardingEmailSent?: boolean;
+  passwordChanged?: boolean;
 }
 
 // ============================================================

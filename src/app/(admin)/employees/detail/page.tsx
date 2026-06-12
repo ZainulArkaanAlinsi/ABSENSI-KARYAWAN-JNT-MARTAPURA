@@ -75,6 +75,7 @@ export default function EmployeeDetailPage() {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [preview,    setPreview]    = useState<{ url: string; label: string; date: string } | null>(null);
+  const [copied,     setCopied]     = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -222,6 +223,47 @@ export default function EmployeeDetailPage() {
               <InfoItem icon={Briefcase} label="Jabatan"    value={employee.position}   />
             </div>
           </motion.div>
+
+          {/* Kredensial login sementara — tampil sampai karyawan ganti password.
+              Fallback kalau email onboarding gagal/SMTP belum diset. */}
+          {employee.tempPasswordPlain && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.13 }}
+              className="bg-amber-50 rounded-2xl p-5 border border-amber-200"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck size={15} className="text-amber-600" />
+                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Kredensial Login Sementara</p>
+              </div>
+              <p className="text-[11px] text-amber-700/80 mb-3 leading-relaxed">
+                {employee.onboardingEmailSent === false ? 'Email gagal terkirim. ' : ''}
+                Bagikan ke karyawan untuk login pertama — hilang otomatis setelah dia mengganti password.
+              </p>
+              <div className="flex flex-col gap-2">
+                <div className="bg-white rounded-lg px-3 py-2 border border-amber-200">
+                  <p className="text-[9px] text-slate-400 uppercase tracking-wider">Email</p>
+                  <p className="text-[13px] font-mono text-slate-800 break-all">{employee.email}</p>
+                </div>
+                <div className="bg-white rounded-lg px-3 py-2 border border-amber-200 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[9px] text-slate-400 uppercase tracking-wider">Password Sementara</p>
+                    <p className="text-[13px] font-mono text-slate-800 break-all">{employee.tempPasswordPlain}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(`Email: ${employee.email}\nPassword: ${employee.tempPasswordPlain}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    }}
+                    className="shrink-0 text-[11px] font-bold px-2.5 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                  >
+                    {copied ? 'Tersalin' : 'Salin'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* ── RIGHT: Attendance + Biometric ── */}
