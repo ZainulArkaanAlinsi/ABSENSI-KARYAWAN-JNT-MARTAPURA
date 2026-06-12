@@ -16,6 +16,7 @@ import { fortressRetry } from '@/lib/fortress';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import type { AttendanceRecord, Employee } from '@/types';
+import { isWorkday } from '@/lib/holidays';
 
 export interface RecentActivity {
   id: string;
@@ -179,7 +180,11 @@ export function useDashboardStats() {
             const presentToday = todayRecords.filter(r => ['present', 'late', 'overtime'].includes(r.status)).length;
             const lateToday = todayRecords.filter(r => r.status === 'late').length;
             const onLeaveToday = todayRecords.filter(r => r.status === 'leave').length;
-            const absentToday = Math.max(0, totalEmployees - (presentToday + onLeaveToday));
+            // Hanya hitung absen di hari kerja. Weekend (Minggu) & libur
+            // nasional → 0, supaya tidak salah menandai semua karyawan "absen".
+            const absentToday = isWorkday(new Date())
+              ? Math.max(0, totalEmployees - (presentToday + onLeaveToday))
+              : 0;
 
             const totalOTMins = allRecords.reduce((sum, r) => sum + (r.overtimeMinutes || 0), 0);
             const overtimeThisMonth = Math.round(totalOTMins / 60);
@@ -218,7 +223,9 @@ export function useDashboardStats() {
                 day: dayName,
                 present: dPresent,
                 late: dayRecords.filter(r => r.status === 'late').length,
-                absent: Math.max(0, totalEmployees - (dPresent + dLeave))
+                absent: isWorkday(d)
+                  ? Math.max(0, totalEmployees - (dPresent + dLeave))
+                  : 0
               });
             }
 
