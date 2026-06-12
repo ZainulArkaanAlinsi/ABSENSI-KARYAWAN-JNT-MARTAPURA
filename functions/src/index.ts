@@ -64,7 +64,7 @@ async function sendOnboardingEmail(opts: {
   const cfg = functions.config();
   const fromName = cfg.smtp?.from_name || 'JNE Martapura HR';
   const fromAddr = cfg.smtp.user;
-  const apkUrl   = cfg.apk?.url || '#';
+  const apkUrl   = cfg.apk?.url || 'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
 
   const html = `
   <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;padding:24px;">
@@ -83,6 +83,19 @@ async function sendOnboardingEmail(opts: {
       </p>
 
       <a href="${apkUrl}" style="display:inline-block;background:#E31E24;color:white;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px">Download Aplikasi (APK)</a>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-top:24px">
+        <p style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px">Cara Install Aplikasi (Android)</p>
+        <ol style="margin:0;padding-left:18px;color:#334155;font-size:13px;line-height:1.9">
+          <li>Tap tombol <strong>"Download Aplikasi (APK)"</strong> di atas, lalu tunggu sampai selesai terunduh.</li>
+          <li>Buka file <strong>app-release.apk</strong> di folder Unduhan / notifikasi.</li>
+          <li>Jika muncul peringatan, pilih <strong>"Setelan"</strong> lalu aktifkan <strong>"Izinkan dari sumber ini"</strong> (Install dari sumber tidak dikenal).</li>
+          <li>Tap <strong>"Pasang / Install"</strong> dan tunggu hingga selesai.</li>
+          <li>Buka aplikasi <strong>JNE Absensi MTP</strong>, lalu login pakai email &amp; password sementara di atas.</li>
+          <li>Ganti password saat diminta, lalu daftarkan wajah Anda sebelum mulai absen.</li>
+        </ol>
+        <p style="margin:12px 0 0;color:#94a3b8;font-size:11px">Butuh Android 5.0+ · ukuran ± 37 MB · kalau link tidak bisa dibuka, hubungi admin HR.</p>
+      </div>
 
       <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0">
       <p style="color:#94a3b8;font-size:11px;margin:0">Email ini dikirim otomatis. Jika ada masalah, hubungi admin HR JNE Martapura.</p>
