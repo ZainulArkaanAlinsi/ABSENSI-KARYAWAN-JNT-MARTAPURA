@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserCheck,
   AlertCircle,
+  FileEdit,
   BarChart3,
   LogOut,
   Briefcase,
@@ -36,6 +37,8 @@ export function useSidebarLogic() {
     { label: 'Data Karyawan', href: '/employees', icon: Users },
     { label: 'Struktur Organisasi', href: '/departments', icon: Layers },
     { label: 'Kepala Unit', href: '/head-units', icon: UserCheck },
+    { label: 'Permintaan Edit Data', href: '/edit-requests', icon: FileEdit },
+    { label: 'Kendala Login', href: '/login-issues', icon: AlertCircle },
 
     { isHeader: true, label: 'Operasional Absensi' },
     { label: 'Monitoring Absensi', href: '/attendance', icon: Clock },
