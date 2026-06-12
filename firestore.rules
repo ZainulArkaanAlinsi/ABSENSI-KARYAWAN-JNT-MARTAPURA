@@ -173,6 +173,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Daily sales (nilai penjualan harian per SCO, di-input admin) ──
+    match /daily_sales/{docId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
     // ── Login issues (dilapor user yg BELUM bisa login → unauthenticated) ──
     // Create dibuka (user blm punya akun/sesi); baca & kelola admin only.
     match /login_issues/{issueId} {

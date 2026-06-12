@@ -19,6 +19,7 @@ import {
   Briefcase,
   Truck,
   Package,
+  Receipt,
   History,
   ClipboardCheck,
   Building2
@@ -49,6 +50,7 @@ export function useSidebarLogic() {
     { label: 'Kalender Kerja', href: '/calendar', icon: Calendar },
     { label: 'Manajemen Kurir', href: '/couriers', icon: Truck },
     { label: 'Input Paket', href: '/packages', icon: Package },
+    { label: 'Input Penjualan', href: '/sales', icon: Receipt },
 
     { isHeader: true, label: 'Pengaturan & Aturan' },
     { label: 'Master Jam Kerja', href: '/jam-kerja', icon: ClipboardCheck },
