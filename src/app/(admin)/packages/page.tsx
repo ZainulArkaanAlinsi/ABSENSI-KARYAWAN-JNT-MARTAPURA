@@ -10,6 +10,7 @@ import { getEmployees } from '@/lib/firestore';
 import { getRuleByDept } from '@/lib/departmentRules';
 import { format } from 'date-fns';
 import type { Employee } from '@/types';
+import MonthlyTrend from '@/components/charts/MonthlyTrend';
 
 // Kurir = karyawan di departemen pengiriman.
 const isCourier = (dept?: string): boolean =>
@@ -23,6 +24,9 @@ export default function PackagesPage() {
   const [entries, setEntries]   = useState<Record<string, Entry>>({});
   const [loading, setLoading]   = useState(true);
   const [q, setQ]               = useState('');
+  const [trend, setTrend]       = useState<{ day: string; value: number }[]>([]);
+
+  const monthPrefix = date.slice(0, 7); // yyyy-MM dari tanggal terpilih
 
   // Daftar kurir (sekali).
   useEffect(() => {
@@ -56,6 +60,34 @@ export default function PackagesPage() {
     })();
     return () => { alive = false; };
   }, [date]);
+
+  // Tren bulanan: total paket per hari dalam bulan terpilih.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const snap = await getDocs(query(
+          collection(db, 'courier_packages'),
+          where('date', '>=', `${monthPrefix}-01`),
+          where('date', '<=', `${monthPrefix}-31`),
+        ));
+        const byDay: Record<string, number> = {};
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          const dd = (data.date as string)?.slice(8, 10);
+          if (dd) byDay[dd] = (byDay[dd] || 0) + (data.count || 0);
+        });
+        const [y, m] = monthPrefix.split('-').map(Number);
+        const days = new Date(y, m, 0).getDate();
+        const arr = Array.from({ length: days }, (_, i) => {
+          const dd = String(i + 1).padStart(2, '0');
+          return { day: String(i + 1), value: byDay[dd] || 0 };
+        });
+        if (alive) setTrend(arr);
+      } catch (e) { console.error('load package trend', e); }
+    })();
+    return () => { alive = false; };
+  }, [monthPrefix]);
 
   const setCount = (uid: string, val: number) => {
     const n = Number.isFinite(val) ? Math.max(0, Math.floor(val)) : 0;
@@ -122,6 +154,12 @@ export default function PackagesPage() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total paket</p>
           </div>
         </div>
+      </div>
+
+      {/* Tren bulanan */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-100" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Tren Paket Harian · {monthPrefix}</p>
+        <MonthlyTrend data={trend} color="#E31E24" gradientId="pkgTrend" />
       </div>
 
       {/* Controls */}

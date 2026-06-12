@@ -9,6 +9,7 @@ import { db } from '@/lib/firebase';
 import { getEmployees } from '@/lib/firestore';
 import { format } from 'date-fns';
 import type { Employee } from '@/types';
+import MonthlyTrend from '@/components/charts/MonthlyTrend';
 
 // Sales = karyawan di departemen penjualan / counter (SCO).
 const isSales = (dept?: string): boolean =>
@@ -24,6 +25,9 @@ export default function SalesPage() {
   const [entries, setEntries]   = useState<Record<string, Entry>>({});
   const [loading, setLoading]   = useState(true);
   const [q, setQ]               = useState('');
+  const [trend, setTrend]       = useState<{ day: string; value: number }[]>([]);
+
+  const monthPrefix = date.slice(0, 7);
 
   useEffect(() => {
     let alive = true;
@@ -53,6 +57,34 @@ export default function SalesPage() {
     })();
     return () => { alive = false; };
   }, [date]);
+
+  // Tren bulanan: total penjualan (Rp) per hari dalam bulan terpilih.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const snap = await getDocs(query(
+          collection(db, 'daily_sales'),
+          where('date', '>=', `${monthPrefix}-01`),
+          where('date', '<=', `${monthPrefix}-31`),
+        ));
+        const byDay: Record<string, number> = {};
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          const dd = (data.date as string)?.slice(8, 10);
+          if (dd) byDay[dd] = (byDay[dd] || 0) + (data.amount || 0);
+        });
+        const [y, m] = monthPrefix.split('-').map(Number);
+        const days = new Date(y, m, 0).getDate();
+        const arr = Array.from({ length: days }, (_, i) => {
+          const dd = String(i + 1).padStart(2, '0');
+          return { day: String(i + 1), value: byDay[dd] || 0 };
+        });
+        if (alive) setTrend(arr);
+      } catch (e) { console.error('load sales trend', e); }
+    })();
+    return () => { alive = false; };
+  }, [monthPrefix]);
 
   const setAmount = (uid: string, val: number) => {
     const n = Number.isFinite(val) ? Math.max(0, Math.floor(val)) : 0;
@@ -114,6 +146,21 @@ export default function SalesPage() {
           <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#E31E24' }}>{rupiah(total)}</p>
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total hari ini</p>
         </div>
+      </div>
+
+      {/* Tren bulanan */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-100" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Tren Penjualan Harian · {monthPrefix}</p>
+        <MonthlyTrend
+          data={trend}
+          color="#E31E24"
+          gradientId="salesTrend"
+          valueFormatter={(n) =>
+            n >= 1_000_000 ? 'Rp ' + (n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1) + 'jt'
+              : n >= 1_000 ? 'Rp ' + Math.round(n / 1_000) + 'rb'
+                : 'Rp ' + n
+          }
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
