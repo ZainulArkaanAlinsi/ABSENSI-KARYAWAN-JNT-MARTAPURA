@@ -24,9 +24,11 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS, getEmployees, getJamKerjas } from '@/lib/firestore';
+import { useAuth } from '@/context/AuthContext';
 import { format, subDays, startOfDay, addMinutes, isWeekend, parse } from 'date-fns';
 
 export default function MaintenancePage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -181,6 +183,22 @@ export default function MaintenancePage() {
       setLoading(false);
     }
   };
+
+  // Tool seeding & hapus-massal hanya untuk Super Admin — cegah admin biasa
+  // tak sengaja mengisi data palsu / menghapus absensi asli saat pertama pakai.
+  if (user?.role !== 'superadmin') {
+    return (
+      <div className="max-w-4xl mx-auto py-24 text-center">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600/10 text-red-600 mb-4">
+          <AlertTriangle size={26} />
+        </div>
+        <h1 className="text-xl font-black uppercase tracking-tight" style={{ color: 'var(--text-primary)' }}>Akses Terbatas</h1>
+        <p className="text-sm mt-2 max-w-sm mx-auto" style={{ color: 'var(--text-muted)' }}>
+          Halaman maintenance (generate data & hapus absensi) hanya untuk <strong>Super Admin</strong>.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
