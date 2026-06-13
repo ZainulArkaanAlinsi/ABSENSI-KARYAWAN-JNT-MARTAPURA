@@ -99,7 +99,7 @@ export default function AttendancePage() {
         className="flex items-center justify-between pt-1"
       >
         <div>
-          <h1 className="text-[20px] font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="editorial-heading text-[20px] font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Absensi Karyawan
           </h1>
           <p className="text-[12px] text-slate-400 mt-0.5">Monitoring kehadiran hari ini</p>

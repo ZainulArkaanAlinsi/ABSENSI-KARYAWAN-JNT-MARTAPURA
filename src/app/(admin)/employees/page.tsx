@@ -402,7 +402,7 @@ export default function EmployeesPage() {
             <div className="w-1 h-4 rounded-full" style={{ background: '#E31E24' }} />
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">Manajemen SDM</span>
           </div>
-          <h1 className="text-[24px] font-black text-slate-900 tracking-tight leading-none">
+          <h1 className="editorial-heading text-[24px] font-black text-slate-900 tracking-tight leading-none">
             Data <span style={{ color: '#E31E24' }}>Karyawan</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1.5 font-medium">
