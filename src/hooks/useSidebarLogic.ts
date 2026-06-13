@@ -15,6 +15,7 @@ import {
   AlertCircle,
   FileEdit,
   BarChart3,
+  Trophy,
   LogOut,
   Briefcase,
   Truck,
@@ -35,6 +36,7 @@ export function useSidebarLogic() {
     { isHeader: true, label: 'Inti Sistem' },
     { label: 'Dashboard Utama', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Analitik & Tren', href: '/analytics', icon: BarChart3 },
+    { label: 'Papan Peringkat', href: '/leaderboard', icon: Trophy },
 
     { isHeader: true, label: 'Manajemen SDM' },
     { label: 'Data Karyawan', href: '/employees', icon: Users },
