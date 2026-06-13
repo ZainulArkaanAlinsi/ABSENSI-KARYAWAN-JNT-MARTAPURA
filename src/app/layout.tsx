@@ -28,6 +28,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#E31E24" />
         <meta name="apple-mobile-web-app-title" content="JNE Absensi" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* Open Graph / Twitter — preview saat link admin dibagikan */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://admin-absensi-jne-mtp.web.app/" />
+        <meta property="og:title" content="JNE Absensi — Panel Admin" />
+        <meta property="og:description" content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan." />
+        <meta property="og:image" content="https://admin-absensi-jne-mtp.web.app/icon-512.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="JNE Absensi — Panel Admin" />
+        <meta name="twitter:description" content="Panel admin sistem absensi karyawan JNE Martapura." />
+        <meta name="twitter:image" content="https://admin-absensi-jne-mtp.web.app/icon-512.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
