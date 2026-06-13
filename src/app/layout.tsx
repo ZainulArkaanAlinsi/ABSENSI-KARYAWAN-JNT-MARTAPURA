@@ -16,6 +16,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" suppressHydrationWarning className={`${inter.variable} ${outfit.variable} ${plusJakarta.variable} ${playfair.variable}`}>
       <head>
+        {/* Metadata di-set manual di <head> karena RootLayout ini client
+            component ('use client') — Next tidak mengizinkan export metadata. */}
+        <title>JNE Absensi — Panel Admin</title>
+        <meta name="description" content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan." />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#E31E24" />
+        <meta name="apple-mobile-web-app-title" content="JNE Absensi" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
