@@ -146,7 +146,7 @@ export default function EmployeeDetailPage() {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               {employee.employeeId} · {employee.isOnline ? '🟢 Online' : 'Offline'}
             </p>
-            <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">{employee.name}</h1>
+            <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">{employee.name}</h1>
           </div>
         </div>
 

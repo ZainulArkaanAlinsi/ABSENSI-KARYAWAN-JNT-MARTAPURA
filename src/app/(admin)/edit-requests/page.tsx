@@ -133,7 +133,7 @@ export default function EditRequestsPage() {
               <Edit3 size={12} />
               Edit Request Inbox
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="editorial-heading text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Koreksi Absensi
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">

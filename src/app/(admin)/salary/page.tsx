@@ -17,7 +17,7 @@ export default function SalaryPage() {
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h1 className="text-[20px] font-black text-slate-800 tracking-tight">Payroll System</h1>
+        <h1 className="editorial-heading text-[20px] font-black text-slate-800 tracking-tight">Payroll System</h1>
         <p className="text-[13px] text-slate-400 mt-2 font-medium max-w-xs mx-auto leading-relaxed">
           Fitur ini sedang dalam pengembangan dan akan segera tersedia.
         </p>

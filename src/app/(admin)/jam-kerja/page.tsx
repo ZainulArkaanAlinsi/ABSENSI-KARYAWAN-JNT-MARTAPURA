@@ -42,8 +42,8 @@ export default function JamKerjaPage() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Jam <span className="text-emerald-500">Kerja</span>
+          <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
+            Jam <span className="text-[#E31E24]">Kerja</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             {activeCount} aktif · {jamKerjas.length} total skema terdaftar

@@ -188,8 +188,8 @@ export default function AttendanceHistoryPage() {
             <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
             Kembali
           </button>
-          <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Riwayat <span className="text-emerald-500">Absensi</span>
+          <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
+            Riwayat <span className="text-[#E31E24]">Absensi</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             Data kehadiran per bulan seluruh karyawan

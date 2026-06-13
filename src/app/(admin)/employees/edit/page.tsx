@@ -164,7 +164,7 @@ export default function EmployeeEditPage() {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               {original.employeeId} · Mode Edit
             </p>
-            <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
+            <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
               Edit {original.name}
             </h1>
           </div>

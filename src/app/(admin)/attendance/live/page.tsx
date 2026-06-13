@@ -135,8 +135,8 @@ export default function LiveAttendancePage() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Live <span className="text-emerald-500">Monitor</span>
+          <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
+            Live <span className="text-[#E31E24]">Monitor</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             Sinkronisasi real-time data absensi biometrik — diperbarui{' '}

@@ -389,8 +389,8 @@ export default function RequestCenterPage() {
               Kotak Masuk
             </span>
           </div>
-          <h1 className="text-[24px] font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
-            Pusat <span className="text-emerald-500">Permintaan</span>
+          <h1 className="editorial-heading text-[24px] font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
+            Pusat <span className="text-[#E31E24]">Permintaan</span>
           </h1>
         </div>
 

@@ -126,7 +126,7 @@ export default function BroadcastPage() {
                <div className="px-3 py-1 rounded-full bg-orange-600/10 border border-orange-600/20 text-orange-600 text-[9px] font-black uppercase tracking-widest animate-pulse">Broadcast Engine</div>
                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Nexus Communications</span>
             </div>
-            <h1 className="text-5xl font-black text-slate-950 dark:text-white tracking-tighter uppercase italic leading-none">
+            <h1 className="editorial-heading text-5xl font-black text-slate-950 dark:text-white tracking-tighter uppercase italic leading-none">
               Communication <span className="text-orange-600">Hub</span>
             </h1>
           </div>
