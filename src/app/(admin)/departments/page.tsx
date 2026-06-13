@@ -48,7 +48,7 @@ export default function DepartmentsPage() {
       >
         <div>
           <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Unit <span className="text-emerald-500">Kerja</span>
+            Unit <span style={{ color: '#E31E24' }}>Kerja</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             {departments.length} departemen aktif terdaftar

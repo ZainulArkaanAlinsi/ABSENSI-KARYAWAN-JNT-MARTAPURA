@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
         <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
-          Analitik <span className="text-emerald-500">& Tren</span>
+          Analitik <span style={{ color: '#E31E24' }}>& Tren</span>
         </h1>
         <p className="text-[12px] text-slate-400 mt-1 font-medium">
           Visualisasi data performa dan kedisiplinan personel secara mendalam

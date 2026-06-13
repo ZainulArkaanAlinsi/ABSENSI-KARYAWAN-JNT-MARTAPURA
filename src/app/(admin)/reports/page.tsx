@@ -40,7 +40,7 @@ export default function ReportsPage() {
       >
         <div>
           <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Laporan <span className="text-emerald-500">Absensi</span>
+            Laporan <span style={{ color: '#E31E24' }}>Absensi</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             Rekap data kehadiran karyawan JNE Martapura

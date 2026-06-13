@@ -267,7 +267,7 @@ export default function LeavesPage() {
       >
         <div>
           <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
-            Cuti <span className="text-emerald-500">& Izin</span>
+            Cuti <span style={{ color: '#E31E24' }}>& Izin</span>
           </h1>
           <p className="text-[12px] text-slate-400 mt-1 font-medium">
             Kelola pengajuan ketidakhadiran karyawan JNE Martapura
