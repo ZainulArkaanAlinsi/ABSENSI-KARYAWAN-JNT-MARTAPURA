@@ -11,6 +11,7 @@ import {
   ArrowLeft, Mail, Phone, Briefcase, Building2, ShieldCheck,
   Calendar, Clock, AlertCircle, Download, Fingerprint, Pencil,
   CheckCircle2, XCircle, MapPin, Loader2, Camera, ImageOff, X, LogIn, LogOut,
+  MessageCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as dateFnsId } from 'date-fns/locale';
@@ -29,6 +30,38 @@ const toDate = (val: any): Date => {
   const d = new Date(val);
   return isNaN(d.getTime()) ? new Date() : d;
 };
+
+// Public APK download (Firebase Storage). Keep in sync with app-latest.json.
+const APK_DOWNLOAD_URL =
+  'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
+
+// Build a wa.me deep-link that pre-fills the onboarding message (credentials +
+// APK link + install steps). If the employee has a phone the chat opens straight
+// to them; otherwise WhatsApp lets the admin pick a contact. This is the
+// no-SMTP onboarding path — admins overwhelmingly reach staff via WhatsApp.
+function buildOnboardingWaLink(emp: {
+  name: string; email?: string | null; phone?: string | null; tempPasswordPlain?: string | null;
+}): string {
+  const msg =
+    `Halo ${emp.name} 👋\n\n` +
+    `Selamat bergabung di JNE Martapura! Berikut akun absensi Anda:\n\n` +
+    `📧 Email: ${emp.email ?? '-'}\n` +
+    `🔑 Password: ${emp.tempPasswordPlain ?? '-'}\n\n` +
+    `📲 Download aplikasi:\n${APK_DOWNLOAD_URL}\n\n` +
+    `Cara pakai:\n` +
+    `1. Install APK (izinkan "Install dari sumber tak dikenal" bila diminta).\n` +
+    `2. Buka aplikasi, login dengan email & password di atas.\n` +
+    `3. Segera ganti password & daftarkan wajah (Face ID) di menu profil.\n\n` +
+    `Selamat bekerja! 🚀`;
+
+  const digits = (emp.phone ?? '').replace(/\D/g, '');
+  const intl = digits.startsWith('0')  ? `62${digits.slice(1)}`
+             : digits.startsWith('62') ? digits
+             : digits                   ? `62${digits}`
+             : '';
+  const base = intl ? `https://wa.me/${intl}` : 'https://wa.me/';
+  return `${base}?text=${encodeURIComponent(msg)}`;
+}
 
 // ─── Status chip ──────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; dot: string; bg: string; text: string }> = {
@@ -238,7 +271,7 @@ export default function EmployeeDetailPage() {
               </div>
               <p className="text-[11px] text-amber-700/80 mb-3 leading-relaxed">
                 {employee.onboardingEmailSent === false ? 'Email gagal terkirim. ' : ''}
-                Bagikan ke karyawan untuk login pertama — hilang otomatis setelah dia mengganti password.
+                Bagikan ke karyawan untuk login pertama (salin atau kirim via WhatsApp) — hilang otomatis setelah dia mengganti password.
               </p>
               <div className="flex flex-col gap-2">
                 <div className="bg-white rounded-lg px-3 py-2 border border-amber-200">
@@ -261,6 +294,16 @@ export default function EmployeeDetailPage() {
                     {copied ? 'Tersalin' : 'Salin'}
                   </button>
                 </div>
+                <a
+                  href={buildOnboardingWaLink(employee)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 mt-0.5 px-3 py-2.5 rounded-lg bg-emerald-500 text-white text-[12px] font-bold hover:bg-emerald-600 transition-colors"
+                >
+                  <MessageCircle size={14} />
+                  Kirim via WhatsApp
+                  {!employee.phone && <span className="text-[10px] font-medium opacity-80">(pilih kontak)</span>}
+                </a>
               </div>
             </motion.div>
           )}
