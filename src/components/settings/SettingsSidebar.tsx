@@ -19,7 +19,12 @@ interface SettingsSidebarProps {
   className?: string;
 }
 
-export default function SettingsSidebar({ activeTab, setActiveTab, tabs, className = '' }: SettingsSidebarProps) {
+export default function SettingsSidebar({
+  activeTab,
+  setActiveTab,
+  tabs,
+  className = '',
+}: SettingsSidebarProps) {
   return (
     <div className={`shrink-0 flex flex-col p-8 gap-4 ${className}`}>
       <p className="text-[10px] font-black uppercase tracking-[0.3em] px-4 mb-4 text-slate-400">
@@ -29,7 +34,7 @@ export default function SettingsSidebar({ activeTab, setActiveTab, tabs, classNa
         {tabs.map((tab) => {
           const Icon = iconMap[tab.icon] || MapPin;
           const isActive = activeTab === tab.key;
-          
+
           return (
             <motion.button
               key={tab.key}
@@ -38,21 +43,26 @@ export default function SettingsSidebar({ activeTab, setActiveTab, tabs, classNa
               onClick={() => setActiveTab(tab.key)}
               className={`
                 w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black transition-all text-left group relative
-                ${isActive 
-                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' 
-                  : 'text-slate-500 hover:bg-slate-100/50 hover:text-slate-900'
+                ${
+                  isActive
+                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
+                    : 'text-slate-500 hover:bg-slate-100/50 hover:text-slate-900'
                 }
               `}
             >
-              <Icon 
-                size={18} 
+              <Icon
+                size={18}
                 strokeWidth={isActive ? 2.5 : 2}
-                className={isActive ? 'text-primary' : 'opacity-40 group-hover:opacity-100 transition-opacity'} 
+                className={
+                  isActive
+                    ? 'text-primary'
+                    : 'opacity-40 group-hover:opacity-100 transition-opacity'
+                }
               />
               <span className="tracking-widest uppercase">{tab.label}</span>
-              
+
               {isActive && (
-                <motion.div 
+                <motion.div
                   layoutId="active-nav-indicator"
                   className="absolute right-4 w-1.5 h-1.5 rounded-full bg-primary"
                 />
@@ -61,14 +71,16 @@ export default function SettingsSidebar({ activeTab, setActiveTab, tabs, classNa
           );
         })}
       </div>
-      
+
       <div className="mt-auto p-6 rounded-2xl bg-primary/5 border border-primary/10">
-         <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Operational State</p>
-         <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-slate-600">Terminal Synchronized</span>
-         </div>
+        <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">
+          Operational State
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-slate-600">Terminal Synchronized</span>
+        </div>
       </div>
     </div>
   );
-}
+}

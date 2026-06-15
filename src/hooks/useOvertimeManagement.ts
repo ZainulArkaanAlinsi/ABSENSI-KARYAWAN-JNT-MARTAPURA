@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
-import {
-  subscribeToOvertimes,
-  updateOvertimeStatus,
-  deleteOvertime,
-} from '@/lib/firestore';
+import { subscribeToOvertimes, updateOvertimeStatus, deleteOvertime } from '@/lib/firestore';
 import type { OvertimeRequest, OvertimeStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
 
 export const OVERTIME_TABS: { key: OvertimeStatus | 'all'; label: string }[] = [
-  { key: 'pending',  label: 'Menunggu'  },
+  { key: 'pending', label: 'Menunggu' },
   { key: 'approved', label: 'Disetujui' },
-  { key: 'rejected', label: 'Ditolak'   },
-  { key: 'all',      label: 'Semua'     },
+  { key: 'rejected', label: 'Ditolak' },
+  { key: 'all', label: 'Semua' },
 ];
 
 // Notifikasi push & mirror userNotifications ditangani server-side oleh
@@ -22,13 +18,13 @@ export function useOvertimeManagement() {
   const { user } = useAuth();
   const { confirm } = useConfirm();
 
-  const [activeTab,        setActiveTab]        = useState<OvertimeStatus | 'all'>('pending');
-  const [overtimes,        setOvertimes]        = useState<OvertimeRequest[]>([]);
-  const [loading,          setLoading]          = useState(true);
+  const [activeTab, setActiveTab] = useState<OvertimeStatus | 'all'>('pending');
+  const [overtimes, setOvertimes] = useState<OvertimeRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedOvertime, setSelectedOvertime] = useState<OvertimeRequest | null>(null);
-  const [showRejectModal,  setShowRejectModal]  = useState(false);
-  const [rejectReason,     setRejectReason]     = useState('');
-  const [processing,       setProcessing]       = useState<string | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);

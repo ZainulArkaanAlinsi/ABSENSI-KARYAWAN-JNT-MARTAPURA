@@ -22,7 +22,7 @@ export function useAdminFCM() {
     await setDoc(
       doc(db, 'admin_fcm_tokens', token),
       { userId, token, updatedAt: serverTimestamp() },
-      { merge: true }
+      { merge: true },
     );
     currentTokenRef.current = token;
   }, []);

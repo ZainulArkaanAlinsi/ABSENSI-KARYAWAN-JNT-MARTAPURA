@@ -26,8 +26,8 @@ export function useEmployeeManagement() {
         setLoading(false);
         setError(null);
       } catch (err) {
-        console.error("Critical: Employee Sync Failed", err);
-        setError("Gagal sinkronisasi data karyawan.");
+        console.error('Critical: Employee Sync Failed', err);
+        setError('Gagal sinkronisasi data karyawan.');
       }
     });
 
@@ -37,11 +37,11 @@ export function useEmployeeManagement() {
     });
 
     getJamKerjas()
-      .then(data => {
+      .then((data) => {
         if (isMounted) setJamKerjas(data || []);
       })
-      .catch(err => {
-        console.error("Jam Kerja fetch error", err);
+      .catch((err) => {
+        console.error('Jam Kerja fetch error', err);
       });
 
     return () => {
@@ -51,43 +51,45 @@ export function useEmployeeManagement() {
     };
   }, []);
 
-  const departments = ['all', ...(departmentItems?.map(d => d.name) || [])];
+  const departments = ['all', ...(departmentItems?.map((d) => d.name) || [])];
 
   const filteredEmployees = useMemo(() => {
-    return (employees || []).filter(emp => {
+    return (employees || []).filter((emp) => {
       if (!emp) return false;
       const s = debouncedSearch.toLowerCase();
-      const matchSearch = !debouncedSearch ||
+      const matchSearch =
+        !debouncedSearch ||
         (emp.name?.toLowerCase()?.includes(s) ?? false) ||
         (emp.email?.toLowerCase()?.includes(s) ?? false) ||
         (emp.employeeId?.toLowerCase()?.includes(s) ?? false);
-      
+
       const matchDept = filterDept === 'all' || emp.department === filterDept;
-      const matchFace = filterFace === 'all' ||
+      const matchFace =
+        filterFace === 'all' ||
         (filterFace === 'registered' && emp.faceRegistered) ||
         (filterFace === 'unregistered' && !emp.faceRegistered);
-      
+
       return matchSearch && matchDept && matchFace;
     });
   }, [employees, debouncedSearch, filterDept, filterFace]);
 
-  const jamKerjaMap = Object.fromEntries((jamKerjas || []).map(s => [s.id, s.name]));
+  const jamKerjaMap = Object.fromEntries((jamKerjas || []).map((s) => [s.id, s.name]));
 
   const deleteEmployeeOptimistic = async (id: string) => {
     // Save current state for rollback
     const previousEmployees = [...employees];
-    
+
     // Optimistically update UI
-    setEmployees(employees.filter(e => e.id !== id));
-    
+    setEmployees(employees.filter((e) => e.id !== id));
+
     try {
       const { deleteEmployee } = await import('@/lib/firestore');
       await deleteEmployee(id);
-      toast.success("Karyawan berhasil dihapus");
+      toast.success('Karyawan berhasil dihapus');
     } catch (err) {
-      console.error("Deletion failed, rolling back", err);
+      console.error('Deletion failed, rolling back', err);
       setEmployees(previousEmployees);
-      toast.error("Gagal menghapus data. Silakan coba lagi.");
+      toast.error('Gagal menghapus data. Silakan coba lagi.');
     }
   };
 
@@ -111,4 +113,3 @@ export function useEmployeeManagement() {
     deleteEmployeeOptimistic,
   };
 }
-

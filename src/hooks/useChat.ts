@@ -52,19 +52,18 @@ export const useChat = (chatId: string | null) => {
     if (!chatId) return;
 
     setLoading(true);
-    const q = query(
-      collection(db, 'messages'),
-      where('chatId', '==', chatId),
-    );
+    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
 
     const unsubscribe = listen(q, (snapshot) => {
       const msgs = snapshot.docs
-        .map(d => {
+        .map((d) => {
           const data = d.data();
           return {
             id: d.id,
             ...data,
-            get isRead() { return this.status === 'read'; },
+            get isRead() {
+              return this.status === 'read';
+            },
           } as Message;
         })
         .sort((a, b) => {
@@ -77,7 +76,7 @@ export const useChat = (chatId: string | null) => {
       setTimeout(scrollToBottom, 100);
 
       // Mark incoming messages as read
-      msgs.forEach(msg => {
+      msgs.forEach((msg) => {
         if (msg.status !== 'read' && msg.senderId !== auth.currentUser?.uid) {
           updateDoc(doc(db, 'messages', msg.id!), {
             status: 'read',
@@ -127,12 +126,15 @@ export const useChat = (chatId: string | null) => {
       });
 
       // Update chat metadata for sidebar last-message preview
-      await setDoc(doc(db, 'chats', chatId), {
-        lastMessage: imageUrl ? '📷 Foto' : text,
-        lastTimestamp: serverTimestamp(),
-        participants: [auth.currentUser.uid, receiverId],
-      }, { merge: true });
-
+      await setDoc(
+        doc(db, 'chats', chatId),
+        {
+          lastMessage: imageUrl ? '📷 Foto' : text,
+          lastTimestamp: serverTimestamp(),
+          participants: [auth.currentUser.uid, receiverId],
+        },
+        { merge: true },
+      );
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -163,9 +165,13 @@ export const useChat = (chatId: string | null) => {
   const setTyping = async (typing: boolean) => {
     if (!auth.currentUser || !chatId) return;
     // Key berbasis peran agar konsisten dengan mobile ('user' / 'admin').
-    await setDoc(doc(db, 'chats', chatId, 'typing', 'status'), {
-      admin: typing,
-    }, { merge: true });
+    await setDoc(
+      doc(db, 'chats', chatId, 'typing', 'status'),
+      {
+        admin: typing,
+      },
+      { merge: true },
+    );
   };
 
   const deleteMessage = async (messageId: string) => {
@@ -181,9 +187,14 @@ export const useChat = (chatId: string | null) => {
   };
 
   return {
-    messages, loading, sending,
-    sendMessage, deleteMessage,
-    scrollRef, scrollToBottom,
-    setTyping, otherUserTyping,
+    messages,
+    loading,
+    sending,
+    sendMessage,
+    deleteMessage,
+    scrollRef,
+    scrollToBottom,
+    setTyping,
+    otherUserTyping,
   };
 };

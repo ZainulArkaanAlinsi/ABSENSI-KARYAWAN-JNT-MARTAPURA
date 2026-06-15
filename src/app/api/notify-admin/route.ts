@@ -13,17 +13,17 @@ export async function POST(request: NextRequest) {
     const { title, body, data } = await request.json();
 
     if (!title || !body) {
-      return NextResponse.json(
-        { error: 'title dan body wajib diisi' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'title dan body wajib diisi' }, { status: 400 });
     }
 
     // Ambil semua FCM token milik admin dari koleksi admin_fcm_tokens
     const tokensSnap = await adminDb.collection('admin_fcm_tokens').get();
 
     if (tokensSnap.empty) {
-      return NextResponse.json({ success: true, message: 'Tidak ada admin browser yang terdaftar' });
+      return NextResponse.json({
+        success: true,
+        message: 'Tidak ada admin browser yang terdaftar',
+      });
     }
 
     const tokens: string[] = tokensSnap.docs.map((doc: { id: string }) => doc.id);

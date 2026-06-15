@@ -1,15 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from 'firebase/auth';
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import fs from 'fs';
 
 // log util
@@ -46,21 +37,13 @@ async function setupAdmin() {
     let user;
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        adminEmail,
-        adminPassword,
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
       user = userCredential.user;
       log(' Auth account created successfully.');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         log(' Auth account already exists, signing in to update Firestore...');
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          adminEmail,
-          adminPassword,
-        );
+        const userCredential = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
         user = userCredential.user;
       } else {
         throw error;

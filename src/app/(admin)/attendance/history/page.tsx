@@ -6,10 +6,23 @@ import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { safeFormatDate, safeFormatTime } from '@/utils/dateFormatters';
 import {
-  Search, Calendar, Filter, ArrowLeft, Building2,
-  ChevronLeft, ChevronRight, History, Clock3,
-  FileSpreadsheet, Users, CheckCircle2, AlertCircle, Clock, Camera,
-  Trash2, Loader2,
+  Search,
+  Calendar,
+  Filter,
+  ArrowLeft,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  Clock3,
+  FileSpreadsheet,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Camera,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -19,15 +32,27 @@ import { toast } from 'sonner';
 // ─── Status Chip ──────────────────────────────────────────────
 function StatusChip({ status }: { status: string }) {
   const map: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-    present:  { label: 'Hadir',    dot: 'bg-emerald-400', bg: 'bg-emerald-50',  text: 'text-emerald-700' },
-    late:     { label: 'Telat',    dot: 'bg-amber-400',   bg: 'bg-amber-50',    text: 'text-amber-700'   },
-    absent:   { label: 'Absen',    dot: 'bg-red-400',     bg: 'bg-red-50',      text: 'text-red-600'     },
-    leave:    { label: 'Izin',     dot: 'bg-blue-400',    bg: 'bg-blue-50',     text: 'text-blue-700'    },
-    overtime: { label: 'Lembur',   dot: 'bg-violet-400',  bg: 'bg-violet-50',   text: 'text-violet-700'  },
+    present: {
+      label: 'Hadir',
+      dot: 'bg-emerald-400',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+    },
+    late: { label: 'Telat', dot: 'bg-amber-400', bg: 'bg-amber-50', text: 'text-amber-700' },
+    absent: { label: 'Absen', dot: 'bg-red-400', bg: 'bg-red-50', text: 'text-red-600' },
+    leave: { label: 'Izin', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-700' },
+    overtime: {
+      label: 'Lembur',
+      dot: 'bg-violet-400',
+      bg: 'bg-violet-50',
+      text: 'text-violet-700',
+    },
   };
   const s = map[status] ?? map.absent;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${s.bg} ${s.text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${s.bg} ${s.text}`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>
@@ -68,17 +93,17 @@ const PAGE_SIZE = 15;
 
 // ─── Main Page ────────────────────────────────────────────────
 export default function AttendanceHistoryPage() {
-  const router       = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialDept  = searchParams.get('dept') || 'all';
+  const initialDept = searchParams.get('dept') || 'all';
 
-  const [records,    setRecords]    = useState<AttendanceRecord[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [search,     setSearch]     = useState('');
-  const [month,      setMonth]      = useState(format(new Date(), 'yyyy-MM'));
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [deptFilter, setDeptFilter] = useState(initialDept);
-  const [page,       setPage]       = useState(1);
-  const [deleting,   setDeleting]   = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const { confirm } = useConfirm();
 
   const handleDelete = async (rec: AttendanceRecord) => {
@@ -94,7 +119,7 @@ export default function AttendanceHistoryPage() {
     // Optimistic remove so the table reacts instantly even before Firestore
     // confirms (we re-add on failure).
     const snapshot = records;
-    setRecords(prev => prev.filter(r => r.id !== rec.id));
+    setRecords((prev) => prev.filter((r) => r.id !== rec.id));
     try {
       await deleteAttendance(rec.id);
       toast.success('Catatan absensi dihapus');
@@ -112,10 +137,10 @@ export default function AttendanceHistoryPage() {
     setPage(1);
     const fetchData = async () => {
       try {
-        const d     = parseISO(`${month}-01`);
+        const d = parseISO(`${month}-01`);
         const start = format(startOfMonth(d), 'yyyy-MM-dd');
-        const end   = format(endOfMonth(d),   'yyyy-MM-dd');
-        const data  = await getAttendanceByRange(start, end);
+        const end = format(endOfMonth(d), 'yyyy-MM-dd');
+        const data = await getAttendanceByRange(start, end);
         setRecords(data);
       } catch (e) {
         console.error(e);
@@ -127,56 +152,68 @@ export default function AttendanceHistoryPage() {
   }, [month]);
 
   // Reset page on filter change
-  useEffect(() => { setPage(1); }, [search, deptFilter]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, deptFilter]);
 
-  const filtered = useMemo(() => records.filter(r => {
-    const matchSearch = r.employeeName.toLowerCase().includes(search.toLowerCase()) ||
-                        r.employeeId.toLowerCase().includes(search.toLowerCase());
-    const matchDept   = deptFilter === 'all' || r.department === deptFilter;
-    return matchSearch && matchDept;
-  }), [records, search, deptFilter]);
+  const filtered = useMemo(
+    () =>
+      records.filter((r) => {
+        const matchSearch =
+          r.employeeName.toLowerCase().includes(search.toLowerCase()) ||
+          r.employeeId.toLowerCase().includes(search.toLowerCase());
+        const matchDept = deptFilter === 'all' || r.department === deptFilter;
+        return matchSearch && matchDept;
+      }),
+    [records, search, deptFilter],
+  );
 
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated   = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // Computed summary from filtered records
-  const summary = useMemo(() => ({
-    total:   filtered.length,
-    present: filtered.filter(r => ['present', 'overtime'].includes(r.status)).length,
-    late:    filtered.filter(r => r.status === 'late').length,
-    absent:  filtered.filter(r => r.status === 'absent').length,
-  }), [filtered]);
+  const summary = useMemo(
+    () => ({
+      total: filtered.length,
+      present: filtered.filter((r) => ['present', 'overtime'].includes(r.status)).length,
+      late: filtered.filter((r) => r.status === 'late').length,
+      absent: filtered.filter((r) => r.status === 'absent').length,
+    }),
+    [filtered],
+  );
 
   const depts = useMemo(() => {
-    const set = new Set(records.map(r => r.department).filter(Boolean));
+    const set = new Set(records.map((r) => r.department).filter(Boolean));
     return Array.from(set);
   }, [records]);
 
   const handleExport = () => {
     const headers = ['Tanggal', 'Nama', 'ID', 'Unit', 'Status', 'Masuk', 'Keluar'];
-    const rows = filtered.map(a => [
+    const rows = filtered.map((a) => [
       a.date,
       a.employeeName,
       a.employeeId,
       a.department,
       a.status,
-      a.checkIn?.time  ? safeFormatTime(a.checkIn.time)  : '-',
+      a.checkIn?.time ? safeFormatTime(a.checkIn.time) : '-',
       a.checkOut?.time ? safeFormatTime(a.checkOut.time) : '-',
     ]);
-    const csv  = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = `Absensi_${month}.csv`; a.click();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Absensi_${month}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -203,13 +240,14 @@ export default function AttendanceHistoryPage() {
             <input
               type="month"
               value={month}
-              onChange={e => setMonth(e.target.value)}
+              onChange={(e) => setMonth(e.target.value)}
               className="bg-transparent border-none text-[12px] font-semibold text-slate-700 outline-none cursor-pointer w-28"
             />
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleExport}
             className="inline-flex items-center gap-2 h-9 px-4 text-white rounded-xl text-[12px] font-bold shadow-md"
             style={{ background: '#10B981', boxShadow: 'none' }}
@@ -222,10 +260,38 @@ export default function AttendanceHistoryPage() {
 
       {/* ── SUMMARY CARDS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <SummaryCard label="Total Record"  value={summary.total}   icon={Users}         color="text-blue-500"    bg="bg-blue-50"    delay={0.06} />
-        <SummaryCard label="Hadir"         value={summary.present} icon={CheckCircle2}  color="text-emerald-500" bg="bg-emerald-50" delay={0.1}  />
-        <SummaryCard label="Terlambat"     value={summary.late}    icon={Clock}         color="text-amber-500"   bg="bg-amber-50"   delay={0.14} />
-        <SummaryCard label="Tidak Hadir"   value={summary.absent}  icon={AlertCircle}   color="text-red-500"     bg="bg-red-50"     delay={0.18} />
+        <SummaryCard
+          label="Total Record"
+          value={summary.total}
+          icon={Users}
+          color="text-blue-500"
+          bg="bg-blue-50"
+          delay={0.06}
+        />
+        <SummaryCard
+          label="Hadir"
+          value={summary.present}
+          icon={CheckCircle2}
+          color="text-emerald-500"
+          bg="bg-emerald-50"
+          delay={0.1}
+        />
+        <SummaryCard
+          label="Terlambat"
+          value={summary.late}
+          icon={Clock}
+          color="text-amber-500"
+          bg="bg-amber-50"
+          delay={0.14}
+        />
+        <SummaryCard
+          label="Tidak Hadir"
+          value={summary.absent}
+          icon={AlertCircle}
+          color="text-red-500"
+          bg="bg-red-50"
+          delay={0.18}
+        />
       </div>
 
       {/* ── FILTERS ── */}
@@ -236,7 +302,7 @@ export default function AttendanceHistoryPage() {
             type="text"
             placeholder="Cari nama atau ID karyawan..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full h-10 bg-white border border-slate-200 rounded-xl pl-10 pr-4 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all shadow-sm"
           />
         </div>
@@ -244,11 +310,15 @@ export default function AttendanceHistoryPage() {
           <Building2 size={14} className="text-slate-400 shrink-0" />
           <select
             value={deptFilter}
-            onChange={e => setDeptFilter(e.target.value)}
+            onChange={(e) => setDeptFilter(e.target.value)}
             className="bg-transparent text-[12px] font-semibold text-slate-700 outline-none appearance-none cursor-pointer flex-1"
           >
             <option value="all">Semua Unit</option>
-            {depts.map(d => <option key={d} value={d}>{d}</option>)}
+            {depts.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
           </select>
           <Filter size={12} className="text-slate-400 shrink-0" />
         </div>
@@ -256,7 +326,8 @@ export default function AttendanceHistoryPage() {
 
       {/* ── TABLE ── */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
         className="bg-white border border-slate-100 rounded-2xl overflow-hidden"
         style={{ boxShadow: '0 2px 14px rgba(0,0,0,0.05)' }}
@@ -265,8 +336,20 @@ export default function AttendanceHistoryPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/60">
-                {['Karyawan', 'Tanggal', 'Unit / Dept', 'Jam Masuk', 'Jam Keluar', 'Foto', 'Status', 'Aksi'].map(h => (
-                  <th key={h} className="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                {[
+                  'Karyawan',
+                  'Tanggal',
+                  'Unit / Dept',
+                  'Jam Masuk',
+                  'Jam Keluar',
+                  'Foto',
+                  'Status',
+                  'Aksi',
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                  >
                     {h}
                   </th>
                 ))}
@@ -286,7 +369,9 @@ export default function AttendanceHistoryPage() {
                       <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
                         <History size={24} className="text-slate-300" />
                       </div>
-                      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-widest">Tidak ada data ditemukan</p>
+                      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-widest">
+                        Tidak ada data ditemukan
+                      </p>
                     </motion.div>
                   </td>
                 </tr>
@@ -307,8 +392,12 @@ export default function AttendanceHistoryPage() {
                             {rec.employeeName.charAt(0)}
                           </div>
                           <div>
-                            <p className="text-[13px] font-semibold text-slate-800 leading-tight">{rec.employeeName}</p>
-                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{rec.employeeId}</p>
+                            <p className="text-[13px] font-semibold text-slate-800 leading-tight">
+                              {rec.employeeName}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                              {rec.employeeId}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -353,7 +442,12 @@ export default function AttendanceHistoryPage() {
                       {/* Foto check-in */}
                       <td className="px-5 py-3.5">
                         {rec.checkIn?.photoUrl ? (
-                          <a href={rec.checkIn.photoUrl} target="_blank" rel="noreferrer" title="Lihat foto absen masuk">
+                          <a
+                            href={rec.checkIn.photoUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Lihat foto absen masuk"
+                          >
                             <img
                               src={rec.checkIn.photoUrl}
                               alt="foto absen"
@@ -361,7 +455,10 @@ export default function AttendanceHistoryPage() {
                             />
                           </a>
                         ) : (
-                          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center" title="Belum ada foto">
+                          <div
+                            className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center"
+                            title="Belum ada foto"
+                          >
                             <Camera size={13} className="text-slate-300" />
                           </div>
                         )}
@@ -380,9 +477,11 @@ export default function AttendanceHistoryPage() {
                           title="Hapus catatan"
                           className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
                         >
-                          {deleting === rec.id
-                            ? <Loader2 size={13} className="animate-spin" />
-                            : <Trash2 size={13} />}
+                          {deleting === rec.id ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={13} />
+                          )}
                         </button>
                       </td>
                     </motion.tr>
@@ -398,7 +497,8 @@ export default function AttendanceHistoryPage() {
           <p className="text-[11px] text-slate-400 font-medium">
             Menampilkan{' '}
             <span className="font-bold text-slate-700">
-              {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)}
+              {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
+              {Math.min(page * PAGE_SIZE, filtered.length)}
             </span>{' '}
             dari <span className="font-bold text-slate-700">{filtered.length}</span> data
           </p>
@@ -406,7 +506,7 @@ export default function AttendanceHistoryPage() {
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.92 }}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-emerald-300 hover:text-emerald-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
             >
@@ -438,7 +538,7 @@ export default function AttendanceHistoryPage() {
 
             <motion.button
               whileTap={{ scale: 0.92 }}
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-emerald-300 hover:text-emerald-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
             >

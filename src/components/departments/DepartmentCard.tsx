@@ -11,7 +11,12 @@ interface DepartmentCardProps {
   index: number;
 }
 
-export default function DepartmentCard({ department, onEdit, onDelete, index }: DepartmentCardProps) {
+export default function DepartmentCard({
+  department,
+  onEdit,
+  onDelete,
+  index,
+}: DepartmentCardProps) {
   const accent = department.color || '#10B981';
 
   return (
@@ -23,7 +28,10 @@ export default function DepartmentCard({ department, onEdit, onDelete, index }: 
       style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
     >
       {/* Accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: accent }} />
+      <div
+        className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
+        style={{ backgroundColor: accent }}
+      />
 
       <div className="flex items-start justify-between mb-4 mt-1">
         <div
@@ -51,7 +59,9 @@ export default function DepartmentCard({ department, onEdit, onDelete, index }: 
 
       <div className="mb-4">
         <div className="flex items-center gap-1.5 mb-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${department.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${department.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          />
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             {department.isActive ? 'Aktif' : 'Nonaktif'}
           </p>

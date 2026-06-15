@@ -44,7 +44,11 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 400 }}
             className="relative w-full overflow-hidden rounded-3xl shadow-2xl"
-            style={{ maxWidth, background: 'var(--surface-card)', border: '1px solid var(--border-card)' }}
+            style={{
+              maxWidth,
+              background: 'var(--surface-card)',
+              border: '1px solid var(--border-card)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Accent */}
@@ -52,7 +56,10 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
 
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-black uppercase tracking-tighter italic" style={{ color: 'var(--text-primary)' }}>
+                <h2
+                  className="text-2xl font-black uppercase tracking-tighter italic"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {title}
                 </h2>
                 <button
@@ -66,9 +73,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 560
                 </button>
               </div>
 
-              <div className="max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
-                {children}
-              </div>
+              <div className="max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">{children}</div>
             </div>
           </motion.div>
         </div>

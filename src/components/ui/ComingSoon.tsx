@@ -53,9 +53,7 @@ export default function ComingSoon({
         <h1 className="text-[26px] font-black text-slate-800 tracking-tight leading-tight">
           {title}
         </h1>
-        <p className="text-[13px] font-medium text-slate-500 mt-3 leading-relaxed">
-          {description}
-        </p>
+        <p className="text-[13px] font-medium text-slate-500 mt-3 leading-relaxed">{description}</p>
 
         {features.length > 0 && (
           <div className="mt-7 grid gap-2 text-left">

@@ -5,7 +5,6 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
 
 export const DAYS: { key: WorkDay; label: string }[] = [
-
   { key: 'monday', label: 'Sen' },
   { key: 'tuesday', label: 'Sel' },
   { key: 'wednesday', label: 'Rab' },
@@ -74,10 +73,10 @@ export function useJamKerjaManagement() {
   };
 
   const toggleDay = (day: WorkDay) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       workingDays: prev.workingDays.includes(day)
-        ? prev.workingDays.filter(d => d !== day)
+        ? prev.workingDays.filter((d) => d !== day)
         : [...prev.workingDays, day],
     }));
   };
@@ -108,11 +107,11 @@ export function useJamKerjaManagement() {
       message: `Hapus jam kerja "${name}"? Karyawan yang menggunakan skema ini mungkin terdampak.`,
       variant: 'danger',
       confirmLabel: 'Hapus',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (!isConfirmed) return;
-    
+
     try {
       await deleteJamKerja(id);
       toast.success('Skema jam kerja berhasil dihapus');
@@ -125,7 +124,7 @@ export function useJamKerjaManagement() {
   const calcDuration = (checkIn: string, checkOut: string) => {
     const [h1, m1] = checkIn.split(':').map(Number);
     const [h2, m2] = checkOut.split(':').map(Number);
-    let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+    let mins = h2 * 60 + m2 - (h1 * 60 + m1);
     if (mins < 0) mins += 24 * 60; // Handle cross-day shifts
     if (mins <= 0) return '-';
     return `${Math.floor(mins / 60)} jam ${mins % 60} menit`;

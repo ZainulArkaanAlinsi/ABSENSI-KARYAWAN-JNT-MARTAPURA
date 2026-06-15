@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Package, Search, Check, Loader2 } from 'lucide-react';
 import {
-  collection, query, where, getDocs, doc, setDoc, serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getEmployees } from '@/lib/firestore';
@@ -13,18 +19,22 @@ import type { Employee } from '@/types';
 import MonthlyTrend from '@/components/charts/MonthlyTrend';
 
 // Kurir = karyawan di departemen pengiriman.
-const isCourier = (dept?: string): boolean =>
-  !!dept && /rider|driver|delivery|kurir/i.test(dept);
+const isCourier = (dept?: string): boolean => !!dept && /rider|driver|delivery|kurir/i.test(dept);
 
-interface Entry { count: number; dirty: boolean; saving: boolean; saved: boolean; }
+interface Entry {
+  count: number;
+  dirty: boolean;
+  saving: boolean;
+  saved: boolean;
+}
 
 export default function PackagesPage() {
   const [couriers, setCouriers] = useState<Employee[]>([]);
-  const [date, setDate]         = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [entries, setEntries]   = useState<Record<string, Entry>>({});
-  const [loading, setLoading]   = useState(true);
-  const [q, setQ]               = useState('');
-  const [trend, setTrend]       = useState<{ day: string; value: number }[]>([]);
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [entries, setEntries] = useState<Record<string, Entry>>({});
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState('');
+  const [trend, setTrend] = useState<{ day: string; value: number }[]>([]);
 
   const monthPrefix = date.slice(0, 7); // yyyy-MM dari tanggal terpilih
 
@@ -35,11 +45,17 @@ export default function PackagesPage() {
       try {
         const emps = await getEmployees();
         if (alive) {
-          setCouriers(emps.filter((e) => isCourier(e.department as string) && e.isActive !== false));
+          setCouriers(
+            emps.filter((e) => isCourier(e.department as string) && e.isActive !== false),
+          );
         }
-      } catch (e) { console.error('load couriers', e); }
+      } catch (e) {
+        console.error('load couriers', e);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   // Data paket untuk tanggal terpilih.
@@ -48,17 +64,24 @@ export default function PackagesPage() {
     setLoading(true);
     (async () => {
       try {
-        const snap = await getDocs(query(collection(db, 'courier_packages'), where('date', '==', date)));
+        const snap = await getDocs(
+          query(collection(db, 'courier_packages'), where('date', '==', date)),
+        );
         const map: Record<string, Entry> = {};
         snap.docs.forEach((d) => {
           const data = d.data();
           map[data.userId] = { count: data.count ?? 0, dirty: false, saving: false, saved: true };
         });
         if (alive) setEntries(map);
-      } catch (e) { console.error('load packages', e); }
-      finally { if (alive) setLoading(false); }
+      } catch (e) {
+        console.error('load packages', e);
+      } finally {
+        if (alive) setLoading(false);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [date]);
 
   // Tren bulanan: total paket per hari dalam bulan terpilih.
@@ -66,11 +89,13 @@ export default function PackagesPage() {
     let alive = true;
     (async () => {
       try {
-        const snap = await getDocs(query(
-          collection(db, 'courier_packages'),
-          where('date', '>=', `${monthPrefix}-01`),
-          where('date', '<=', `${monthPrefix}-31`),
-        ));
+        const snap = await getDocs(
+          query(
+            collection(db, 'courier_packages'),
+            where('date', '>=', `${monthPrefix}-01`),
+            where('date', '<=', `${monthPrefix}-31`),
+          ),
+        );
         const byDay: Record<string, number> = {};
         snap.docs.forEach((d) => {
           const data = d.data();
@@ -84,46 +109,64 @@ export default function PackagesPage() {
           return { day: String(i + 1), value: byDay[dd] || 0 };
         });
         if (alive) setTrend(arr);
-      } catch (e) { console.error('load package trend', e); }
+      } catch (e) {
+        console.error('load package trend', e);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [monthPrefix]);
 
   const setCount = (uid: string, val: number) => {
     const n = Number.isFinite(val) ? Math.max(0, Math.floor(val)) : 0;
-    setEntries((prev) => ({ ...prev, [uid]: { count: n, dirty: true, saving: false, saved: false } }));
+    setEntries((prev) => ({
+      ...prev,
+      [uid]: { count: n, dirty: true, saving: false, saved: false },
+    }));
   };
 
-  const save = useCallback(async (c: Employee) => {
-    const entry = entries[c.uid];
-    if (!entry || !entry.dirty) return;
-    setEntries((prev) => ({ ...prev, [c.uid]: { ...prev[c.uid], saving: true } }));
-    const rule = getRuleByDept(c.department as string);
-    try {
-      await setDoc(
-        doc(db, 'courier_packages', `${date}_${c.uid}`),
-        {
-          userId: c.uid,
-          courierName: c.name,
-          department: c.department ?? '',
-          date,
-          count: entry.count,
-          target: rule?.dailyTarget ?? null,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
-      setEntries((prev) => ({ ...prev, [c.uid]: { ...prev[c.uid], dirty: false, saving: false, saved: true } }));
-    } catch (e) {
-      console.error('save package', e);
-      setEntries((prev) => ({ ...prev, [c.uid]: { ...prev[c.uid], saving: false } }));
-    }
-  }, [entries, date]);
+  const save = useCallback(
+    async (c: Employee) => {
+      const entry = entries[c.uid];
+      if (!entry || !entry.dirty) return;
+      setEntries((prev) => ({ ...prev, [c.uid]: { ...prev[c.uid], saving: true } }));
+      const rule = getRuleByDept(c.department as string);
+      try {
+        await setDoc(
+          doc(db, 'courier_packages', `${date}_${c.uid}`),
+          {
+            userId: c.uid,
+            courierName: c.name,
+            department: c.department ?? '',
+            date,
+            count: entry.count,
+            target: rule?.dailyTarget ?? null,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+        setEntries((prev) => ({
+          ...prev,
+          [c.uid]: { ...prev[c.uid], dirty: false, saving: false, saved: true },
+        }));
+      } catch (e) {
+        console.error('save package', e);
+        setEntries((prev) => ({ ...prev, [c.uid]: { ...prev[c.uid], saving: false } }));
+      }
+    },
+    [entries, date],
+  );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return couriers
-      .filter((c) => !term || c.name.toLowerCase().includes(term) || (c.department || '').toLowerCase().includes(term))
+      .filter(
+        (c) =>
+          !term ||
+          c.name.toLowerCase().includes(term) ||
+          (c.department || '').toLowerCase().includes(term),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [couriers, q]);
 
@@ -139,7 +182,9 @@ export default function PackagesPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Package size={18} style={{ color: '#E31E24' }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Operasional</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+              Operasional
+            </span>
           </div>
           <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
             Input <span style={{ color: '#E31E24' }}>Paket</span> Harian
@@ -150,15 +195,27 @@ export default function PackagesPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <p className="text-[26px] font-black tabular-nums leading-none" style={{ color: '#E31E24' }}>{total}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total paket</p>
+            <p
+              className="text-[26px] font-black tabular-nums leading-none"
+              style={{ color: '#E31E24' }}
+            >
+              {total}
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Total paket
+            </p>
           </div>
         </div>
       </div>
 
       {/* Tren bulanan */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-100" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Tren Paket Harian · {monthPrefix}</p>
+      <div
+        className="bg-white rounded-2xl p-5 border border-slate-100"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+      >
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
+          Tren Paket Harian · {monthPrefix}
+        </p>
         <MonthlyTrend data={trend} color="#E31E24" gradientId="pkgTrend" />
       </div>
 
@@ -191,7 +248,9 @@ export default function PackagesPage() {
             <Package size={26} />
           </div>
           <p className="text-sm font-bold text-slate-500">Belum ada kurir</p>
-          <p className="text-[12px] text-slate-400 mt-1">Tambah karyawan dept pengiriman di menu Karyawan.</p>
+          <p className="text-[12px] text-slate-400 mt-1">
+            Tambah karyawan dept pengiriman di menu Karyawan.
+          </p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -212,7 +271,8 @@ export default function PackagesPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-bold text-slate-800 truncate">{c.name}</p>
                   <p className="text-[11px] text-slate-400 truncate">
-                    {c.department || 'Kurir'}{target ? ` · target ${target}` : ''}
+                    {c.department || 'Kurir'}
+                    {target ? ` · target ${target}` : ''}
                   </p>
                   {pct !== null && (
                     <div className="mt-1.5 h-1.5 w-full max-w-[180px] rounded-full bg-slate-100 overflow-hidden">
@@ -232,13 +292,13 @@ export default function PackagesPage() {
                   className="w-20 text-center text-[15px] font-bold tabular-nums px-2 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
                 />
                 <div className="w-6 flex justify-center shrink-0">
-                  {entry.saving
-                    ? <Loader2 size={16} className="text-slate-400 animate-spin" />
-                    : entry.saved
-                      ? <Check size={16} className="text-emerald-500" />
-                      : entry.dirty
-                        ? <span className="text-[9px] font-bold text-amber-500 uppercase">simpan…</span>
-                        : null}
+                  {entry.saving ? (
+                    <Loader2 size={16} className="text-slate-400 animate-spin" />
+                  ) : entry.saved ? (
+                    <Check size={16} className="text-emerald-500" />
+                  ) : entry.dirty ? (
+                    <span className="text-[9px] font-bold text-amber-500 uppercase">simpan…</span>
+                  ) : null}
                 </div>
               </div>
             );
@@ -247,7 +307,8 @@ export default function PackagesPage() {
       )}
 
       <p className="text-[11px] text-slate-400">
-        Angka tersimpan otomatis saat keluar dari kolom input. Pilih tanggal lain untuk melihat / mengubah riwayat.
+        Angka tersimpan otomatis saat keluar dari kolom input. Pilih tanggal lain untuk melihat /
+        mengubah riwayat.
       </p>
     </div>
   );

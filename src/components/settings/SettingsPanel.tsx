@@ -91,8 +91,10 @@ export default function SettingsPanel({
           >
             <AlertCircle size={18} strokeWidth={2.5} className="shrink-0" />
             <div className="flex-1">
-               <p className="text-[10px] font-black uppercase tracking-widest mb-1">System Exception</p>
-               <p className="text-xs font-bold leading-relaxed">{error}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-1">
+                System Exception
+              </p>
+              <p className="text-xs font-bold leading-relaxed">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}

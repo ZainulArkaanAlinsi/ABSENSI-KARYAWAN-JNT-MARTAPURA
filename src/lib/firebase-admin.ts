@@ -31,7 +31,11 @@ if (!admin.apps.length && hasCredentials) {
   initialized = true;
 }
 
-export const adminAuth      = initialized ? admin.auth()      : (null as unknown as admin.auth.Auth);
-export const adminDb        = initialized ? admin.firestore() : (null as unknown as admin.firestore.Firestore);
-export const adminMessaging = initialized ? admin.messaging() : (null as unknown as admin.messaging.Messaging);
+export const adminAuth = initialized ? admin.auth() : (null as unknown as admin.auth.Auth);
+export const adminDb = initialized
+  ? admin.firestore()
+  : (null as unknown as admin.firestore.Firestore);
+export const adminMessaging = initialized
+  ? admin.messaging()
+  : (null as unknown as admin.messaging.Messaging);
 export const adminInitialized = initialized;

@@ -1,10 +1,19 @@
 'use client';
 
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
 } from 'recharts';
 
-export interface TrendPoint { day: string; value: number; }
+export interface TrendPoint {
+  day: string;
+  value: number;
+}
 
 /**
  * Grafik tren harian dalam satu bulan (area chart). Dipakai di halaman
@@ -49,7 +58,12 @@ export default function MonthlyTrend({
         <Tooltip
           formatter={(value) => fmt(Number(value))}
           labelFormatter={(l) => `Tanggal ${l}`}
-          contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, fontWeight: 600 }}
+          contentStyle={{
+            borderRadius: 12,
+            border: '1px solid #e2e8f0',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
         />
         <Area
           type="monotone"

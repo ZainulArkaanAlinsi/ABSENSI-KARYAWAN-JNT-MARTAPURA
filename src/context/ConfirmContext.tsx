@@ -31,10 +31,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const handleClose = useCallback((result: boolean) => {
-    setIsOpen(false);
-    if (resolver) resolver(result);
-  }, [resolver]);
+  const handleClose = useCallback(
+    (result: boolean) => {
+      setIsOpen(false);
+      if (resolver) resolver(result);
+    },
+    [resolver],
+  );
 
   return (
     <ConfirmContext.Provider value={{ confirm }}>
@@ -50,7 +53,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               onClick={() => handleClose(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            
+
             {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -60,14 +63,18 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             >
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
-                    options.variant === 'danger' ? 'bg-red-50 text-red-500 shadow-red-100' : 
-                    options.variant === 'warning' ? 'bg-amber-50 text-amber-500 shadow-amber-100' : 
-                    'bg-indigo-50 text-indigo-500 shadow-indigo-100'
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
+                      options.variant === 'danger'
+                        ? 'bg-red-50 text-red-500 shadow-red-100'
+                        : options.variant === 'warning'
+                          ? 'bg-amber-50 text-amber-500 shadow-amber-100'
+                          : 'bg-indigo-50 text-indigo-500 shadow-indigo-100'
+                    }`}
+                  >
                     <AlertCircle size={24} strokeWidth={2.5} />
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleClose(false)}
                     className="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
                   >
@@ -93,8 +100,8 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => handleClose(true)}
                   className={`flex-1 h-12 rounded-2xl text-[13px] font-black text-white shadow-xl transition-all active:scale-95 ${
-                    options.variant === 'danger' 
-                      ? 'bg-linear-to-br from-red-500 to-rose-600 shadow-red-200' 
+                    options.variant === 'danger'
+                      ? 'bg-linear-to-br from-red-500 to-rose-600 shadow-red-200'
                       : 'bg-linear-to-br from-slate-800 to-slate-950 shadow-slate-200'
                   }`}
                 >

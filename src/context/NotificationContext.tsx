@@ -1,10 +1,22 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { collection, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { listen } from '@/lib/firestoreListener';
-import { subscribeToNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/firestore';
+import {
+  subscribeToNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '@/lib/firestore';
 import type { AdminNotification } from '@/types';
 import { useAuth } from './AuthContext';
 
@@ -91,10 +103,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // Live count of unread chat messages addressed to this admin.
     // Status 'sent' / 'delivered' = unread; 'read' = read. Filter client-side
     // to avoid needing a composite index on receiverId + status.
-    const chatQuery = query(
-      collection(db, 'messages'),
-      where('receiverId', '==', user.uid),
-    );
+    const chatQuery = query(collection(db, 'messages'), where('receiverId', '==', user.uid));
     const unsubChat = listen(chatQuery, (snap) => {
       const unread = snap.docs.filter((d) => {
         const data = d.data();
@@ -122,9 +131,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAsRead = useCallback(async (id: string) => {
     try {
       await markNotificationRead(id);
-      setNotifications(prev =>
-        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
     } catch (error) {
       console.error('Gagal menandai notifikasi dibaca:', error);
     }
@@ -133,29 +140,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAllAsRead = useCallback(async () => {
     try {
       await markAllNotificationsRead(); // ← tanpa argumen
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, isRead: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (error) {
       console.error('Gagal menandai semua notifikasi dibaca:', error);
     }
   }, []);
 
-  const value = useMemo(() => ({
-    notifications,
-    unreadCount,
-    unreadNotifCount,
-    unreadChatCount,
-    markAsRead,
-    markAllAsRead,
-    isLoading,
-  }), [notifications, unreadCount, unreadNotifCount, unreadChatCount, markAsRead, markAllAsRead, isLoading]);
-
-  return (
-    <NotificationContext.Provider value={value}>
-      {children}
-    </NotificationContext.Provider>
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      unreadNotifCount,
+      unreadChatCount,
+      markAsRead,
+      markAllAsRead,
+      isLoading,
+    }),
+    [
+      notifications,
+      unreadCount,
+      unreadNotifCount,
+      unreadChatCount,
+      markAsRead,
+      markAllAsRead,
+      isLoading,
+    ],
   );
+
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 }
 
 export function useNotifications() {

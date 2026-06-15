@@ -14,8 +14,11 @@ export const TABS: { key: LeaveStatus | 'all'; label: string }[] = [
 ];
 
 export const LEAVE_TYPE_LABELS: Record<string, string> = {
-  sick: 'Sakit', annual: 'Cuti Tahunan', personal: 'Keperluan Pribadi',
-  emergency: 'Darurat', other: 'Lainnya',
+  sick: 'Sakit',
+  annual: 'Cuti Tahunan',
+  personal: 'Keperluan Pribadi',
+  emergency: 'Darurat',
+  other: 'Lainnya',
 };
 
 // Notifications (push + userNotifications mirror) are produced server-side by
@@ -51,7 +54,7 @@ export function useLeaveManagement() {
       message: `Apakah Anda yakin ingin menyetujui pengajuan izin dari ${leave.employeeName}?`,
       variant: 'info',
       confirmLabel: 'Setujui',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (!isConfirmed) return;
@@ -113,7 +116,7 @@ export function useLeaveManagement() {
     setShowRejectModal(true);
   };
 
-  const pendingCount = leaves.filter(l => l.status === 'pending').length;
+  const pendingCount = leaves.filter((l) => l.status === 'pending').length;
 
   return {
     user,

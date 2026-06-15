@@ -117,7 +117,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     dashboard: 'Dashboard',
     live: 'Live',
     dash_subtitle: 'Monitor JNE Martapura employee attendance in real-time',
-    dash_sec_today: 'Today\'s Statistics',
+    dash_sec_today: "Today's Statistics",
     dash_sec_summary: 'Summary',
     dash_sec_trends: 'Trends & Reports',
     present_today: 'Present Today',

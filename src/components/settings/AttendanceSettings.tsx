@@ -20,8 +20,12 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
               <Fingerprint size={24} strokeWidth={1.5} />
             </div>
             <div>
-              <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Biometric Protocol</h4>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Facial Recognition Parameters</p>
+              <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
+                Biometric Protocol
+              </h4>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                Facial Recognition Parameters
+              </p>
             </div>
           </div>
 
@@ -34,7 +38,7 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
                 {settings.faceSimilarityThreshold ?? 60}%
               </span>
             </div>
-            
+
             <div className="relative py-4">
               <input
                 type="range"
@@ -45,7 +49,11 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
                 value={settings.faceSimilarityThreshold ?? 60}
                 onChange={(e) => {
                   const val = e.target.value;
-                  update('attendance', 'faceSimilarityThreshold', val === '' ? 60 : parseInt(val, 10));
+                  update(
+                    'attendance',
+                    'faceSimilarityThreshold',
+                    val === '' ? 60 : parseInt(val, 10),
+                  );
                 }}
               />
               <div className="flex justify-between text-[9px] font-black text-slate-300 uppercase tracking-widest mt-4">
@@ -61,7 +69,11 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
               Security Attempt Limit
             </label>
             <div className="relative group">
-              <Activity size={16} strokeWidth={2.5} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <Activity
+                size={16}
+                strokeWidth={2.5}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors"
+              />
               <input
                 type="number"
                 min={1}
@@ -75,7 +87,8 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
               />
             </div>
             <p className="text-[10px] font-bold text-slate-400 leading-relaxed italic">
-              * The system will automatically suspend biometric access for the user if verification fails beyond this threshold.
+              * The system will automatically suspend biometric access for the user if verification
+              fails beyond this threshold.
             </p>
           </div>
         </div>
@@ -87,8 +100,12 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
             <ShieldCheck size={24} strokeWidth={1.5} />
           </div>
           <div>
-            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Operational Logic</h4>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Telemetry & Sync Behavior</p>
+            <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
+              Operational Logic
+            </h4>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+              Telemetry & Sync Behavior
+            </p>
           </div>
         </div>
 
@@ -124,7 +141,9 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
               className="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all group"
             >
               <div className="flex items-center gap-5 mb-8">
-                <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-sm`}>
+                <div
+                  className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-sm`}
+                >
                   <item.icon size={20} strokeWidth={2.5} />
                 </div>
                 <div className="flex-1">

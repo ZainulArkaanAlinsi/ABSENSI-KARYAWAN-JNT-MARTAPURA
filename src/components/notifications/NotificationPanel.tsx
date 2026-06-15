@@ -10,7 +10,7 @@ import {
   Bell,
   X,
   CheckCheck,
-  Zap
+  Zap,
 } from 'lucide-react';
 import type { NotificationType } from '@/types';
 import { useNotificationPanelLogic } from '@/hooks/useNotificationPanelLogic';
@@ -28,13 +28,13 @@ const toDate = (val: any): Date => {
 };
 
 const iconMap: Record<NotificationType, { icon: React.ElementType; color: string }> = {
-  leave_request:      { icon: FileText,      color: '#D97706' },
-  face_enrolled:      { icon: UserCheck,     color: '#10B981' },
-  face_failed:        { icon: AlertTriangle, color: '#EF4444' },
-  new_employee:       { icon: UserPlus,      color: '#005596' },
-  attendance_alert:   { icon: AlertTriangle, color: '#F59E0B' },
-  meeting_reminder:   { icon: Bell,          color: '#8B5CF6' },
-  system:             { icon: Zap,           color: '#64748B' },
+  leave_request: { icon: FileText, color: '#D97706' },
+  face_enrolled: { icon: UserCheck, color: '#10B981' },
+  face_failed: { icon: AlertTriangle, color: '#EF4444' },
+  new_employee: { icon: UserPlus, color: '#005596' },
+  attendance_alert: { icon: AlertTriangle, color: '#F59E0B' },
+  meeting_reminder: { icon: Bell, color: '#8B5CF6' },
+  system: { icon: Zap, color: '#64748B' },
 };
 
 interface NotificationPanelProps {
@@ -54,14 +54,16 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
       {/* Header */}
       <div className="px-6 py-5 border-b border-(--border-primary) bg-white/5 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-black text-(--text-primary) uppercase tracking-tight italic">Notifikasi</h3>
+          <h3 className="text-sm font-black text-(--text-primary) uppercase tracking-tight italic">
+            Notifikasi
+          </h3>
           <p className="text-[10px] font-bold text-(--text-muted) uppercase tracking-widest mt-0.5">
             {unreadCount > 0 ? `${unreadCount} Belum dibaca` : 'Sistem Optimal'}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <button 
+            <button
               onClick={markAllAsRead}
               className="p-2 text-(--text-muted) hover:text-[#005596] transition-colors"
               title="Tandai semua dibaca"
@@ -69,7 +71,7 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
               <CheckCheck size={18} />
             </button>
           )}
-          <button 
+          <button
             onClick={onClose}
             className="p-2 text-(--text-muted) hover:text-[#E31E24] transition-colors"
           >
@@ -85,7 +87,9 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-(--text-dim)">
               <Bell size={24} />
             </div>
-            <p className="text-xs font-black text-(--text-muted) uppercase tracking-widest">Tidak ada kabar baru</p>
+            <p className="text-xs font-black text-(--text-muted) uppercase tracking-widest">
+              Tidak ada kabar baru
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-(--border-primary)">
@@ -94,12 +98,12 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
               const Icon = config.icon;
 
               return (
-                <div 
+                <div
                   key={notif.id}
                   onClick={() => handleMarkRead(notif)}
                   className={`p-5 flex gap-4 transition-all cursor-pointer group hover:bg-white/5 ${notif.isRead ? 'opacity-60' : 'bg-[#E31E24]/2'}`}
                 >
-                  <div 
+                  <div
                     className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
                     style={{ backgroundColor: `${config.color}15`, color: config.color }}
                   >
@@ -111,7 +115,12 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
                         {notif.title}
                       </h4>
                       <span className="text-[9px] font-bold text-(--text-muted) whitespace-nowrap pt-0.5">
-                        {notif.createdAt ? formatDistanceToNow(toDate(notif.createdAt), { addSuffix: true, locale: localeId }) : 'Baru saja'}
+                        {notif.createdAt
+                          ? formatDistanceToNow(toDate(notif.createdAt), {
+                              addSuffix: true,
+                              locale: localeId,
+                            })
+                          : 'Baru saja'}
                       </span>
                     </div>
                     <p className="mt-1 text-[11px] font-medium text-(--text-secondary) line-clamp-2 leading-relaxed">
@@ -130,7 +139,7 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
 
       {/* Footer */}
       <div className="p-4 bg-white/5 border-t border-(--border-primary) text-center">
-        <button 
+        <button
           onClick={onClose}
           className="text-[10px] font-black text-(--text-muted) hover:text-(--text-primary) uppercase tracking-widest transition-colors"
         >

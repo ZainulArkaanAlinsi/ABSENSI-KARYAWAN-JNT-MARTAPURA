@@ -61,7 +61,10 @@ export default function AddEmployeeModal({
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-500 shadow-sm border border-emerald-100 dark:border-emerald-500/20">
               <CheckCircle size={40} strokeWidth={2.5} />
             </div>
-            <h3 className="text-xl font-black uppercase tracking-tight italic" style={{ color: 'var(--text-primary)' }}>
+            <h3
+              className="text-xl font-black uppercase tracking-tight italic"
+              style={{ color: 'var(--text-primary)' }}
+            >
               Personil Berhasil Didaftarkan!
             </h3>
             <p className="mt-2 text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -69,16 +72,35 @@ export default function AddEmployeeModal({
               <span className="font-black text-cyan-600">JNE123!</span>
             </p>
 
-            <div className="mt-8 w-full max-w-sm rounded-3xl border p-6 text-left"
-                 style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-card)' }}>
+            <div
+              className="mt-8 w-full max-w-sm rounded-3xl border p-6 text-left"
+              style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-card)' }}
+            >
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Employee ID</span>
-                  <span className="text-xs font-black italic" style={{ color: 'var(--text-primary)' }}>{form.employeeId}</span>
+                  <span
+                    className="text-[10px] font-black uppercase tracking-widest"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
+                    Employee ID
+                  </span>
+                  <span
+                    className="text-xs font-black italic"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {form.employeeId}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Login Email</span>
-                  <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{form.email}@jne.mtp.com</span>
+                  <span
+                    className="text-[10px] font-black uppercase tracking-widest"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
+                    Login Email
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {form.email}@jne.mtp.com
+                  </span>
                 </div>
               </div>
             </div>
@@ -100,31 +122,42 @@ export default function AddEmployeeModal({
           >
             {/* Header Info */}
             <div className="flex items-start gap-4 p-5 bg-cyan-600/5 rounded-3xl border border-cyan-600/10">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-cyan-600 shadow-sm shrink-0"
-                   style={{ background: 'var(--surface-card)' }}>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-cyan-600 shadow-sm shrink-0"
+                style={{ background: 'var(--surface-card)' }}
+              >
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <p className="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-1">Security Auto-Provisioning</p>
-                <p className="text-[10px] font-bold leading-relaxed uppercase italic" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-1">
+                  Security Auto-Provisioning
+                </p>
+                <p
+                  className="text-[10px] font-bold leading-relaxed uppercase italic"
+                  style={{ color: 'var(--text-muted)' }}
+                >
                   Sistem akan membuat akun otomatis dengan password default{' '}
-                  <span className="font-black text-cyan-600">JNE123!</span>.{' '}
-                  Karyawan diwajibkan mengganti password pada login pertama di aplikasi mobile.
+                  <span className="font-black text-cyan-600">JNE123!</span>. Karyawan diwajibkan
+                  mengganti password pada login pertama di aplikasi mobile.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-
               {/* --- BAGIAN KIRI: DATA PRIBADI --- */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Nama Lengkap <span className="text-red-500">*</span>
                   </label>
                   <div className="relative group">
-                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                    <User
+                      size={16}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                    />
                     <input
                       type="text"
                       placeholder="Masukkan nama sesuai KTP"
@@ -138,37 +171,55 @@ export default function AddEmployeeModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Email Corporate <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center">
                     <div className="relative flex-1 group">
-                      <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                      <Mail
+                        size={16}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                      />
                       <input
                         type="text"
                         placeholder="zainaril13"
                         className={`${inputCls} rounded-r-none`}
                         style={fieldStyle}
                         value={form.email}
-                        onChange={(e) => handleChange('email', e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                        onChange={(e) =>
+                          handleChange('email', e.target.value.toLowerCase().replace(/\s+/g, ''))
+                        }
                         required
                       />
                     </div>
-                    <div className="h-14 px-4 rounded-r-2xl flex items-center justify-center text-[10px] font-black italic border border-l-0"
-                         style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}>
+                    <div
+                      className="h-14 px-4 rounded-r-2xl flex items-center justify-center text-[10px] font-black italic border border-l-0"
+                      style={{
+                        background: 'var(--surface-hover)',
+                        borderColor: 'var(--border-default)',
+                        color: 'var(--text-dim)',
+                      }}
+                    >
                       @jne.mtp.com
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Nomor Telepon (WhatsApp)
                   </label>
                   <div className="relative group">
-                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                    <Phone
+                      size={16}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                    />
                     <input
                       type="text"
                       placeholder="+62 8XX XXXX XXXX"
@@ -184,12 +235,17 @@ export default function AddEmployeeModal({
               {/* --- BAGIAN KANAN: DATA PEKERJAAN --- */}
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Unit Kerja / Departemen <span className="text-red-500">*</span>
                   </label>
                   <div className="relative group">
-                    <Building size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                    <Building
+                      size={16}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                    />
                     <select
                       className={selectCls}
                       style={fieldStyle}
@@ -197,9 +253,13 @@ export default function AddEmployeeModal({
                       onChange={(e) => handleChange('department', e.target.value)}
                       required
                     >
-                      <option value="" disabled>Pilih Unit Kerja</option>
+                      <option value="" disabled>
+                        Pilih Unit Kerja
+                      </option>
                       {departmentItems.map((d) => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
                       ))}
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -209,12 +269,17 @@ export default function AddEmployeeModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Jabatan Spesifik <span className="text-red-500">*</span>
                   </label>
                   <div className="relative group">
-                    <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors" />
+                    <Briefcase
+                      size={16}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                    />
                     <select
                       className={selectCls}
                       style={fieldStyle}
@@ -222,7 +287,9 @@ export default function AddEmployeeModal({
                       onChange={(e) => handleChange('position', e.target.value)}
                       required
                     >
-                      <option value="" disabled>Pilih Jabatan</option>
+                      <option value="" disabled>
+                        Pilih Jabatan
+                      </option>
                       <option value="Kurir Rider (Motor)">Kurir Rider (Motor)</option>
                       <option value="Kurir Driver (Mobil)">Kurir Driver (Mobil)</option>
                       <option value="Staff Gudang Inbound">Staff Gudang Inbound</option>
@@ -239,31 +306,49 @@ export default function AddEmployeeModal({
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest ml-1"
-                         style={{ color: 'var(--text-dim)' }}>
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Izin Absen Luar (Remote)
                   </label>
                   <div
-                    onClick={() => handleChange('allowRemoteAttendance', !form.allowRemoteAttendance)}
+                    onClick={() =>
+                      handleChange('allowRemoteAttendance', !form.allowRemoteAttendance)
+                    }
                     className="h-14 rounded-2xl px-5 flex items-center justify-between cursor-pointer transition-all shadow-sm border"
-                    style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-default)' }}
+                    style={{
+                      background: 'var(--surface-hover)',
+                      borderColor: 'var(--border-default)',
+                    }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.allowRemoteAttendance ? 'bg-cyan-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.allowRemoteAttendance ? 'bg-cyan-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}
+                      >
                         <Satellite size={16} />
                       </div>
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-tight italic leading-none mb-1"
-                           style={{ color: 'var(--text-primary)' }}>
+                        <p
+                          className="text-[11px] font-black uppercase tracking-tight italic leading-none mb-1"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
                           {form.allowRemoteAttendance ? 'Aktif' : 'Non-aktif'}
                         </p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
+                        <p
+                          className="text-[8px] font-bold uppercase tracking-widest"
+                          style={{ color: 'var(--text-dim)' }}
+                        >
                           Bypass Radius Hub
                         </p>
                       </div>
                     </div>
-                    <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${form.allowRemoteAttendance ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                      <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${form.allowRemoteAttendance ? 'translate-x-6' : 'translate-x-0'}`} />
+                    <div
+                      className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${form.allowRemoteAttendance ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    >
+                      <div
+                        className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${form.allowRemoteAttendance ? 'translate-x-6' : 'translate-x-0'}`}
+                      />
                     </div>
                   </div>
                 </div>
@@ -271,10 +356,16 @@ export default function AddEmployeeModal({
             </div>
 
             {/* --- SHIFT SELECTION --- */}
-            <div className="space-y-4 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
-              <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-2"
-                     style={{ color: 'var(--text-dim)' }}>
-                <Clock size={14} /> Jam Kerja & Jadwal Operasional <span className="text-red-500">*</span>
+            <div
+              className="space-y-4 pt-4 border-t"
+              style={{ borderColor: 'var(--border-default)' }}
+            >
+              <label
+                className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-2"
+                style={{ color: 'var(--text-dim)' }}
+              >
+                <Clock size={14} /> Jam Kerja & Jadwal Operasional{' '}
+                <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-4">
                 {jamKerjas.map((shift) => {
@@ -289,30 +380,45 @@ export default function AddEmployeeModal({
                           ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5'
                           : 'hover:scale-[1.01]'
                       }`}
-                      style={!isSelected ? {
-                        borderColor: 'var(--border-card)',
-                        background: 'var(--surface-card)',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                      } : undefined}
+                      style={
+                        !isSelected
+                          ? {
+                              borderColor: 'var(--border-card)',
+                              background: 'var(--surface-card)',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                            }
+                          : undefined
+                      }
                     >
                       <div className="flex justify-between items-start mb-3">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
-                             style={!isSelected ? { background: 'var(--surface-hover)' } : undefined}>
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+                          style={!isSelected ? { background: 'var(--surface-hover)' } : undefined}
+                        >
                           <Clock size={16} />
                         </div>
-                        <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
-                          shift.name.toLowerCase().includes('pagi') ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-                          shift.name.toLowerCase().includes('sore') ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                          'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                        }`}>
+                        <span
+                          className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
+                            shift.name.toLowerCase().includes('pagi')
+                              ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                              : shift.name.toLowerCase().includes('sore')
+                                ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                          }`}
+                        >
                           {shift.name.split(' ')[0]}
                         </span>
                       </div>
-                      <p className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
-                         style={!isSelected ? { color: 'var(--text-primary)' } : undefined}>
+                      <p
+                        className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
+                        style={!isSelected ? { color: 'var(--text-primary)' } : undefined}
+                      >
                         {shift.name}
                       </p>
-                      <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter" style={{ color: 'var(--text-dim)' }}>
+                      <p
+                        className="text-[10px] font-bold mt-1 uppercase tracking-tighter"
+                        style={{ color: 'var(--text-dim)' }}
+                      >
                         {shift.checkInTime} — {shift.checkOutTime}
                       </p>
                     </button>
@@ -324,7 +430,10 @@ export default function AddEmployeeModal({
             {/* --- FOOTER --- */}
             <div className="flex items-center justify-between pt-6">
               <div className="flex flex-col">
-                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
+                <p
+                  className="text-[10px] font-black uppercase tracking-widest"
+                  style={{ color: 'var(--text-dim)' }}
+                >
                   Status Kontrak
                 </p>
                 <div className="flex gap-2 mt-2">
@@ -338,10 +447,14 @@ export default function AddEmployeeModal({
                           ? 'bg-slate-950 dark:bg-emerald-500 text-white border-transparent'
                           : 'text-slate-400 dark:text-slate-500'
                       }`}
-                      style={form.contractType !== type ? {
-                        background: 'var(--surface-card)',
-                        borderColor: 'var(--border-default)',
-                      } : undefined}
+                      style={
+                        form.contractType !== type
+                          ? {
+                              background: 'var(--surface-card)',
+                              borderColor: 'var(--border-default)',
+                            }
+                          : undefined
+                      }
                     >
                       {type === 'permanent' ? 'Tetap' : type === 'contract' ? 'Kontrak' : 'Magang'}
                     </button>

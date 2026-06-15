@@ -31,7 +31,7 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
             onChange={(e) => update('office', 'name', e.target.value)}
           />
         </div>
-        
+
         <div className="space-y-3">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
             <LocateFixed size={12} strokeWidth={3} className="text-primary" />
@@ -53,7 +53,11 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               Latitude
             </label>
             <div className="relative group">
-              <MapPin size={16} strokeWidth={2.5} className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${latInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`} />
+              <MapPin
+                size={16}
+                strokeWidth={2.5}
+                className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${latInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`}
+              />
               <input
                 type="number"
                 step="0.000001"
@@ -66,7 +70,9 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               />
             </div>
             {latInvalid && (
-              <p className="text-[10px] font-bold text-red-500">Latitude harus antara -90 dan 90 (mungkin tertukar dgn Longitude).</p>
+              <p className="text-[10px] font-bold text-red-500">
+                Latitude harus antara -90 dan 90 (mungkin tertukar dgn Longitude).
+              </p>
             )}
           </div>
           <div className="space-y-3">
@@ -74,7 +80,11 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               Longitude
             </label>
             <div className="relative group">
-              <MapPin size={16} strokeWidth={2.5} className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${lngInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`} />
+              <MapPin
+                size={16}
+                strokeWidth={2.5}
+                className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${lngInvalid ? 'text-red-400' : 'text-slate-300 group-focus-within:text-primary'}`}
+              />
               <input
                 type="number"
                 step="0.000001"
@@ -87,7 +97,9 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               />
             </div>
             {lngInvalid && (
-              <p className="text-[10px] font-bold text-red-500">Longitude harus antara -180 dan 180.</p>
+              <p className="text-[10px] font-bold text-red-500">
+                Longitude harus antara -180 dan 180.
+              </p>
             )}
           </div>
         </div>
@@ -118,13 +130,15 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                 Geofence Perimeter
               </label>
-              <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Operational enforcement radius</p>
+              <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                Operational enforcement radius
+              </p>
             </div>
             <span className="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-black tracking-widest shadow-lg shadow-slate-200">
               {settings.radiusMeters ?? 50}M
             </span>
           </div>
-          
+
           <div className="relative py-4 group">
             <input
               type="range"
@@ -150,7 +164,9 @@ export default function OfficeSettings({ settings, update }: OfficeSettingsProps
             <MapPin size={20} strokeWidth={2.5} className="text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Active Perimeter Locked</p>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
+              Active Perimeter Locked
+            </p>
             <p className="text-sm font-black text-slate-900 tracking-tight">
               {settings.latitude?.toFixed(6) ?? '—'}, {settings.longitude?.toFixed(6) ?? '—'}
             </p>

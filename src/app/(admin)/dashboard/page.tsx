@@ -2,16 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  UserX, Calendar, CheckCircle2,
-  ArrowUpRight, Clock, TrendingUp,
-  Wifi, ScanFace, Timer, Target,
+  UserX,
+  Calendar,
+  CheckCircle2,
+  ArrowUpRight,
+  Clock,
+  TrendingUp,
+  Wifi,
+  ScanFace,
+  Timer,
+  Target,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale, enUS } from 'date-fns/locale';
 import { motion, animate, AnimatePresence } from 'framer-motion';
-import {
-  AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from 'recharts';
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useT } from '@/lib/i18n';
 import Link from 'next/link';
@@ -24,7 +29,7 @@ function useCountUp(target: number, duration = 0.8, delay = 0) {
       const ctrl = animate(0, target, {
         duration,
         ease: [0.22, 1, 0.36, 1],
-        onUpdate: v => setCount(Math.round(v)),
+        onUpdate: (v) => setCount(Math.round(v)),
       });
       return () => ctrl.stop();
     }, delay * 1000);
@@ -42,10 +47,7 @@ function SectionDivider({ label, index = 0 }: { label: string; index?: number })
       transition={{ duration: 0.3, delay: index * 0.08 }}
       className="flex items-center gap-3 py-1"
     >
-      <span
-        className="w-2 h-2 rounded-sm shrink-0"
-        style={{ background: '#E31E24' }}
-      />
+      <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: '#E31E24' }} />
       <span
         className="text-[9px] font-black uppercase tracking-[0.3em] shrink-0"
         style={{ color: '#E31E24' }}
@@ -61,8 +63,16 @@ function SectionDivider({ label, index = 0 }: { label: string; index?: number })
 }
 
 // ─── Hero Stat Card (big card) ─────────────────────────────────────────────────
-function HeroCard({ present, total, pct, delay }: {
-  present: number; total: number; pct: number; delay: number;
+function HeroCard({
+  present,
+  total,
+  pct,
+  delay,
+}: {
+  present: number;
+  total: number;
+  pct: number;
+  delay: number;
 }) {
   const n = useCountUp(present, 1.0, delay);
   const p = useCountUp(pct, 1.0, delay + 0.1);
@@ -84,7 +94,8 @@ function HeroCard({ present, total, pct, delay }: {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)',
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)',
           backgroundSize: '20px 20px',
         }}
       />
@@ -108,7 +119,10 @@ function HeroCard({ present, total, pct, delay }: {
       </div>
 
       <div className="relative z-10">
-        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
+        <div
+          className="h-2 rounded-full overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.2)' }}
+        >
           <motion.div
             className="h-full rounded-full bg-white"
             initial={{ width: 0 }}
@@ -116,16 +130,33 @@ function HeroCard({ present, total, pct, delay }: {
             transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: delay + 0.3 }}
           />
         </div>
-        <p className="text-[10px] font-bold text-red-100 mt-1.5">{p}% {t('attendance_rate')}</p>
+        <p className="text-[10px] font-bold text-red-100 mt-1.5">
+          {p}% {t('attendance_rate')}
+        </p>
       </div>
     </motion.div>
   );
 }
 
 // ─── Small Stat Card ───────────────────────────────────────────────────────────
-function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
-  label: string; value: number; icon: React.ElementType;
-  color: string; bg: string; sub: string; delay: number; tag?: string;
+function SmallCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  bg,
+  sub,
+  delay,
+  tag,
+}: {
+  label: string;
+  value: number;
+  icon: React.ElementType;
+  color: string;
+  bg: string;
+  sub: string;
+  delay: number;
+  tag?: string;
 }) {
   const n = useCountUp(value, 0.8, delay);
   return (
@@ -142,7 +173,10 @@ function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
       }}
     >
       <div className="flex items-center justify-between">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: bg }}
+        >
           <Icon size={16} style={{ color }} strokeWidth={2} />
         </div>
         {tag && (
@@ -155,7 +189,10 @@ function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
         )}
       </div>
       <div>
-        <span className="text-[32px] font-black leading-none tabular-nums" style={{ color: 'var(--text-primary)' }}>
+        <span
+          className="text-[32px] font-black leading-none tabular-nums"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {n}
         </span>
         <span className="text-[11px] text-slate-400 ml-1 font-medium">{sub}</span>
@@ -166,9 +203,22 @@ function SmallCard({ label, value, icon: Icon, color, bg, sub, delay, tag }: {
 }
 
 // ─── Mini Metric (compact summary) ─────────────────────────────────────────────
-function MiniMetric({ label, value, suffix, icon: Icon, color, bg, delay }: {
-  label: string; value: number; suffix?: string; icon: React.ElementType;
-  color: string; bg: string; delay: number;
+function MiniMetric({
+  label,
+  value,
+  suffix,
+  icon: Icon,
+  color,
+  bg,
+  delay,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  icon: React.ElementType;
+  color: string;
+  bg: string;
+  delay: number;
 }) {
   const n = useCountUp(value, 0.8, delay);
   return (
@@ -184,12 +234,20 @@ function MiniMetric({ label, value, suffix, icon: Icon, color, bg, delay }: {
         boxShadow: 'var(--shadow-card)',
       }}
     >
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: bg }}
+      >
         <Icon size={17} style={{ color }} strokeWidth={2} />
       </div>
       <div className="min-w-0">
         <div className="flex items-baseline gap-1">
-          <span className="text-[22px] font-black leading-none tabular-nums" style={{ color: 'var(--text-primary)' }}>{n}</span>
+          <span
+            className="text-[22px] font-black leading-none tabular-nums"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {n}
+          </span>
           {suffix && <span className="text-[11px] font-bold text-slate-400">{suffix}</span>}
         </div>
         <p className="text-[10.5px] font-semibold text-slate-500 truncate mt-1">{label}</p>
@@ -217,15 +275,21 @@ function PendingBannerCard({ pending, delay }: { pending: number; delay: number 
         }}
       >
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: '#E6EEF8' }}>
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: '#E6EEF8' }}
+          >
             <Calendar size={18} style={{ color: '#004080' }} strokeWidth={2} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">{t('leave_queue')}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+              {t('leave_queue')}
+            </p>
             <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>
-              <span className="text-[20px] font-black tabular-nums" style={{ color: '#004080' }}>{n}</span>
-              {' '}{t('requests_awaiting')}
+              <span className="text-[20px] font-black tabular-nums" style={{ color: '#004080' }}>
+                {n}
+              </span>{' '}
+              {t('requests_awaiting')}
             </p>
           </div>
         </div>
@@ -252,7 +316,12 @@ const ChartTooltip = ({ active, payload, label }: any) => {
         <div key={p.dataKey} className="flex items-center gap-1.5 mb-0.5">
           <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
           <span className="text-slate-500">
-            {p.dataKey === 'present' ? t('present') : p.dataKey === 'late' ? t('late') : t('absent')}:
+            {p.dataKey === 'present'
+              ? t('present')
+              : p.dataKey === 'late'
+                ? t('late')
+                : t('absent')}
+            :
           </span>
           <span className="font-bold text-slate-800 ml-auto pl-2">{p.value}</span>
         </div>
@@ -268,27 +337,34 @@ function RequestRow({ req, i }: { req: any; i: number }) {
   return (
     <Link href={isSOS ? '/requests' : '/leaves'}>
       <motion.div
-        initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0, x: -6 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.28, delay: 0.38 + i * 0.05 }}
         className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
       >
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[12px] font-black shrink-0 ${
-          isSOS ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
-        }`}>
-          {isSOS ? '!' : req.employeeName?.charAt(0)?.toUpperCase() ?? '?'}
+        <div
+          className={`w-8 h-8 rounded-xl flex items-center justify-center text-[12px] font-black shrink-0 ${
+            isSOS ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+          }`}
+        >
+          {isSOS ? '!' : (req.employeeName?.charAt(0)?.toUpperCase() ?? '?')}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-slate-700 truncate">{req.employeeName}</p>
-          <p className="text-[11px] text-slate-400 capitalize">{req.type} · {req.totalDays ?? 1} {t('days_short')}</p>
+          <p className="text-[11px] text-slate-400 capitalize">
+            {req.type} · {req.totalDays ?? 1} {t('days_short')}
+          </p>
         </div>
         {isSOS && (
-          <span className="text-[9px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase shrink-0">SOS</span>
+          <span className="text-[9px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase shrink-0">
+            SOS
+          </span>
         )}
         <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
           {(() => {
             const dateVal = req.startDate || req.createdAt || req.timestamp;
             if (!dateVal) return t('today');
-            
+
             let d: Date | null = null;
             try {
               if (dateVal instanceof Date) {
@@ -301,7 +377,7 @@ function RequestRow({ req, i }: { req: any; i: number }) {
             } catch (e) {
               console.error('Date parsing error:', e);
             }
-            
+
             if (!d || isNaN(d.getTime())) return t('today');
             return format(d, 'dd MMM', { locale: lang === 'en' ? enUS : idLocale });
           })()}
@@ -353,31 +429,33 @@ export default function Dashboard() {
 
   if (loading) return <Skeleton />;
 
-  const total   = s?.totalEmployees ?? 0;
-  const present = s?.presentToday   ?? 0;
-  const late    = s?.lateToday      ?? 0;
-  const absent  = s?.absentToday    ?? 0;
-  const pending = s?.pendingLeaves  ?? 0;
-  const pct     = total ? Math.round((present / total) * 100) : 0;
+  const total = s?.totalEmployees ?? 0;
+  const present = s?.presentToday ?? 0;
+  const late = s?.lateToday ?? 0;
+  const absent = s?.absentToday ?? 0;
+  const pending = s?.pendingLeaves ?? 0;
+  const pct = total ? Math.round((present / total) * 100) : 0;
   const requests = (s?.pendingRequests ?? []).slice(0, 6);
 
-  const online      = s?.onlineNowCount      ?? 0;
-  const faceReg     = s?.faceRegisteredCount ?? 0;
-  const overtimeH   = s?.overtimeThisMonth   ?? 0;
-  const punctuality = s?.punctualityRate     ?? 0;
+  const online = s?.onlineNowCount ?? 0;
+  const faceReg = s?.faceRegisteredCount ?? 0;
+  const overtimeH = s?.overtimeThisMonth ?? 0;
+  const punctuality = s?.punctualityRate ?? 0;
 
   return (
     <div className="flex flex-col gap-4 pb-4">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">{t('live')}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">
+              {t('live')}
+            </span>
           </span>
           <p className="text-[11px] font-medium text-slate-400 tabular-nums">
             {format(now, 'EEEE, dd MMMM yyyy', { locale: lang === 'en' ? enUS : idLocale })}
@@ -386,12 +464,9 @@ export default function Dashboard() {
           </p>
         </div>
         <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
-          {t('dashboard')}{' '}
-          <span style={{ color: '#E31E24' }}>{t('nav_attendance')}</span>
+          {t('dashboard')} <span style={{ color: '#E31E24' }}>{t('nav_attendance')}</span>
         </h1>
-        <p className="text-[12px] font-medium text-slate-400 mt-0.5">
-          {t('dash_subtitle')}
-        </p>
+        <p className="text-[12px] font-medium text-slate-400 mt-0.5">{t('dash_subtitle')}</p>
       </motion.div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
@@ -409,20 +484,42 @@ export default function Dashboard() {
         {/* Small cards stacked */}
         <div className="col-span-3 sm:col-span-2 grid grid-cols-2 gap-3">
           <SmallCard
-            label={t('late_today')} value={late} icon={Clock}
-            color="#D97706" bg="#FEF3C7" sub={t('people')} delay={0.18} tag={t('late')}
+            label={t('late_today')}
+            value={late}
+            icon={Clock}
+            color="#D97706"
+            bg="#FEF3C7"
+            sub={t('people')}
+            delay={0.18}
+            tag={t('late')}
           />
           <SmallCard
-            label={t('not_present')} value={absent} icon={UserX}
-            color="#E31E24" bg="#FDECEA" sub={t('people')} delay={0.24} tag={t('absent')}
+            label={t('not_present')}
+            value={absent}
+            icon={UserX}
+            color="#E31E24"
+            bg="#FDECEA"
+            sub={t('people')}
+            delay={0.24}
+            tag={t('absent')}
           />
           <SmallCard
-            label={t('total_employees')} value={total} icon={TrendingUp}
-            color="#7C3AED" bg="#EDE9FE" sub={t('people')} delay={0.30}
+            label={t('total_employees')}
+            value={total}
+            icon={TrendingUp}
+            color="#7C3AED"
+            bg="#EDE9FE"
+            sub={t('people')}
+            delay={0.3}
           />
           <SmallCard
-            label={t('present_today')} value={present} icon={CheckCircle2}
-            color="#059669" bg="#D1FAE5" sub={t('people')} delay={0.36}
+            label={t('present_today')}
+            value={present}
+            icon={CheckCircle2}
+            color="#059669"
+            bg="#D1FAE5"
+            sub={t('people')}
+            delay={0.36}
           />
         </div>
       </div>
@@ -435,10 +532,41 @@ export default function Dashboard() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <SectionDivider label={t('dash_sec_summary')} index={2} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MiniMetric label={t('online_now')}     value={online}      icon={Wifi}     color="#059669" bg="#D1FAE5" delay={0.44} />
-        <MiniMetric label={t('face_registered')} value={faceReg}    suffix={`/ ${total}`} icon={ScanFace} color="#7C3AED" bg="#EDE9FE" delay={0.48} />
-        <MiniMetric label={t('overtime_month')} value={overtimeH}   suffix={t('hours')} icon={Timer}    color="#D97706" bg="#FEF3C7" delay={0.52} />
-        <MiniMetric label={t('punctuality')}    value={punctuality} suffix="%"      icon={Target}   color="#004080" bg="#E6EEF8" delay={0.56} />
+        <MiniMetric
+          label={t('online_now')}
+          value={online}
+          icon={Wifi}
+          color="#059669"
+          bg="#D1FAE5"
+          delay={0.44}
+        />
+        <MiniMetric
+          label={t('face_registered')}
+          value={faceReg}
+          suffix={`/ ${total}`}
+          icon={ScanFace}
+          color="#7C3AED"
+          bg="#EDE9FE"
+          delay={0.48}
+        />
+        <MiniMetric
+          label={t('overtime_month')}
+          value={overtimeH}
+          suffix={t('hours')}
+          icon={Timer}
+          color="#D97706"
+          bg="#FEF3C7"
+          delay={0.52}
+        />
+        <MiniMetric
+          label={t('punctuality')}
+          value={punctuality}
+          suffix="%"
+          icon={Target}
+          color="#004080"
+          bg="#E6EEF8"
+          delay={0.56}
+        />
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
@@ -447,10 +575,10 @@ export default function Dashboard() {
       <SectionDivider label={t('dash_sec_trends')} index={3} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-
         {/* Weekly chart */}
         <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.46 }}
           className="lg:col-span-7 rounded-2xl overflow-hidden"
           style={{
@@ -459,9 +587,15 @@ export default function Dashboard() {
             boxShadow: 'var(--shadow-card)',
           }}
         >
-          <div className="px-5 pt-5 pb-3 flex items-start justify-between" style={{ borderBottom: '1px solid var(--border-default)' }}>
+          <div
+            className="px-5 pt-5 pb-3 flex items-start justify-between"
+            style={{ borderBottom: '1px solid var(--border-default)' }}
+          >
             <div>
-              <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
+              <h3
+                className="editorial-heading text-[15px]"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 {t('weekly_trend')}
               </h3>
               <p className="text-[11px] text-slate-400 mt-0.5">{t('last_7_days')}</p>
@@ -471,9 +605,12 @@ export default function Dashboard() {
                 { color: '#059669', label: t('present') },
                 { color: '#D97706', label: t('late') },
                 { color: '#E31E24', label: t('absent') },
-              ].map(l => (
+              ].map((l) => (
                 <span key={l.label} className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-sm inline-block" style={{ background: l.color }} />
+                  <span
+                    className="w-2 h-2 rounded-sm inline-block"
+                    style={{ background: l.color }}
+                  />
                   {l.label}
                 </span>
               ))}
@@ -484,15 +621,15 @@ export default function Dashboard() {
               <AreaChart data={weeklyData} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#059669" stopOpacity={0.15} />
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#059669" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gLate" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#D97706" stopOpacity={0.12} />
+                    <stop offset="5%" stopColor="#D97706" stopOpacity={0.12} />
                     <stop offset="95%" stopColor="#D97706" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gAbsent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#E31E24" stopOpacity={0.1} />
+                    <stop offset="5%" stopColor="#E31E24" stopOpacity={0.1} />
                     <stop offset="95%" stopColor="#E31E24" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -503,13 +640,38 @@ export default function Dashboard() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#E2E8F0', strokeWidth: 1 }} />
-                <Area type="monotone" dataKey="present" stroke="#059669" strokeWidth={2.5}
-                  fill="url(#gPresent)" dot={false} activeDot={{ r: 4, fill: '#059669' }} />
-                <Area type="monotone" dataKey="late"    stroke="#D97706" strokeWidth={2}
-                  fill="url(#gLate)"    dot={false} activeDot={{ r: 4, fill: '#D97706' }} />
-                <Area type="monotone" dataKey="absent"  stroke="#E31E24" strokeWidth={1.5}
-                  fill="url(#gAbsent)"  dot={false} strokeDasharray="4 3" activeDot={{ r: 4, fill: '#E31E24' }} />
+                <Tooltip
+                  content={<ChartTooltip />}
+                  cursor={{ stroke: '#E2E8F0', strokeWidth: 1 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="present"
+                  stroke="#059669"
+                  strokeWidth={2.5}
+                  fill="url(#gPresent)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: '#059669' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="late"
+                  stroke="#D97706"
+                  strokeWidth={2}
+                  fill="url(#gLate)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: '#D97706' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="absent"
+                  stroke="#E31E24"
+                  strokeWidth={1.5}
+                  fill="url(#gAbsent)"
+                  dot={false}
+                  strokeDasharray="4 3"
+                  activeDot={{ r: 4, fill: '#E31E24' }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -517,7 +679,8 @@ export default function Dashboard() {
 
         {/* Approval queue */}
         <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.52 }}
           className="lg:col-span-5 rounded-2xl overflow-hidden flex flex-col"
           style={{
@@ -531,7 +694,10 @@ export default function Dashboard() {
             style={{ borderBottom: '1px solid var(--border-default)' }}
           >
             <div>
-              <h3 className="editorial-heading text-[15px]" style={{ color: 'var(--text-primary)' }}>
+              <h3
+                className="editorial-heading text-[15px]"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 {t('approval_queue')}
               </h3>
               <p className="text-[11px] text-slate-400 mt-0.5">{t('leave_awaiting_review')}</p>
@@ -548,14 +714,15 @@ export default function Dashboard() {
           </div>
           <div className="p-2 flex-1 overflow-auto">
             <AnimatePresence>
-              {requests.length > 0
-                ? requests.map((r: any, i: number) => <RequestRow key={r.id} req={r} i={i} />)
-                : <Empty icon={CheckCircle2} text={t('queue_empty')} />}
+              {requests.length > 0 ? (
+                requests.map((r: any, i: number) => <RequestRow key={r.id} req={r} i={i} />)
+              ) : (
+                <Empty icon={CheckCircle2} text={t('queue_empty')} />
+              )}
             </AnimatePresence>
           </div>
         </motion.div>
       </div>
-
     </div>
   );
 }

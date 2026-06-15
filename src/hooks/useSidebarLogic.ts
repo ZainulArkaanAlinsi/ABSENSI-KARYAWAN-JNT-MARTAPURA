@@ -1,12 +1,12 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useConfirm } from '@/context/ConfirmContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Clock, 
-  Calendar, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  Clock,
+  Calendar,
+  FileText,
   Settings,
   Map,
   Layers,
@@ -23,7 +23,7 @@ import {
   Receipt,
   History,
   ClipboardCheck,
-  Building2
+  Building2,
 } from 'lucide-react';
 
 export function useSidebarLogic() {
@@ -75,7 +75,7 @@ export function useSidebarLogic() {
       message: 'Apakah Anda yakin ingin mengakhiri sesi ini dan keluar dari dashboard?',
       confirmLabel: 'Ya, Keluar',
       cancelLabel: 'Batal',
-      variant: 'danger'
+      variant: 'danger',
     });
 
     if (isConfirmed) {

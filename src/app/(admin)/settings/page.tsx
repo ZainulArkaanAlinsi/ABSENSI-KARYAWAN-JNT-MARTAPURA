@@ -8,9 +8,18 @@ import { motion } from 'framer-motion';
 
 export default function SettingsPage() {
   const {
-    activeTab, setActiveTab,
-    settings, loading, saving, saved, error,
-    lastSync, update, handleSave, setError, TABS,
+    activeTab,
+    setActiveTab,
+    settings,
+    loading,
+    saving,
+    saved,
+    error,
+    lastSync,
+    update,
+    handleSave,
+    setError,
+    TABS,
   } = useSettingsManagement();
 
   if (loading || !settings) {
@@ -23,10 +32,10 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
         <h1 className="editorial-heading text-[22px] font-black text-slate-800 tracking-tight leading-none">
@@ -39,7 +48,8 @@ export default function SettingsPage() {
 
       {/* ── SETTINGS PANEL ── */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col lg:flex-row"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', minHeight: 600 }}

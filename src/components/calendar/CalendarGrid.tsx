@@ -41,7 +41,7 @@ export default function CalendarGrid({
 }: CalendarGridProps) {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const gridRef = useRef<HTMLDivElement>(null);
-  
+
   // AnimeJS Staggered Entrance
   const { animateEntrance } = useStaggerEntrance('.calendar-day-cell', gridRef);
 
@@ -52,24 +52,25 @@ export default function CalendarGrid({
 
   const getDayDetails = (day: CalendarDay | null) => {
     if (!day) return null;
-    const userEvts = filteredEvents.filter((event) =>
-      event.startDate && event.startDate.split('T')[0] === day.date
+    const userEvts = filteredEvents.filter(
+      (event) => event.startDate && event.startDate.split('T')[0] === day.date,
     );
     const sysEvents = holidaysMap[day.date] || [];
     const uiCategory = sysEvents.length > 0 ? 'holiday' : 'normal';
-    const uiColorHint = sysEvents.length > 0
-      ? { bg: 'var(--accent-info)', text: '#FFFFFF', accent: 'var(--accent-info)' }
-      : { bg: 'transparent', text: 'var(--text-primary)', accent: 'var(--border-color)' };
+    const uiColorHint =
+      sysEvents.length > 0
+        ? { bg: 'var(--accent-info)', text: '#FFFFFF', accent: 'var(--accent-info)' }
+        : { bg: 'transparent', text: 'var(--text-primary)', accent: 'var(--border-color)' };
 
     // Heatmap Logic
     const presentCount = attendanceHeatmap[day.date] || 0;
     const attendanceRate = presentCount / totalEmployees;
     let heatColor = 'transparent';
-    
+
     if (presentCount > 0) {
-      if (attendanceRate >= 0.8) heatColor = 'rgba(16, 185, 129, 0.15)'; 
-      else if (attendanceRate <= 0.4) heatColor = 'rgba(244, 63, 94, 0.15)'; 
-      else heatColor = 'rgba(234, 179, 8, 0.15)'; 
+      if (attendanceRate >= 0.8) heatColor = 'rgba(16, 185, 129, 0.15)';
+      else if (attendanceRate <= 0.4) heatColor = 'rgba(244, 63, 94, 0.15)';
+      else heatColor = 'rgba(234, 179, 8, 0.15)';
     }
 
     return {
@@ -79,7 +80,7 @@ export default function CalendarGrid({
       uiCategory,
       uiColorHint,
       heatColor,
-      presentCount
+      presentCount,
     };
   };
 
@@ -167,7 +168,7 @@ export default function CalendarGrid({
                   onSelectDate={onSelectDate}
                 />
               );
-            })
+            }),
           )}
         </div>
 
@@ -228,7 +229,10 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
 
         {details.systemEvents.length > 0 && (
           <div className="absolute top-1 right-1">
-            <div className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ backgroundColor: details.uiColorHint.bg }} />
+            <div
+              className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]"
+              style={{ backgroundColor: details.uiColorHint.bg }}
+            />
           </div>
         )}
       </div>
@@ -251,7 +255,9 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
           </div>
         ))}
         {details.systemEvents.length > 2 && (
-          <div className="text-[10px] text-slate-500 font-bold">+{details.systemEvents.length - 2}</div>
+          <div className="text-[10px] text-slate-500 font-bold">
+            +{details.systemEvents.length - 2}
+          </div>
         )}
         {details.userEvents.length > 0 && (
           <div className="flex gap-0.5 flex-wrap">
@@ -266,10 +272,8 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
         )}
       </div>
 
-      {isSelected && (
-        <div className="absolute inset-0 bg-jne-red/20 pointer-events-none" />
-      )}
-      
+      {isSelected && <div className="absolute inset-0 bg-jne-red/20 pointer-events-none" />}
+
       {isTodayActive && (
         <div className="absolute bottom-1 right-1 w-1 h-1 rounded-full bg-jne-red animate-ping" />
       )}

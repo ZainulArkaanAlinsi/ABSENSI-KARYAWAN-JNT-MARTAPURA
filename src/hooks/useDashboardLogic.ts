@@ -43,7 +43,7 @@ export function useDashboardLogic() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getEmployees().then(e => {
+    getEmployees().then((e) => {
       setEmployees(e);
       setLoading(false);
     });

@@ -3,7 +3,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
-import { AlertCircle, BellRing, Filter, Search, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
+import {
+  AlertCircle,
+  BellRing,
+  Filter,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  TriangleAlert,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { db } from '@/lib/firebase';
@@ -20,7 +28,10 @@ interface LoginIssueDoc {
   createdAt?: unknown;
 }
 
-const STATUS_META: Record<LoginIssueStatus, { label: string; className: string; dot: string; icon: React.ElementType }> = {
+const STATUS_META: Record<
+  LoginIssueStatus,
+  { label: string; className: string; dot: string; icon: React.ElementType }
+> = {
   pending: {
     label: 'Pending',
     className: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -66,7 +77,7 @@ export default function LoginIssuesPage() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const docs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as LoginIssueDoc));
+        const docs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as LoginIssueDoc);
         setIssues(docs);
         setLoading(false);
         setError(null);
@@ -120,12 +131,15 @@ export default function LoginIssuesPage() {
               Inbox Kendala Login
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Semua laporan login dari layar mobile masuk ke sini. Fokus pada respons cepat dan status merah saat ada error.
+              Semua laporan login dari layar mobile masuk ke sini. Fokus pada respons cepat dan
+              status merah saat ada error.
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-slate-950">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">Total Laporan</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
+              Total Laporan
+            </p>
             <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{stats.total}</p>
           </div>
         </div>
@@ -139,10 +153,34 @@ export default function LoginIssuesPage() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total" value={stats.total} icon={BellRing} accent="text-slate-700" accentBg="bg-slate-100" />
-        <StatCard label="Pending" value={stats.pending} icon={TriangleAlert} accent="text-amber-600" accentBg="bg-amber-100" />
-        <StatCard label="Diproses" value={stats.inProgress} icon={ShieldAlert} accent="text-blue-600" accentBg="bg-blue-100" />
-        <StatCard label="Selesai" value={stats.resolved} icon={ShieldCheck} accent="text-emerald-600" accentBg="bg-emerald-100" />
+        <StatCard
+          label="Total"
+          value={stats.total}
+          icon={BellRing}
+          accent="text-slate-700"
+          accentBg="bg-slate-100"
+        />
+        <StatCard
+          label="Pending"
+          value={stats.pending}
+          icon={TriangleAlert}
+          accent="text-amber-600"
+          accentBg="bg-amber-100"
+        />
+        <StatCard
+          label="Diproses"
+          value={stats.inProgress}
+          icon={ShieldAlert}
+          accent="text-blue-600"
+          accentBg="bg-blue-100"
+        />
+        <StatCard
+          label="Selesai"
+          value={stats.resolved}
+          icon={ShieldCheck}
+          accent="text-emerald-600"
+          accentBg="bg-emerald-100"
+        />
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
@@ -184,7 +222,10 @@ export default function LoginIssuesPage() {
         {loading ? (
           <div className="space-y-3 p-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/5" />
+              <div
+                key={i}
+                className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/5"
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -192,9 +233,12 @@ export default function LoginIssuesPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-white/5">
               <BellRing size={22} />
             </div>
-            <p className="text-lg font-black text-slate-900 dark:text-white">Belum ada laporan yang cocok</p>
+            <p className="text-lg font-black text-slate-900 dark:text-white">
+              Belum ada laporan yang cocok
+            </p>
             <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Laporan login dari mobile akan muncul di sini. Jika kosong, memang belum ada user yang submit issue.
+              Laporan login dari mobile akan muncul di sini. Jika kosong, memang belum ada user yang
+              submit issue.
             </p>
           </div>
         ) : (
@@ -204,14 +248,19 @@ export default function LoginIssuesPage() {
               const StatusIcon = meta.icon;
 
               return (
-                <article key={issue.id} className="p-5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5">
+                <article
+                  key={issue.id}
+                  className="p-5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5"
+                >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-base font-black text-slate-900 dark:text-white">
                           {issue.name}
                         </h3>
-                        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${meta.className}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${meta.className}`}
+                        >
                           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                           <StatusIcon size={10} />
                           {meta.label}
@@ -220,19 +269,25 @@ export default function LoginIssuesPage() {
 
                       <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
                         <span>
-                          <span className="font-bold text-slate-700 dark:text-slate-200">Email / ID:</span>{' '}
+                          <span className="font-bold text-slate-700 dark:text-slate-200">
+                            Email / ID:
+                          </span>{' '}
                           {issue.emailOrEmployeeId}
                         </span>
                         {issue.phone && (
                           <span>
-                            <span className="font-bold text-slate-700 dark:text-slate-200">WA:</span>{' '}
+                            <span className="font-bold text-slate-700 dark:text-slate-200">
+                              WA:
+                            </span>{' '}
                             {issue.phone}
                           </span>
                         )}
                       </div>
 
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Deskripsi Masalah</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          Deskripsi Masalah
+                        </p>
                         <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
                           {issue.description}
                         </p>
@@ -241,7 +296,9 @@ export default function LoginIssuesPage() {
 
                     <div className="w-full lg:w-72">
                       <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-950">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tindakan Cepat</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          Tindakan Cepat
+                        </p>
                         <div className="mt-3 space-y-2 text-sm">
                           <ActionRow label="Status" value={meta.label} />
                           <ActionRow label="Follow up" value="Reset kredensial / cek akun" />
@@ -323,7 +380,9 @@ function FilterPill({
 function ActionRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
-      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</span>
+      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </span>
       <span className="truncate text-sm font-bold text-slate-800 dark:text-slate-200">{value}</span>
     </div>
   );

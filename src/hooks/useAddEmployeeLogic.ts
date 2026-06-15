@@ -24,43 +24,43 @@ export function useAddEmployeeLogic(onClose: () => void) {
   useEffect(() => {
     const fetchNextId = async () => {
       const nextId = await getNextEmployeeId();
-      setForm(prev => ({ ...prev, employeeId: nextId }));
+      setForm((prev) => ({ ...prev, employeeId: nextId }));
     };
     fetchNextId();
   }, []);
 
-
   const handleChange = (field: string, value: any) => {
     setForm((prev) => {
       const newForm = { ...prev, [field]: value };
-      
+
       // Auto-fill position if department changes
       if (field === 'department') {
         const valLower = value.toLowerCase();
-        const isDelivery = valLower.includes('rider') || 
-                           valLower.includes('driver') || 
-                           valLower.includes('delivery') ||
-                           valLower === 'rider_delivery' ||
-                           valLower === 'driver_delivery';
+        const isDelivery =
+          valLower.includes('rider') ||
+          valLower.includes('driver') ||
+          valLower.includes('delivery') ||
+          valLower === 'rider_delivery' ||
+          valLower === 'driver_delivery';
 
         // Auto-enable remote attendance for delivery roles
         if (isDelivery) {
           newForm.allowRemoteAttendance = true;
           if (!prev.position) {
-            newForm.position = valLower.includes('motor') || valLower.includes('rider') 
-              ? 'Kurir Rider (Motor)' 
-              : 'Kurir Driver (Mobil)';
+            newForm.position =
+              valLower.includes('motor') || valLower.includes('rider')
+                ? 'Kurir Rider (Motor)'
+                : 'Kurir Driver (Mobil)';
           }
         } else {
           newForm.allowRemoteAttendance = false;
         }
       }
-      
+
       return newForm;
     });
   };
 
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -79,13 +79,21 @@ export function useAddEmployeeLogic(onClose: () => void) {
     try {
       // Kita panggil registerEmployee yang baru (Auth + Firestore)
       const { password, ...employeeData } = form;
-      
+
       // Determine role based on department
       const valLower = form.department.toLowerCase();
       let dynamicRole: any = 'employee';
-      if (valLower.includes('rider') || valLower.includes('motor') || valLower === 'rider_delivery') {
+      if (
+        valLower.includes('rider') ||
+        valLower.includes('motor') ||
+        valLower === 'rider_delivery'
+      ) {
         dynamicRole = 'kurir';
-      } else if (valLower.includes('driver') || valLower.includes('mobil') || valLower === 'driver_delivery') {
+      } else if (
+        valLower.includes('driver') ||
+        valLower.includes('mobil') ||
+        valLower === 'driver_delivery'
+      ) {
         dynamicRole = 'driver';
       }
 
@@ -98,7 +106,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
           isActive: true,
           allowRemoteAttendance: form.allowRemoteAttendance,
         },
-        password
+        password,
       );
 
       toast.success('Karyawan berhasil didaftarkan');
@@ -121,7 +129,6 @@ export function useAddEmployeeLogic(onClose: () => void) {
         });
         onClose();
       }, 2000);
-
     } catch (err: any) {
       console.error('Gagal menambah karyawan:', err);
       toast.error(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
@@ -130,11 +137,11 @@ export function useAddEmployeeLogic(onClose: () => void) {
     }
   };
 
-  return { 
-    loading, 
-    success, 
+  return {
+    loading,
+    success,
     form: form as any, // Using any here to bypass persistent inference issues in the component for now, but will improve later
-    handleChange, 
-    handleSubmit 
+    handleChange,
+    handleSubmit,
   };
 }

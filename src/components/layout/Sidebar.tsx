@@ -4,9 +4,20 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutGrid, Users, Calendar, MessageSquare,
-  Settings, LogOut, Clock, ScanFace, Inbox,
-  X, ChevronLeft, ChevronRight, FileText, Timer,
+  LayoutGrid,
+  Users,
+  Calendar,
+  MessageSquare,
+  Settings,
+  LogOut,
+  Clock,
+  ScanFace,
+  Inbox,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Timer,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -15,36 +26,36 @@ import { useT } from '@/lib/i18n';
 
 // `label` di sini adalah KEY i18n, diterjemahkan saat render via t().
 const NAV_ITEMS = [
-  { id: 'dashboard',       label: 'nav_dashboard',  icon: LayoutGrid,    path: '/dashboard' },
-  { id: 'requests',        label: 'nav_requests',   icon: Inbox,         path: '/requests' },
-  { id: 'attendance',      label: 'nav_attendance', icon: Clock,         path: '/attendance' },
-  { id: 'leaves',          label: 'nav_leaves',     icon: FileText,      path: '/leaves' },
-  { id: 'overtime',        label: 'nav_overtime',   icon: Timer,         path: '/overtime' },
-  { id: 'employees',       label: 'nav_employees',  icon: Users,         path: '/employees' },
-  { id: 'chat',            label: 'nav_chat',       icon: MessageSquare, path: '/chat' },
-  { id: 'calendar',        label: 'nav_calendar',   icon: Calendar,      path: '/calendar' },
-  { id: 'face-enrollment', label: 'nav_face',       icon: ScanFace,      path: '/face-enrollment' },
-  { id: 'settings',        label: 'nav_settings',   icon: Settings,      path: '/settings' },
+  { id: 'dashboard', label: 'nav_dashboard', icon: LayoutGrid, path: '/dashboard' },
+  { id: 'requests', label: 'nav_requests', icon: Inbox, path: '/requests' },
+  { id: 'attendance', label: 'nav_attendance', icon: Clock, path: '/attendance' },
+  { id: 'leaves', label: 'nav_leaves', icon: FileText, path: '/leaves' },
+  { id: 'overtime', label: 'nav_overtime', icon: Timer, path: '/overtime' },
+  { id: 'employees', label: 'nav_employees', icon: Users, path: '/employees' },
+  { id: 'chat', label: 'nav_chat', icon: MessageSquare, path: '/chat' },
+  { id: 'calendar', label: 'nav_calendar', icon: Calendar, path: '/calendar' },
+  { id: 'face-enrollment', label: 'nav_face', icon: ScanFace, path: '/face-enrollment' },
+  { id: 'settings', label: 'nav_settings', icon: Settings, path: '/settings' },
 ];
 
 // Sidebar colors — clean corporate, no neon
 const C = {
-  bg:           '#0D1117',
-  border:       'rgba(255,255,255,0.07)',
-  activeBg:     'rgba(227,30,36,0.10)',
+  bg: '#0D1117',
+  border: 'rgba(255,255,255,0.07)',
+  activeBg: 'rgba(227,30,36,0.10)',
   activeBorder: '#E31E24',
-  hoverBg:      'rgba(255,255,255,0.04)',
-  iconActive:   '#FFFFFF',
+  hoverBg: 'rgba(255,255,255,0.04)',
+  iconActive: '#FFFFFF',
   iconInactive: 'rgba(255,255,255,0.35)',
-  labelActive:  '#FFFFFF',
-  labelInactive:'rgba(255,255,255,0.45)',
-  accent:       '#E31E24',
+  labelActive: '#FFFFFF',
+  labelInactive: 'rgba(255,255,255,0.45)',
+  accent: '#E31E24',
 };
 
 interface SidebarProps {
-  onClose?:   () => void;
+  onClose?: () => void;
   collapsed?: boolean;
-  onToggle?:  () => void;
+  onToggle?: () => void;
 }
 
 function getDisplayName(name: string) {
@@ -58,11 +69,22 @@ function getDisplayName(name: string) {
 
 function getInitials(name: string) {
   const d = getDisplayName(name);
-  return d.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) || 'AD';
+  return (
+    d
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'AD'
+  );
 }
 
 function NavLink({
-  item, isActive, collapsed, onClose, badge,
+  item,
+  isActive,
+  collapsed,
+  onClose,
+  badge,
 }: {
   item: { id: string; label: string; icon: React.ElementType; path: string };
   isActive: boolean;
@@ -90,7 +112,9 @@ function NavLink({
         />
       )}
 
-      <div className={`relative z-10 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors`}>
+      <div
+        className={`relative z-10 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors`}
+      >
         <Icon
           size={15}
           strokeWidth={isActive ? 2.2 : 1.8}
@@ -128,16 +152,13 @@ function NavLink({
 }
 
 export default function Sidebar({ onClose, collapsed = false, onToggle }: SidebarProps) {
-  const pathname          = usePathname();
+  const pathname = usePathname();
   const { signOut, user } = useAuth();
   const { unreadNotifCount, unreadChatCount } = useNotifications();
   const { t, lang, setLang } = useT();
 
   return (
-    <div
-      className="w-full h-full flex flex-col"
-      style={{ background: C.bg }}
-    >
+    <div className="w-full h-full flex flex-col" style={{ background: C.bg }}>
       {/* ── TOP BAR ── */}
       <div
         className={`px-4 pt-5 pb-4 flex items-center shrink-0 ${collapsed ? 'justify-center' : 'justify-between'}`}
@@ -159,8 +180,13 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
                 transition={{ duration: 0.18 }}
                 className="overflow-hidden"
               >
-                <p className="text-[13px] font-bold leading-none whitespace-nowrap text-white">JNE Martapura</p>
-                <p className="text-[10px] font-medium mt-0.5 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-[13px] font-bold leading-none whitespace-nowrap text-white">
+                  JNE Martapura
+                </p>
+                <p
+                  className="text-[10px] font-medium mt-0.5 whitespace-nowrap"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                >
                   {t('attendance_system')}
                 </p>
               </motion.div>
@@ -217,7 +243,10 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
                 <p className="text-[13px] font-semibold text-white truncate">
                   {getDisplayName(user?.name || '')}
                 </p>
-                <p className="text-[11px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p
+                  className="text-[11px] truncate mt-0.5"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                >
                   {user?.email || 'JNE Martapura'}
                 </p>
               </div>
@@ -261,7 +290,9 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="text-[9px] font-bold uppercase tracking-[0.25em] px-2 pt-1 pb-2"
               style={{ color: 'rgba(255,255,255,0.2)' }}
             >
@@ -291,7 +322,10 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
       {/* ── LANGUAGE SWITCHER ── */}
       {!collapsed && (
         <div className="px-3 pt-2 shrink-0">
-          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <div
+            className="flex items-center gap-1 p-1 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.04)' }}
+          >
             {(['id', 'en'] as const).map((l) => (
               <button
                 key={l}
@@ -317,8 +351,8 @@ export default function Sidebar({ onClose, collapsed = false, onToggle }: Sideba
           title={collapsed ? t('logout') : undefined}
           className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-2.5 py-2 rounded-xl transition-all group`}
           style={{ background: 'transparent' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(227,30,36,0.08)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(227,30,36,0.08)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
           <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
             <LogOut

@@ -2,9 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Send, Search, MoreVertical, Paperclip, Smile,
-  Image as ImageIcon, Loader2, Trash2, Check, CheckCheck,
-  Phone, Video, MessageSquare,
+  Send,
+  Search,
+  MoreVertical,
+  Paperclip,
+  Smile,
+  Image as ImageIcon,
+  Loader2,
+  Trash2,
+  Check,
+  CheckCheck,
+  Phone,
+  Video,
+  MessageSquare,
 } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
@@ -27,14 +37,20 @@ import { toast } from 'sonner';
 // text-cap   : #94A3B8  (slate-400)  — 11px font-medium
 // ──────────────────────────────────────────────────────────
 
-const ACCENT     = '#16A34A';
-const ACCENT_LT  = '#F0FDF4';
+const ACCENT = '#16A34A';
+const ACCENT_LT = '#F0FDF4';
 
 // ── AVATAR ──
 
 const Avatar = ({
-  name, size = 40, active = false,
-}: { name: string; size?: number; active?: boolean }) => (
+  name,
+  size = 40,
+  active = false,
+}: {
+  name: string;
+  size?: number;
+  active?: boolean;
+}) => (
   <div
     style={{ width: size, height: size, backgroundColor: active ? ACCENT : '#0F172A' }}
     className="rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 select-none"
@@ -46,8 +62,18 @@ const Avatar = ({
 // ── CONTACT ITEM ──
 
 const ContactItem = ({
-  emp, isActive, lastTime, online, onClick,
-}: { emp: any; isActive: boolean; lastTime?: string; online?: boolean; onClick: () => void }) => (
+  emp,
+  isActive,
+  lastTime,
+  online,
+  onClick,
+}: {
+  emp: any;
+  isActive: boolean;
+  lastTime?: string;
+  online?: boolean;
+  onClick: () => void;
+}) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition-all text-left ${
@@ -64,12 +90,12 @@ const ContactItem = ({
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-0.5">
-        <p className={`text-[13px] font-semibold truncate ${isActive ? 'text-green-700' : 'text-slate-900'}`}>
+        <p
+          className={`text-[13px] font-semibold truncate ${isActive ? 'text-green-700' : 'text-slate-900'}`}
+        >
           {emp.name}
         </p>
-        {lastTime && (
-          <span className="text-[11px] text-slate-400 shrink-0 ml-2">{lastTime}</span>
-        )}
+        {lastTime && <span className="text-[11px] text-slate-400 shrink-0 ml-2">{lastTime}</span>}
       </div>
       <p className="text-[12px] text-slate-400 truncate">{emp.department}</p>
     </div>
@@ -79,8 +105,18 @@ const ContactItem = ({
 // ── MESSAGE BUBBLE ──
 
 const Bubble = ({
-  msg, isMe, showAvatar, peerName, onDelete,
-}: { msg: any; isMe: boolean; showAvatar: boolean; peerName: string; onDelete: () => void }) => (
+  msg,
+  isMe,
+  showAvatar,
+  peerName,
+  onDelete,
+}: {
+  msg: any;
+  isMe: boolean;
+  showAvatar: boolean;
+  peerName: string;
+  onDelete: () => void;
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
@@ -89,27 +125,21 @@ const Bubble = ({
   >
     {/* Avatar placeholder for alignment */}
     <div className="w-8 shrink-0">
-      {!isMe && showAvatar && (
-        <Avatar name={peerName} size={32} />
-      )}
+      {!isMe && showAvatar && <Avatar name={peerName} size={32} />}
     </div>
 
     <div className={`group flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
-      <div className={`px-4 py-3 rounded-2xl ${
-        isMe
-          ? 'bg-green-600 text-white rounded-br-sm'
-          : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm shadow-sm'
-      }`}>
+      <div
+        className={`px-4 py-3 rounded-2xl ${
+          isMe
+            ? 'bg-green-600 text-white rounded-br-sm'
+            : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm shadow-sm'
+        }`}
+      >
         {msg.imageUrl && (
-          <img
-            src={msg.imageUrl}
-            alt="attachment"
-            className="rounded-xl mb-2 max-w-full h-auto"
-          />
+          <img src={msg.imageUrl} alt="attachment" className="rounded-xl mb-2 max-w-full h-auto" />
         )}
-        {msg.text && (
-          <p className="text-[13px] leading-relaxed">{msg.text}</p>
-        )}
+        {msg.text && <p className="text-[13px] leading-relaxed">{msg.text}</p>}
       </div>
 
       <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
@@ -118,7 +148,11 @@ const Bubble = ({
         </span>
         {isMe && (
           <span className={msg.isRead ? 'text-green-500' : 'text-slate-300'}>
-            {msg.isRead ? <CheckCheck size={12} strokeWidth={2.5} /> : <Check size={12} strokeWidth={2.5} />}
+            {msg.isRead ? (
+              <CheckCheck size={12} strokeWidth={2.5} />
+            ) : (
+              <Check size={12} strokeWidth={2.5} />
+            )}
           </span>
         )}
         {isMe && (
@@ -150,7 +184,15 @@ const EmptyState = ({ icon: Icon, title, desc }: { icon: any; title: string; des
 
 // ── ICON BUTTON ──
 
-const IconBtn = ({ onClick, children, className = '' }: { onClick?: () => void; children: React.ReactNode; className?: string }) => (
+const IconBtn = ({
+  onClick,
+  children,
+  className = '',
+}: {
+  onClick?: () => void;
+  children: React.ReactNode;
+  className?: string;
+}) => (
   <button
     onClick={onClick}
     className={`w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ${className}`}
@@ -163,23 +205,25 @@ const IconBtn = ({ onClick, children, className = '' }: { onClick?: () => void; 
 
 export default function ChatPage() {
   const { employees, loading: loadingEmployees } = useEmployeeManagement();
-  const [selectedCourier, setSelectedCourier]   = useState<any>(null);
-  const [inputText, setInputText]               = useState('');
-  const [selectedImage, setSelectedImage]       = useState<File | null>(null);
-  const [searchQuery, setSearchQuery]           = useState('');
-  const [chatMeta, setChatMeta]                 = useState<Record<string, string>>({});
-  const { confirm }                             = useConfirm();
+  const [selectedCourier, setSelectedCourier] = useState<any>(null);
+  const [inputText, setInputText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [chatMeta, setChatMeta] = useState<Record<string, string>>({});
+  const { confirm } = useConfirm();
 
   // ── Listen to chats collection for last message timestamps ──
   useEffect(() => {
-    const unsub = listen(collection(db, 'chats'), snap => {
+    const unsub = listen(collection(db, 'chats'), (snap) => {
       const meta: Record<string, string> = {};
-      snap.docs.forEach(d => {
+      snap.docs.forEach((d) => {
         const ts = d.data().lastTimestamp;
         if (ts) {
           try {
             meta[d.id] = format(ts.toDate(), 'HH:mm');
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
       });
       setChatMeta(meta);
@@ -196,11 +240,11 @@ export default function ChatPage() {
   const [lastSeenMap, setLastSeenMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const unsub = listen(collection(db, 'user_presence'), snap => {
+    const unsub = listen(collection(db, 'user_presence'), (snap) => {
       const now = Date.now();
       const online = new Set<string>();
       const seen: Record<string, number> = {};
-      snap.docs.forEach(d => {
+      snap.docs.forEach((d) => {
         const data = d.data();
         const ls = typeof data.lastSeen?.toMillis === 'function' ? data.lastSeen.toMillis() : 0;
         seen[d.id] = ls;
@@ -217,14 +261,25 @@ export default function ChatPage() {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     const beat = () => {
-      void setDoc(doc(db, 'user_presence', uid), {
-        userId: uid, isOnline: true, lastSeen: serverTimestamp(), updatedAt: serverTimestamp(),
-      }, { merge: true });
+      void setDoc(
+        doc(db, 'user_presence', uid),
+        {
+          userId: uid,
+          isOnline: true,
+          lastSeen: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     };
     beat();
     const iv = setInterval(beat, 30000);
     const goOffline = () => {
-      void setDoc(doc(db, 'user_presence', uid), { isOnline: false, lastSeen: serverTimestamp() }, { merge: true });
+      void setDoc(
+        doc(db, 'user_presence', uid),
+        { isOnline: false, lastSeen: serverTimestamp() },
+        { merge: true },
+      );
     };
     window.addEventListener('beforeunload', goOffline);
     return () => {
@@ -235,14 +290,20 @@ export default function ChatPage() {
   }, []);
 
   const isUserOnline = (uid?: string) => !!uid && onlineSet.has(uid);
-  const lastSeenOf = (uid?: string) => (uid ? lastSeenMap[uid] ?? 0 : 0);
+  const lastSeenOf = (uid?: string) => (uid ? (lastSeenMap[uid] ?? 0) : 0);
 
   // Room model: room dikunci ke userId. Admin membuka room user yang dipilih.
   const chatId = selectedCourier ? selectedCourier.uid : null;
 
   const {
-    messages, loading, sending, sendMessage,
-    scrollRef, setTyping, otherUserTyping, deleteMessage,
+    messages,
+    loading,
+    sending,
+    sendMessage,
+    scrollRef,
+    setTyping,
+    otherUserTyping,
+    deleteMessage,
   } = useChat(chatId);
 
   useEffect(() => {
@@ -266,24 +327,25 @@ export default function ChatPage() {
     setSelectedImage(null);
   };
 
-  const filtered = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = employees.filter(
+    (emp) =>
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
     <div className="h-[calc(100vh-140px)] flex gap-5 overflow-hidden">
-
       {/* ─────────────────────────────────────────────────────
           SIDEBAR
       ───────────────────────────────────────────────────── */}
       <div className="w-72 shrink-0 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-
         {/* Header */}
         <div className="px-5 pt-5 pb-4 border-b border-slate-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[16px] font-bold text-slate-900">Pesan</h2>
-            <IconBtn><MoreVertical size={16} /></IconBtn>
+            <IconBtn>
+              <MoreVertical size={16} />
+            </IconBtn>
           </div>
           <div className="relative">
             <Search
@@ -294,7 +356,7 @@ export default function ChatPage() {
               type="text"
               placeholder="Cari kurir..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-[13px] text-slate-700 placeholder:text-slate-400 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all"
             />
           </div>
@@ -310,7 +372,7 @@ export default function ChatPage() {
           ) : filtered.length === 0 ? (
             <p className="text-center text-[12px] text-slate-400 py-8">Tidak ditemukan</p>
           ) : (
-            filtered.map(emp => (
+            filtered.map((emp) => (
               <ContactItem
                 key={emp.id}
                 emp={emp}
@@ -328,7 +390,6 @@ export default function ChatPage() {
           CHAT AREA
       ───────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm min-w-0">
-
         {/* Chat header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           {selectedCourier ? (
@@ -363,18 +424,23 @@ export default function ChatPage() {
           )}
 
           <div className="flex items-center gap-1">
-            <IconBtn><Phone size={17} /></IconBtn>
-            <IconBtn><Video size={17} /></IconBtn>
-            <IconBtn><Search size={17} /></IconBtn>
-            <IconBtn><MoreVertical size={17} /></IconBtn>
+            <IconBtn>
+              <Phone size={17} />
+            </IconBtn>
+            <IconBtn>
+              <Video size={17} />
+            </IconBtn>
+            <IconBtn>
+              <Search size={17} />
+            </IconBtn>
+            <IconBtn>
+              <MoreVertical size={17} />
+            </IconBtn>
           </div>
         </div>
 
         {/* Messages */}
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-slate-50/50"
-        >
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-slate-50/50">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 opacity-60">
               <Loader2 className="animate-spin text-green-500" size={28} />
@@ -405,7 +471,7 @@ export default function ChatPage() {
                         message: 'Apakah Anda yakin ingin menghapus pesan ini?',
                         variant: 'danger',
                         confirmLabel: 'Hapus',
-                        cancelLabel: 'Batal'
+                        cancelLabel: 'Batal',
                       });
                       if (isConfirmed) {
                         try {
@@ -459,7 +525,7 @@ export default function ChatPage() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={e => e.target.files?.[0] && setSelectedImage(e.target.files[0])}
+                onChange={(e) => e.target.files?.[0] && setSelectedImage(e.target.files[0])}
               />
             </label>
             <button
@@ -473,7 +539,7 @@ export default function ChatPage() {
             <input
               type="text"
               value={inputText}
-              onChange={e => setInputText(e.target.value)}
+              onChange={(e) => setInputText(e.target.value)}
               placeholder="Ketik pesan..."
               className="flex-1 h-10 bg-slate-100 rounded-xl px-4 text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-green-200 border border-transparent focus:border-green-300 transition-all"
             />
@@ -488,14 +554,10 @@ export default function ChatPage() {
                   : 'bg-green-600 text-white hover:bg-green-700 shadow-sm shadow-green-200'
               }`}
             >
-              {sending
-                ? <Loader2 className="animate-spin" size={17} />
-                : <Send size={17} />
-              }
+              {sending ? <Loader2 className="animate-spin" size={17} /> : <Send size={17} />}
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );

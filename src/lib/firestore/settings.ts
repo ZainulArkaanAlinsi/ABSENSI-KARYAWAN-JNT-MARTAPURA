@@ -50,6 +50,6 @@ export function subscribeToSettings(callback: (settings: Settings | null) => voi
     (error) => {
       handleListenerError(error, 'settings');
       if (!isBenignListenerError(error)) callback(null);
-    }
+    },
   );
 }

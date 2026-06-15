@@ -32,7 +32,7 @@ export function useLoginLogic() {
         setIsSuccess(true);
       }
     } catch (err) {
-      console.error("Login unexpected error:", err);
+      console.error('Login unexpected error:', err);
     } finally {
       setLoading(false);
     }
@@ -47,16 +47,19 @@ export function useLoginLogic() {
 
     return () => clearTimeout(timer);
   }, [isSuccess, router]);
-  
-  const togglePassword = () => setShowPassword(prev => !prev);
+
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
   return {
-    email, setEmail,
-    password, setPassword,
-    showPassword, togglePassword,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    togglePassword,
     loading,
     isSuccess,
     error,
-    handleSubmit
+    handleSubmit,
   };
 }

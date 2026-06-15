@@ -20,7 +20,9 @@ interface DepartmentModalProps {
   onSave: (e: React.FormEvent) => void;
   editingDepartment: DepartmentItem | null;
   form: Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>;
-  setForm: React.Dispatch<React.SetStateAction<Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>>>;
+  setForm: React.Dispatch<
+    React.SetStateAction<Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>>
+  >;
   saving: boolean;
 }
 
@@ -50,9 +52,7 @@ export default function DepartmentModal({
             className="pg-form-input bg-white/5 border-white/10 text-white"
             placeholder="Contoh: Rider Delivery, Admin Support"
             value={form.name}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, name: e.target.value }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
             required
           />
         </div>
@@ -66,9 +66,7 @@ export default function DepartmentModal({
             className="pg-form-input bg-white/5 border-white/10 text-white min-h-[100px] resize-none"
             placeholder="Jelaskan peran unit ini..."
             value={form.description}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
           />
         </div>
 
@@ -87,8 +85,7 @@ export default function DepartmentModal({
                 style={{
                   background: c,
                   transform: form.color === c ? 'scale(1.2)' : 'scale(1)',
-                  outline:
-                    form.color === c ? `3px solid ${c}` : 'transparent',
+                  outline: form.color === c ? `3px solid ${c}` : 'transparent',
                   outlineOffset: 3,
                 }}
               />

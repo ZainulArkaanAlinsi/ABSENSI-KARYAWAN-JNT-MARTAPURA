@@ -2,42 +2,56 @@
 
 import { Plus, Clock, Edit2, Trash2, Zap, Loader2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
-import {
-  useJamKerjaManagement, DAYS, JAM_KERJA_COLORS,
-} from '@/hooks/useJamKerjaManagement';
+import { useJamKerjaManagement, DAYS, JAM_KERJA_COLORS } from '@/hooks/useJamKerjaManagement';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Pagination } from '@/components/ui/Pagination';
 
 export default function JamKerjaPage() {
   const {
-    jamKerjas, loading, showModal, setShowModal,
-    editingJamKerja, form, setForm, saving,
-    openAdd, openEdit, toggleDay, handleSave, handleDelete, calcDuration,
+    jamKerjas,
+    loading,
+    showModal,
+    setShowModal,
+    editingJamKerja,
+    form,
+    setForm,
+    saving,
+    openAdd,
+    openEdit,
+    toggleDay,
+    handleSave,
+    handleDelete,
+    calcDuration,
   } = useJamKerjaManagement();
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  const totalPages       = Math.ceil(jamKerjas.length / itemsPerPage);
-  const paginatedJamKerja = jamKerjas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const activeCount       = jamKerjas.filter(s => s.isActive).length;
+  const totalPages = Math.ceil(jamKerjas.length / itemsPerPage);
+  const paginatedJamKerja = jamKerjas.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+  const activeCount = jamKerjas.filter((s) => s.isActive).length;
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-3">
         <Loader2 size={28} className="animate-spin text-emerald-500" />
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Memuat jam kerja...</p>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          Memuat jam kerja...
+        </p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -50,7 +64,8 @@ export default function JamKerjaPage() {
           </p>
         </div>
         <motion.button
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={openAdd}
           className="flex items-center gap-2 h-10 px-5 rounded-xl text-[12px] font-bold text-white shrink-0"
           style={{ background: '#10B981', boxShadow: 'none' }}
@@ -63,14 +78,17 @@ export default function JamKerjaPage() {
       {/* ── EMPTY STATE ── */}
       {jamKerjas.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="bg-white border border-dashed border-slate-200 rounded-2xl p-16 text-center"
         >
           <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
             <Clock size={24} className="text-slate-300" />
           </div>
           <p className="text-[13px] font-bold text-slate-700">Belum Ada Jam Kerja</p>
-          <p className="text-[11px] text-slate-400 mt-1 mb-5">Tambahkan skema pertama untuk mengatur jadwal operasional.</p>
+          <p className="text-[11px] text-slate-400 mt-1 mb-5">
+            Tambahkan skema pertama untuk mengatur jadwal operasional.
+          </p>
           <button
             onClick={openAdd}
             className="h-9 px-5 rounded-xl text-[12px] font-bold text-white"
@@ -86,7 +104,7 @@ export default function JamKerjaPage() {
             <AnimatePresence mode="popLayout">
               {paginatedJamKerja.map((s, idx) => {
                 const duration = calcDuration(s.checkInTime, s.checkOutTime);
-                const accent   = s.color || '#10B981';
+                const accent = s.color || '#10B981';
 
                 return (
                   <motion.div
@@ -100,7 +118,10 @@ export default function JamKerjaPage() {
                     style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
                   >
                     {/* Accent bar */}
-                    <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: accent }} />
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
+                      style={{ backgroundColor: accent }}
+                    />
 
                     <div className="flex items-start justify-between mb-4 mt-1">
                       <div className="flex items-center gap-3">
@@ -111,9 +132,13 @@ export default function JamKerjaPage() {
                           <Clock size={20} />
                         </div>
                         <div>
-                          <p className="text-desc font-black text-slate-800 leading-tight">{s.name}</p>
+                          <p className="text-desc font-black text-slate-800 leading-tight">
+                            {s.name}
+                          </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className={`w-1.5 h-1.5 rounded-full ${s.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${s.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            />
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                               {s.isActive ? 'Aktif' : 'Nonaktif'}
                             </p>
@@ -122,12 +147,16 @@ export default function JamKerjaPage() {
                       </div>
 
                       <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(s)}
-                          className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-all">
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-all"
+                        >
                           <Edit2 size={13} />
                         </button>
-                        <button onClick={() => handleDelete(s.id, s.name)}
-                          className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all">
+                        <button
+                          onClick={() => handleDelete(s.id, s.name)}
+                          className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all"
+                        >
                           <Trash2 size={13} />
                         </button>
                       </div>
@@ -136,12 +165,19 @@ export default function JamKerjaPage() {
                     {/* Time grid */}
                     <div className="grid grid-cols-2 gap-2.5 mb-3">
                       {[
-                        { label: 'Masuk',  val: s.checkInTime  },
+                        { label: 'Masuk', val: s.checkInTime },
                         { label: 'Pulang', val: s.checkOutTime },
-                      ].map(item => (
-                        <div key={item.label} className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                          <p className="text-[18px] font-black tabular-nums text-slate-800">{item.val}</p>
+                      ].map((item) => (
+                        <div
+                          key={item.label}
+                          className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"
+                        >
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            {item.label}
+                          </p>
+                          <p className="text-[18px] font-black tabular-nums text-slate-800">
+                            {item.val}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -154,13 +190,17 @@ export default function JamKerjaPage() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Zap size={12} className="text-amber-500" />
-                        <span className="text-[11px] font-bold text-slate-700">{s.toleranceMinutes}m Toleransi</span>
+                        <span className="text-[11px] font-bold text-slate-700">
+                          {s.toleranceMinutes}m Toleransi
+                        </span>
                       </div>
                     </div>
 
                     {/* Working days */}
                     <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hari Operasional</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        Hari Operasional
+                      </p>
                       <div className="flex gap-1.5 flex-wrap">
                         {DAYS.map(({ key, label }) => {
                           const isWorking = s.workingDays.includes(key);
@@ -172,7 +212,11 @@ export default function JamKerjaPage() {
                                   ? 'text-white border-transparent'
                                   : 'bg-slate-50 text-slate-300 border-slate-200'
                               }`}
-                              style={isWorking ? { backgroundColor: accent, borderColor: accent } : undefined}
+                              style={
+                                isWorking
+                                  ? { backgroundColor: accent, borderColor: accent }
+                                  : undefined
+                              }
                             >
                               {label}
                             </div>
@@ -186,7 +230,11 @@ export default function JamKerjaPage() {
             </AnimatePresence>
           </div>
 
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
 
@@ -199,28 +247,32 @@ export default function JamKerjaPage() {
       >
         <form onSubmit={handleSave} className="flex flex-col gap-4 pt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama Skema</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Nama Skema
+            </label>
             <input
               className="w-full h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 outline-none focus:border-emerald-400 focus:bg-white transition-all"
               placeholder="Contoh: Operasional Pagi"
               value={form.name}
-              onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Waktu Masuk',  key: 'checkInTime'  as const },
+              { label: 'Waktu Masuk', key: 'checkInTime' as const },
               { label: 'Waktu Pulang', key: 'checkOutTime' as const },
-            ].map(item => (
+            ].map((item) => (
               <div key={item.key} className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {item.label}
+                </label>
                 <input
                   type="time"
                   className="w-full h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 outline-none focus:border-emerald-400 transition-all"
                   value={form[item.key]}
-                  onChange={e => setForm(p => ({ ...p, [item.key]: e.target.value }))}
+                  onChange={(e) => setForm((p) => ({ ...p, [item.key]: e.target.value }))}
                   required
                 />
               </div>
@@ -228,17 +280,23 @@ export default function JamKerjaPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Toleransi (Menit)</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Toleransi (Menit)
+            </label>
             <input
               type="number"
               className="w-full h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-800 outline-none focus:border-emerald-400 transition-all"
               value={form.toleranceMinutes}
-              onChange={e => setForm(p => ({ ...p, toleranceMinutes: parseInt(e.target.value) || 0 }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, toleranceMinutes: parseInt(e.target.value) || 0 }))
+              }
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hari Kerja</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Hari Kerja
+            </label>
             <div className="flex flex-wrap gap-2">
               {DAYS.map(({ key, label }) => {
                 const active = form.workingDays.includes(key);

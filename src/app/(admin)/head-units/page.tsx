@@ -1,7 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { UserCheck, Search, Shield, ChevronRight, Mail, Building2, Loader2, Users } from 'lucide-react';
+import {
+  UserCheck,
+  Search,
+  Shield,
+  ChevronRight,
+  Mail,
+  Building2,
+  Loader2,
+  Users,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -26,44 +35,52 @@ export default function HeadUnitsPage() {
       where('role', 'in', ['admin', 'moderator', 'supervisor', 'head_unit']),
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const data: HeadUnit[] = snap.docs.map((d) => {
-        const raw = d.data();
-        return {
-          id: d.id,
-          name: raw.name || raw.displayName || 'Tanpa Nama',
-          email: raw.email || '',
-          department: raw.department || 'Semua Departemen',
-          position: raw.position || raw.role || 'Admin',
-          role: raw.role || 'admin',
-        };
-      });
-      setHeadUnits(data);
-      setLoading(false);
-    }, () => setLoading(false));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const data: HeadUnit[] = snap.docs.map((d) => {
+          const raw = d.data();
+          return {
+            id: d.id,
+            name: raw.name || raw.displayName || 'Tanpa Nama',
+            email: raw.email || '',
+            department: raw.department || 'Semua Departemen',
+            position: raw.position || raw.role || 'Admin',
+            role: raw.role || 'admin',
+          };
+        });
+        setHeadUnits(data);
+        setLoading(false);
+      },
+      () => setLoading(false),
+    );
 
     return () => unsub();
   }, []);
 
-  const filtered = headUnits.filter(h =>
-    h.name.toLowerCase().includes(search.toLowerCase()) ||
-    h.department.toLowerCase().includes(search.toLowerCase()) ||
-    h.email.toLowerCase().includes(search.toLowerCase()),
+  const filtered = headUnits.filter(
+    (h) =>
+      h.name.toLowerCase().includes(search.toLowerCase()) ||
+      h.department.toLowerCase().includes(search.toLowerCase()) ||
+      h.email.toLowerCase().includes(search.toLowerCase()),
   );
 
   const getRoleBadge = (role: string) => {
-    if (role === 'admin') return { label: 'Super Admin', color: 'bg-red-50 text-red-600 border-red-200' };
-    if (role === 'moderator') return { label: 'Moderator', color: 'bg-blue-50 text-blue-600 border-blue-200' };
-    if (role === 'supervisor') return { label: 'Supervisor', color: 'bg-purple-50 text-purple-600 border-purple-200' };
+    if (role === 'admin')
+      return { label: 'Super Admin', color: 'bg-red-50 text-red-600 border-red-200' };
+    if (role === 'moderator')
+      return { label: 'Moderator', color: 'bg-blue-50 text-blue-600 border-blue-200' };
+    if (role === 'supervisor')
+      return { label: 'Supervisor', color: 'bg-purple-50 text-purple-600 border-purple-200' };
     return { label: 'Kepala Unit', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
   };
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -78,23 +95,29 @@ export default function HeadUnitsPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl">
             <Users size={13} className="text-emerald-600" />
-            <span className="text-[11px] font-bold text-emerald-700">{headUnits.length} Pimpinan</span>
+            <span className="text-[11px] font-bold text-emerald-700">
+              {headUnits.length} Pimpinan
+            </span>
           </div>
         </div>
       </motion.div>
 
       {/* ── SEARCH ── */}
       <motion.div
-        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="relative max-w-sm"
       >
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <Search
+          size={15}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+        />
         <input
           type="text"
           placeholder="Cari nama, departemen, atau email..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-full h-10 pl-9 pr-4 bg-white border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-400 transition-all"
           style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
         />
@@ -111,7 +134,8 @@ export default function HeadUnitsPage() {
       {/* ── EMPTY STATE ── */}
       {!loading && filtered.length === 0 && (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center py-24 gap-4 text-center"
         >
           <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
@@ -122,7 +146,9 @@ export default function HeadUnitsPage() {
               {search ? 'Tidak ada pimpinan yang cocok' : 'Belum ada data pimpinan'}
             </p>
             <p className="text-[12px] text-slate-400 mt-1">
-              {search ? 'Coba kata kunci lain' : 'Tambahkan akun dengan role admin/supervisor di Firebase'}
+              {search
+                ? 'Coba kata kunci lain'
+                : 'Tambahkan akun dengan role admin/supervisor di Firebase'}
             </p>
           </div>
         </motion.div>
@@ -149,7 +175,9 @@ export default function HeadUnitsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-desc font-bold text-slate-800 truncate">{head.name}</p>
-                    <span className={`inline-block mt-0.5 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${badge.color}`}>
+                    <span
+                      className={`inline-block mt-0.5 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${badge.color}`}
+                    >
                       {badge.label}
                     </span>
                   </div>

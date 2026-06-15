@@ -9,16 +9,19 @@ export const useAnime = <T extends HTMLElement>(params: AnimationParams) => {
   const elementRef = useRef<T>(null);
   const animationRef = useRef<any>(null);
 
-  const play = useCallback((extraParams?: AnimationParams) => {
-    const target = elementRef.current;
-    if (target) {
-      if (animationRef.current) animationRef.current.pause();
-      animationRef.current = animate(target, {
-        ...params,
-        ...extraParams,
-      });
-    }
-  }, [params]);
+  const play = useCallback(
+    (extraParams?: AnimationParams) => {
+      const target = elementRef.current;
+      if (target) {
+        if (animationRef.current) animationRef.current.pause();
+        animationRef.current = animate(target, {
+          ...params,
+          ...extraParams,
+        });
+      }
+    },
+    [params],
+  );
 
   return { elementRef, play };
 };
@@ -37,10 +40,13 @@ export const usePopAnimation = <T extends HTMLElement>() => {
 /**
  * A hook for staggered entrance of children elements.
  */
-export const useStaggerEntrance = (selector: string, containerRef: React.RefObject<HTMLElement | null>) => {
+export const useStaggerEntrance = (
+  selector: string,
+  containerRef: React.RefObject<HTMLElement | null>,
+) => {
   const animateEntrance = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     // Select targets within the container
     const targets = containerRef.current.querySelectorAll(selector);
     if (targets.length === 0) return;

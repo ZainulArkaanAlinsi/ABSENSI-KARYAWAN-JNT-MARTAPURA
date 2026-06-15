@@ -53,11 +53,15 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                   <Bell size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">Notifications</h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{unreadCount} UNREAD ALERTS</p>
+                  <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
+                    Notifications
+                  </h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {unreadCount} UNREAD ALERTS
+                  </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={onClose}
                 className="w-8 h-8 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
               >
@@ -70,12 +74,16 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               {isLoading ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
                   <div className="w-8 h-8 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">Loading Alerts...</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest">
+                    Loading Alerts...
+                  </p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
                   <Bell size={48} strokeWidth={1} />
-                  <p className="text-[10px] font-black uppercase tracking-widest">No notifications yet</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest">
+                    No notifications yet
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -86,29 +94,40 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className={`p-4 rounded-2xl border transition-all ${
-                        notif.isRead 
-                        ? 'bg-transparent border-slate-100 dark:border-white/5 opacity-60' 
-                        : 'bg-white dark:bg-white/5 border-cyan-600/20 shadow-sm'
+                        notif.isRead
+                          ? 'bg-transparent border-slate-100 dark:border-white/5 opacity-60'
+                          : 'bg-white dark:bg-white/5 border-cyan-600/20 shadow-sm'
                       }`}
                     >
                       <div className="flex gap-4">
-                        <div className={`mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          notif.type === 'attendance_alert' ? 'bg-blue-500/10 text-blue-500' :
-                          notif.type === 'leave_request' ? 'bg-amber-500/10 text-amber-500' :
-                          'bg-rose-500/10 text-rose-500'
-                        }`}>
+                        <div
+                          className={`mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                            notif.type === 'attendance_alert'
+                              ? 'bg-blue-500/10 text-blue-500'
+                              : notif.type === 'leave_request'
+                                ? 'bg-amber-500/10 text-amber-500'
+                                : 'bg-rose-500/10 text-rose-500'
+                          }`}
+                        >
                           <AlertCircle size={16} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white leading-snug">{notif.title}</p>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{notif.message}</p>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
+                            {notif.title}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                            {notif.message}
+                          </p>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                               <Clock size={10} />
-                              {formatDistanceToNow(toDate(notif.createdAt), { addSuffix: true, locale: id })}
+                              {formatDistanceToNow(toDate(notif.createdAt), {
+                                addSuffix: true,
+                                locale: id,
+                              })}
                             </span>
                             {!notif.isRead && (
-                              <button 
+                              <button
                                 onClick={() => markAsRead(notif.id)}
                                 className="text-[9px] font-black text-rose-600 uppercase tracking-widest hover:underline"
                               >
@@ -127,7 +146,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
             {/* FOOTER */}
             {notifications.length > 0 && (
               <div className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex gap-3">
-                <button 
+                <button
                   onClick={() => markAllAsRead()}
                   className="flex-1 h-10 bg-slate-950 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-600 transition-colors"
                 >

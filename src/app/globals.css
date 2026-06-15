@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Dark mode works with data-theme="dark" on the <html> element */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
@@ -6,11 +6,11 @@
 /* ── EDITORIAL NEWSPAPER DESIGN SYSTEM ── */
 
 @theme {
-  --color-primary: #1A202C;
-  --color-secondary: #E8E2D6;
-  --color-accent: #10B981;
-  --color-green: #10B981;
-  --color-warm-cream: #E8E2D6;
+  --color-primary: #1a202c;
+  --color-secondary: #e8e2d6;
+  --color-accent: #10b981;
+  --color-green: #10b981;
+  --color-warm-cream: #e8e2d6;
 
   --color-border: rgba(0, 0, 0, 0.11);
 
@@ -20,38 +20,38 @@
   --radius-3xl: 16px;
 
   /* Serif display font = ciri khas koran */
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
 
   --text-h1: 30px;
   --text-stats: 36px;
   --text-desc: 14px;
 
   /* Offset shadow = kertas terangkat, lebih terasa cetak */
-  --shadow-card: 2px 3px 0px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-premium: 3px 4px 0px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.07);
-  --shadow-hover: 4px 5px 0px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-card: 2px 3px 0px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-premium: 3px 4px 0px rgba(0, 0, 0, 0.13), 0 2px 6px rgba(0, 0, 0, 0.07);
+  --shadow-hover: 4px 5px 0px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 :root {
-  --travigo-green: #10B981;
+  --travigo-green: #10b981;
   --travigo-green-dark: #059669;
-  --travigo-green-light: #D1FAE5;
+  --travigo-green-light: #d1fae5;
 
   /* ── Newsprint paper tones ── */
-  --travigo-page: #E8E2D6;
-  --travigo-bg: #E8E2D6;
-  --travigo-white: #F5F1E8;
+  --travigo-page: #e8e2d6;
+  --travigo-bg: #e8e2d6;
+  --travigo-white: #f5f1e8;
 
   /* Surface tokens — newsprint */
-  --surface-card: #F5F1E8;
-  --surface-elevated: #FDFAF4;
-  --surface-sidebar: #0F172A;   /* sidebar selalu dark, kayak headline kolom koran */
-  --surface-header: #EDE8DC;
-  --surface-hover: #E4DDD1;
+  --surface-card: #f5f1e8;
+  --surface-elevated: #fdfaf4;
+  --surface-sidebar: #0f172a; /* sidebar selalu dark, kayak headline kolom koran */
+  --surface-header: #ede8dc;
+  --surface-hover: #e4ddd1;
 
   /* Border tokens — lebih kelihatan, kayak garis kolom koran */
-  --border-default: #C4B99E;
+  --border-default: #c4b99e;
   --border-card: rgba(0, 0, 0, 0.12);
 
   /* Legacy */
@@ -59,35 +59,35 @@
   --bg-main: var(--travigo-page);
   --bg-card: var(--surface-card);
   --border-primary: var(--border-card);
-  --text-primary: #1C1917;
-  --text-muted: #57534E;
-  --text-dim: #A8A29E;
+  --text-primary: #1c1917;
+  --text-muted: #57534e;
+  --text-dim: #a8a29e;
 }
 
-[data-theme="dark"] {
-  --bg-secondary: #0B1120;
-  --bg-main: #0B1120;
-  --bg-card: #1A2537;
+[data-theme='dark'] {
+  --bg-secondary: #0b1120;
+  --bg-main: #0b1120;
+  --bg-card: #1a2537;
   --border-primary: rgba(255, 255, 255, 0.05);
-  --text-primary: #F1F5F9;
-  --text-muted: #94A3B8;
-  --text-dim: #64748B;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
   --color-border: rgba(255, 255, 255, 0.06);
-  --travigo-page: #0B1120;
+  --travigo-page: #0b1120;
 
-  --surface-card: #1A2537;
-  --surface-elevated: #1A2537;
-  --surface-sidebar: #0D1526;
+  --surface-card: #1a2537;
+  --surface-elevated: #1a2537;
+  --surface-sidebar: #0d1526;
   --surface-header: #111827;
-  --surface-hover: #1E2D40;
+  --surface-hover: #1e2d40;
 
   --border-default: rgba(255, 255, 255, 0.08);
   --border-card: rgba(255, 255, 255, 0.05);
 
   /* Dark mode shadows stay subtle */
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.25);
-  --shadow-premium: 0 4px 20px rgba(0,0,0,0.3);
-  --shadow-hover: 0 6px 24px rgba(0,0,0,0.35);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.25);
+  --shadow-premium: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 6px 24px rgba(0, 0, 0, 0.35);
 }
 
 /* ── BASE ── */
@@ -103,12 +103,13 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     transition: background-color 0.3s ease;
     /* Subtle paper grain */
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
   }
 
   /* ── EDITORIAL TYPOGRAPHY: semua h1/h2/h3 otomatis pakai serif ── */
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
     letter-spacing: -0.01em;
     line-height: 1.2;
@@ -117,7 +118,6 @@
 
 /* ── COMPONENTS ── */
 @layer components {
-
   /* Serif display — ciri khas koran */
   .text-display {
     font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
@@ -154,7 +154,9 @@
     border: 1.5px solid var(--border-default);
     box-shadow: var(--shadow-card);
     border-radius: 10px;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
   }
 
   .comic-card:hover {
@@ -213,7 +215,7 @@
   width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.12);
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {

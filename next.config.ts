@@ -1,5 +1,5 @@
-import type { NextConfig } from "next";
-import path from "path";
+import type { NextConfig } from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
   // Pin workspace root so Turbopack doesn't latch onto a stray

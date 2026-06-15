@@ -17,7 +17,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     dailyTarget: 100,
     target: '100 Paket Sukses Terkirim / Hari',
     color: '#D97706',
-    description: 'Unit pengiriman roda dua. Fokus pada kecepatan dan ketepatan drop-off paket ke pelanggan.',
+    description:
+      'Unit pengiriman roda dua. Fokus pada kecepatan dan ketepatan drop-off paket ke pelanggan.',
   },
   {
     id: 'driver_delivery',
@@ -29,7 +30,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     radiusMeters: 200,
     target: 'Zero Accident & 98% On-Time Delivery',
     color: '#3B82F6',
-    description: 'Unit pengiriman roda empat/lebih. Menangani paket besar dan rute antar kota/kabupaten.',
+    description:
+      'Unit pengiriman roda empat/lebih. Menangani paket besar dan rute antar kota/kabupaten.',
   },
   {
     id: 'inbound_outbound',
@@ -42,7 +44,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     radiusMeters: 100,
     target: 'Proses Sortir < 4 Jam Sejak Kedatangan',
     color: '#6366F1',
-    description: 'Unit operasional gudang malam. Bertanggung jawab atas sortir, loading, dan unloading armada.',
+    description:
+      'Unit operasional gudang malam. Bertanggung jawab atas sortir, loading, dan unloading armada.',
   },
   {
     id: 'pick_up',
@@ -54,7 +57,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     trackFromHome: true,
     target: 'Jemput Paket < 60 Menit Sejak Request',
     color: '#22C55E',
-    description: 'Unit jemput kiriman dari mitra dan pelanggan besar. Mobilitas tinggi dan fleksibel.',
+    description:
+      'Unit jemput kiriman dari mitra dan pelanggan besar. Mobilitas tinggi dan fleksibel.',
   },
   {
     id: 'admin_support',
@@ -65,7 +69,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     gpsRequired: true,
     radiusMeters: 100,
     color: '#0D9488',
-    description: 'Unit pendukung administrasi operasional. Memastikan kelengkapan data dan manifest.',
+    description:
+      'Unit pendukung administrasi operasional. Memastikan kelengkapan data dan manifest.',
   },
   {
     id: 'accounting',
@@ -76,7 +81,8 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     gpsRequired: true,
     radiusMeters: 100,
     color: '#BE123C',
-    description: 'Unit keuangan dan pembukuan. Verifikasi setoran tunai dan administrasi keuangan kantor.',
+    description:
+      'Unit keuangan dan pembukuan. Verifikasi setoran tunai dan administrasi keuangan kantor.',
   },
   {
     id: 'sales_sco',
@@ -88,11 +94,10 @@ export const DEPARTMENT_RULES: DepartmentRule[] = [
     radiusMeters: 100,
     target: 'Upselling Asuransi & Packing Kayu > 30%',
     color: '#43237F',
-    description: 'Garda terdepan pelayanan pelanggan di gerai. Fokus pada ramah tamah dan upselling layanan.',
+    description:
+      'Garda terdepan pelayanan pelanggan di gerai. Fokus pada ramah tamah dan upselling layanan.',
   },
 ];
-
-
 
 // Lookup by name
 export function getRuleByDept(name: string): DepartmentRule | undefined {
@@ -148,7 +153,10 @@ export function calcEffectiveMinutes(
   const lateMinutes = Math.max(0, rawLate - rule.toleranceMinutes);
 
   // Total actual minutes worked (handles cross-midnight automatically)
-  const totalMinutes = Math.max(0, Math.floor((checkOutDate.getTime() - checkInDate.getTime()) / 60000));
+  const totalMinutes = Math.max(
+    0,
+    Math.floor((checkOutDate.getTime() - checkInDate.getTime()) / 60000),
+  );
 
   // Effective = total - late deduction
   const effectiveMinutes = Math.max(0, totalMinutes - lateMinutes);
@@ -167,4 +175,3 @@ export function fmtMinutes(minutes: number): string {
   if (m === 0) return `${h}j`;
   return `${h}j ${m}m`;
 }
-

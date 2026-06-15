@@ -1,7 +1,17 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Calendar as CalendarIcon, Clock, Bell, MessageSquare, Globe, MapPin, Edit, Trash2 } from 'lucide-react';
+import {
+  Search,
+  Calendar as CalendarIcon,
+  Clock,
+  Bell,
+  MessageSquare,
+  Globe,
+  MapPin,
+  Edit,
+  Trash2,
+} from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import type { CalendarEvent } from '@/types';
 
@@ -33,7 +43,9 @@ export default function EventListPanel({
 
         <div className="flex items-center justify-between mb-4 relative">
           <div>
-            <h3 className="text-sm font-black italic uppercase tracking-widest text-(--text-primary)">Detail Hari</h3>
+            <h3 className="text-sm font-black italic uppercase tracking-widest text-(--text-primary)">
+              Detail Hari
+            </h3>
             <p className="text-[10px] text-(--text-secondary) mt-1 font-bold italic opacity-60 uppercase tracking-widest">
               {selectedDayDetails ? format(parseISO(selectedDayDetails.date), 'eeee, dd MMM') : ''}
             </p>
@@ -79,7 +91,9 @@ export default function EventListPanel({
                     className="bg-(--bg-main) border border-(--border-color) rounded-xl p-4 border-l-4"
                     style={{ borderLeftColor: 'var(--accent-info)' }}
                   >
-                    <h4 className="font-black text-(--text-primary) text-[11px] uppercase tracking-widest italic">{evt}</h4>
+                    <h4 className="font-black text-(--text-primary) text-[11px] uppercase tracking-widest italic">
+                      {evt}
+                    </h4>
                     <p className="text-[9px] text-(--accent-info) mt-1 uppercase tracking-widest font-black opacity-70">
                       Libur Nasional
                     </p>
@@ -97,7 +111,9 @@ export default function EventListPanel({
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-black text-(--text-primary) text-[11px] uppercase tracking-widest italic line-clamp-1">{event.title}</h4>
+                        <h4 className="font-black text-(--text-primary) text-[11px] uppercase tracking-widest italic line-clamp-1">
+                          {event.title}
+                        </h4>
                         <div className="flex items-center gap-2 text-[9px] text-(--text-secondary) mt-1.5 font-bold uppercase tracking-widest">
                           <Clock size={12} className="text-(--accent-info)" />
                           {event.startDate && format(parseISO(event.startDate), 'HH:mm')}
@@ -134,10 +150,14 @@ export default function EventListPanel({
                 className="flex flex-col items-center justify-center py-12 text-center opacity-40"
               >
                 <div className="w-16 h-16 rounded-full bg-(--bg-main) flex items-center justify-center mb-4 border border-(--border-color)">
-                   <CalendarIcon size={24} className="text-(--text-secondary)" />
+                  <CalendarIcon size={24} className="text-(--text-secondary)" />
                 </div>
-                <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">Tidak ada acara</p>
-                <p className="text-[9px] text-(--text-secondary) mt-2 uppercase tracking-widest opacity-60">Pilih tanggal lain</p>
+                <p className="text-[11px] font-black text-(--text-primary) uppercase tracking-widest">
+                  Tidak ada acara
+                </p>
+                <p className="text-[9px] text-(--text-secondary) mt-2 uppercase tracking-widest opacity-60">
+                  Pilih tanggal lain
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -151,8 +171,8 @@ export default function EventListPanel({
             { icon: Globe, label: 'GLOBAL', type: 'global' },
             { icon: MapPin, label: 'MAPS', type: 'maps' },
           ].map((action, i) => (
-            <button 
-              key={i} 
+            <button
+              key={i}
               onClick={() => onQuickAction(action.type as any)}
               className="flex flex-col items-center gap-2 group/action transition-all"
             >

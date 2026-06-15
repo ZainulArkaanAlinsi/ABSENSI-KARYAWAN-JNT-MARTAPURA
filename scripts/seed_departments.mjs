@@ -19,48 +19,48 @@ const departments = [
     name: 'DEPARTEMEN OPERASIONAL',
     color: '#E31E24',
     sections: ['Inbound Section', 'Outbound Section', 'Warehouse Section'],
-    description: 'Manajemen pengiriman, gudang, dan logistik lapangan.'
+    description: 'Manajemen pengiriman, gudang, dan logistik lapangan.',
   },
   {
     id: 'sales_mkt',
     name: 'DEPARTEMEN SALES & MARKETING',
     color: '#F97316',
     sections: ['Sales Retail', 'Sales Corporate', 'Marketing'],
-    description: 'Penjualan layanan, hubungan korporat, dan promosi brand.'
+    description: 'Penjualan layanan, hubungan korporat, dan promosi brand.',
   },
   {
     id: 'cs',
     name: 'DEPARTEMEN CUSTOMER SERVICE',
     color: '#3B82F6',
     sections: ['Customer Service Team'],
-    description: 'Layanan pengaduan, tracking, dan penanganan klaim pelanggan.'
+    description: 'Layanan pengaduan, tracking, dan penanganan klaim pelanggan.',
   },
   {
     id: 'hr_adm',
     name: 'DEPARTEMEN ADMINISTRASI & HR',
     color: '#8B5CF6',
     sections: ['Personalia', 'Administrasi', 'General Affairs (GA)'],
-    description: 'Manajemen SDM, rekrutmen, absensi, dan fasilitas umum.'
+    description: 'Manajemen SDM, rekrutmen, absensi, dan fasilitas umum.',
   },
   {
     id: 'finance',
     name: 'DEPARTEMEN KEUANGAN & ACCOUNTING',
     color: '#10B981',
     sections: ['Finance & Accounting Team'],
-    description: 'Pencatatan keuangan, payroll, perpajakan, dan invoice.'
+    description: 'Pencatatan keuangan, payroll, perpajakan, dan invoice.',
   },
   {
     id: 'it',
     name: 'DEPARTEMEN IT/TECHNOLOGY',
     color: '#6366F1',
     sections: ['IT Support Team'],
-    description: 'Pemeliharaan sistem, jaringan, hardware, dan dukungan teknis.'
-  }
+    description: 'Pemeliharaan sistem, jaringan, hardware, dan dukungan teknis.',
+  },
 ];
 
 async function seed() {
   console.log('🚀 Memulai proses seeding departemen...');
-  
+
   try {
     // 1. Bersihkan data lama (opsional, tapi bagus agar rapi)
     const querySnapshot = await getDocs(collection(db, 'departments'));
@@ -75,7 +75,7 @@ async function seed() {
         ...dept,
         isActive: true,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
       console.log(`✅ Berhasil menambahkan: ${dept.name}`);
     }

@@ -12,18 +12,31 @@ import { useState, useEffect } from 'react';
 
 export default function DepartmentsPage() {
   const {
-    departments, loading, search, setSearch,
-    showModal, setShowModal, editingDepartment,
-    form, setForm, saving, openAdd, openEdit,
-    handleSave, handleDelete, filteredDepartments,
+    departments,
+    loading,
+    search,
+    setSearch,
+    showModal,
+    setShowModal,
+    editingDepartment,
+    form,
+    setForm,
+    saving,
+    openAdd,
+    openEdit,
+    handleSave,
+    handleDelete,
+    filteredDepartments,
   } = useDepartmentManagement();
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  useEffect(() => { setCurrentPage(1); }, [search]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
-  const totalPages           = Math.ceil(filteredDepartments.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage);
   const paginatedDepartments = filteredDepartments.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
@@ -39,10 +52,10 @@ export default function DepartmentsPage() {
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -55,7 +68,8 @@ export default function DepartmentsPage() {
           </p>
         </div>
         <motion.button
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={openAdd}
           className="flex items-center gap-2 h-10 px-5 rounded-xl text-[12px] font-bold text-white shrink-0"
           style={{ background: '#10B981', boxShadow: 'none' }}
@@ -73,7 +87,10 @@ export default function DepartmentsPage() {
           placeholder="Cari unit atau departemen..."
           className="flex-1 max-w-sm"
         />
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-slate-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div
+          className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-slate-100"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        >
           <Layers size={15} className="text-emerald-500" />
           <p className="text-[12px] font-bold text-slate-700">{departments.length} unit aktif</p>
         </div>

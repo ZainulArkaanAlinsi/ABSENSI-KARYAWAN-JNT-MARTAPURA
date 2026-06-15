@@ -10,12 +10,12 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
-  interface AdminUser {
-    uid: string;
-    email: string | null;
-    name: string;
-    role: 'admin' | 'superadmin';
-  }
+interface AdminUser {
+  uid: string;
+  email: string | null;
+  name: string;
+  role: 'admin' | 'superadmin';
+}
 
 interface AuthContextType {
   user: AdminUser | null;
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (fbUser) {
         // Set cookie for middleware
         document.cookie = `jne_admin_session=${fbUser.uid}; path=/; max-age=86400; SameSite=Lax`;
-        
+
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
@@ -87,39 +87,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // NORMALISASI EMAIL
       const normalizedEmail = email.trim().toLowerCase();
-      
-       // DOMAIN CHECK: Allow official JNE email domains + gmail for dev/testing
-       const isOfficialDomain =
-         normalizedEmail.endsWith('@jne.mtp.com') ||
-         normalizedEmail.endsWith('@jnemtp.com') ||
-         normalizedEmail.endsWith('@jne.co.id') ||
-         normalizedEmail.endsWith('@gmail.com');
 
-       if (!isOfficialDomain) {
-         setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
-         setLoading(false);
-         return false;
-       }
+      // DOMAIN CHECK: Allow official JNE email domains + gmail for dev/testing
+      const isOfficialDomain =
+        normalizedEmail.endsWith('@jne.mtp.com') ||
+        normalizedEmail.endsWith('@jnemtp.com') ||
+        normalizedEmail.endsWith('@jne.co.id') ||
+        normalizedEmail.endsWith('@gmail.com');
+
+      if (!isOfficialDomain) {
+        setError('Akses ditolak. Gunakan email resmi @jne.mtp.com');
+        setLoading(false);
+        return false;
+      }
 
       const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const fbUser = userCredential.user;
 
       const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
-      
-       if (!userDoc.exists()) {
-         await firebaseSignOut(auth);
-         setError('Akun tidak ditemukan di database. Hubungi Administrator.');
-         setLoading(false);
-         return false;
-       }
 
-       const data = userDoc.data();
-       if (data.role !== 'admin' && data.role !== 'superadmin') {
-         await firebaseSignOut(auth);
-         setError('Akses ditolak. Akun ini tidak memiliki hak akses.');
-         setLoading(false);
-         return false;
-       }
+      if (!userDoc.exists()) {
+        await firebaseSignOut(auth);
+        setError('Akun tidak ditemukan di database. Hubungi Administrator.');
+        setLoading(false);
+        return false;
+      }
+
+      const data = userDoc.data();
+      if (data.role !== 'admin' && data.role !== 'superadmin') {
+        await firebaseSignOut(auth);
+        setError('Akses ditolak. Akun ini tidak memiliki hak akses.');
+        setLoading(false);
+        return false;
+      }
 
       // Set cookie on success
       document.cookie = `jne_admin_session=${fbUser.uid}; path=/; max-age=86400; SameSite=Lax`;
@@ -136,13 +136,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       console.error('Login error detail:', err);
       let msg = 'Gagal masuk. Periksa kembali email dan password Anda.';
-      
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+
+      if (
+        err.code === 'auth/user-not-found' ||
+        err.code === 'auth/wrong-password' ||
+        err.code === 'auth/invalid-credential'
+      ) {
         msg = 'Email atau password salah.';
       } else if (err.code === 'auth/too-many-requests') {
         msg = 'Terlalu banyak percobaan. Coba lagi nanti.';
       }
-      
+
       setError(`${msg} (Error: ${err.code || err.message})`);
       setLoading(false);
       return false;

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const userRecord = await adminAuth.getUser(session.value);
     const userDoc = await adminDb.collection('users').doc(session.value).get();
     const userData = userDoc.data();
-    
+
     if (!userData || (userData.role !== 'admin' && userData.role !== 'superadmin')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
@@ -26,15 +26,12 @@ export async function POST(request: NextRequest) {
     if (!userId || !title || !message) {
       return NextResponse.json(
         { error: 'Missing required fields: userId, title, message' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get user's FCM tokens
-    const tokensSnap = await adminDb
-      .collection('fcm_tokens')
-      .where('userId', '==', userId)
-      .get();
+    const tokensSnap = await adminDb.collection('fcm_tokens').where('userId', '==', userId).get();
 
     if (tokensSnap.empty) {
       return NextResponse.json({ success: true, message: 'No FCM tokens found for user' });
@@ -67,12 +64,12 @@ export async function POST(request: NextRequest) {
     };
 
     const response = await adminMessaging.sendEachForMulticast(messagePayload);
-    
+
     // Clean up invalid tokens
     const invalidTokens = response.responses
       .filter((res: any) => !res.success)
       .map((res: any, idx: number) => tokens[idx]);
-    
+
     if (invalidTokens.length > 0) {
       const batch = adminDb.batch();
       invalidTokens.forEach((token: string) => {
@@ -82,8 +79,8 @@ export async function POST(request: NextRequest) {
       await batch.commit();
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       sentCount: response.successCount,
       failureCount: response.failureCount,
     });

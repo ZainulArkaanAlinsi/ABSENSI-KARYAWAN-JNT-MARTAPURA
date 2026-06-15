@@ -14,7 +14,7 @@ import {
   serverTimestamp,
   Timestamp,
   QueryConstraint,
-  DocumentData, 
+  DocumentData,
 } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { listen } from './firestoreListener';
@@ -36,7 +36,6 @@ import type {
   OvertimeRequest,
   OvertimeStatus,
 } from '@/types';
-
 
 // ============================================================
 // Collection References
@@ -61,7 +60,6 @@ export const COLLECTIONS = {
   SOS_ALERTS: 'sos_alerts',
   EDIT_REQUESTS: 'edit_requests',
 } as const;
-
 
 // ============================================================
 // Helpers
@@ -96,7 +94,8 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     contractType: data.contractType || 'permanent',
     isActive: data.isActive ?? true,
     firstLogin: data.firstLogin ?? true,
-    allowRemoteAttendance: data.allowRemoteAttendance ?? (data.role === 'kurir' || data.role === 'driver'),
+    allowRemoteAttendance:
+      data.allowRemoteAttendance ?? (data.role === 'kurir' || data.role === 'driver'),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
   };
@@ -116,7 +115,6 @@ function mapJamKerja(id: string, data: DocumentData): JamKerja {
     updatedAt: toDate(data.updatedAt),
   };
 }
-
 
 function mapLeave(id: string, data: DocumentData): LeaveRequest {
   return {
@@ -159,29 +157,37 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
   };
 
   // Handle nested (old) or flat (new Data Connect style) formats
-  const checkIn = data.checkIn ? {
-    ...data.checkIn,
-    time: extractTime(data.checkIn)
-  } : (data.checkInTime ? {
-    time: toDate(data.checkInTime),
-    latitude: data.checkInLatitude,
-    longitude: data.checkInLongitude,
-    distance: data.checkInDistance,
-    faceScore: data.checkInFaceScore,
-    photoUrl: data.checkInPhotoUrl,
-  } : undefined);
+  const checkIn = data.checkIn
+    ? {
+        ...data.checkIn,
+        time: extractTime(data.checkIn),
+      }
+    : data.checkInTime
+      ? {
+          time: toDate(data.checkInTime),
+          latitude: data.checkInLatitude,
+          longitude: data.checkInLongitude,
+          distance: data.checkInDistance,
+          faceScore: data.checkInFaceScore,
+          photoUrl: data.checkInPhotoUrl,
+        }
+      : undefined;
 
-  const checkOut = data.checkOut ? {
-    ...data.checkOut,
-    time: extractTime(data.checkOut)
-  } : (data.checkOutTime ? {
-    time: toDate(data.checkOutTime),
-    latitude: data.checkOutLatitude,
-    longitude: data.checkOutLongitude,
-    distance: data.checkOutDistance,
-    faceScore: data.checkOutFaceScore,
-    photoUrl: data.checkOutPhotoUrl,
-  } : undefined);
+  const checkOut = data.checkOut
+    ? {
+        ...data.checkOut,
+        time: extractTime(data.checkOut),
+      }
+    : data.checkOutTime
+      ? {
+          time: toDate(data.checkOutTime),
+          latitude: data.checkOutLatitude,
+          longitude: data.checkOutLongitude,
+          distance: data.checkOutDistance,
+          faceScore: data.checkOutFaceScore,
+          photoUrl: data.checkOutPhotoUrl,
+        }
+      : undefined;
 
   return {
     id,
@@ -202,7 +208,6 @@ function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
     updatedAt: toDate(data.updatedAt),
   };
 }
-
 
 function mapNotification(id: string, data: DocumentData): AdminNotification {
   return {
@@ -257,10 +262,7 @@ function mapDepartment(id: string, data: DocumentData): DepartmentItem {
 // Employees
 // ============================================================
 export async function getEmployees(): Promise<Employee[]> {
-  const q = query(
-    collection(db, COLLECTIONS.USERS),
-    where('role', '==', 'employee')
-  );
+  const q = query(collection(db, COLLECTIONS.USERS), where('role', '==', 'employee'));
   const snap = await getDocs(q);
   const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
   return data.sort((a, b) => a.name.localeCompare(b.name));
@@ -272,7 +274,9 @@ export async function getEmployee(id: string): Promise<Employee | null> {
   return mapEmployee(snap.id, snap.data());
 }
 
-export async function addEmployee(data: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function addEmployee(
+  data: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTIONS.USERS), {
     ...data,
     faceRegistered: false,
@@ -300,7 +304,7 @@ export async function getNextEmployeeId(): Promise<string> {
 }
 export async function registerEmployee(
   employeeData: Omit<Employee, 'id' | 'uid' | 'createdAt' | 'updatedAt'>,
-  password: string
+  password: string,
 ): Promise<string> {
   let secondaryApp;
   try {
@@ -311,8 +315,9 @@ export async function registerEmployee(
     }
 
     // 2. Buat Secondary Auth agar Admin tidak ter-logout
-    secondaryApp = getApps().find(app => app.name === 'SecondaryAuth') 
-      || initializeApp(firebaseConfig, 'SecondaryAuth');
+    secondaryApp =
+      getApps().find((app) => app.name === 'SecondaryAuth') ||
+      initializeApp(firebaseConfig, 'SecondaryAuth');
     const secondaryAuth = getAuth(secondaryApp);
 
     // 3. Buat User di Firebase Auth
@@ -327,10 +332,12 @@ export async function registerEmployee(
       email: finalEmail,
       faceRegistered: false,
       isActive: true,
-      firstLogin: true,        // legacy flag (admin panel reads this)
-      passwordChanged: false,  // mobile app reads this — must be false on create
-                               // so the auto-bridge first-login path triggers
-      allowRemoteAttendance: employeeData.allowRemoteAttendance ?? (employeeData.role === 'kurir' || employeeData.role === 'driver'),
+      firstLogin: true, // legacy flag (admin panel reads this)
+      passwordChanged: false, // mobile app reads this — must be false on create
+      // so the auto-bridge first-login path triggers
+      allowRemoteAttendance:
+        employeeData.allowRemoteAttendance ??
+        (employeeData.role === 'kurir' || employeeData.role === 'driver'),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -338,9 +345,11 @@ export async function registerEmployee(
     return uid;
   } catch (error: any) {
     console.error('Error registering employee:', error);
-    
+
     if (error.code === 'auth/email-already-in-use') {
-      throw new Error('Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.');
+      throw new Error(
+        'Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.',
+      );
     }
     throw error;
   } finally {
@@ -361,33 +370,33 @@ export async function deleteEmployee(id: string): Promise<void> {
   // 1. Ambil semua data absensi terkait
   const attendanceQuery = query(collection(db, COLLECTIONS.ATTENDANCE), where('userId', '==', id));
   const attendanceSnap = await getDocs(attendanceQuery);
-  const deleteAttendancePromises = attendanceSnap.docs.map(d => deleteDoc(d.ref));
+  const deleteAttendancePromises = attendanceSnap.docs.map((d) => deleteDoc(d.ref));
 
   // 2. Ambil semua data izin/cuti terkait
   const leaveQuery = query(collection(db, COLLECTIONS.LEAVES), where('userId', '==', id));
   const leaveSnap = await getDocs(leaveQuery);
-  const deleteLeavePromises = leaveSnap.docs.map(d => deleteDoc(d.ref));
+  const deleteLeavePromises = leaveSnap.docs.map((d) => deleteDoc(d.ref));
 
   // 3. Hapus dokumen user utama
   const deleteUserPromise = deleteDoc(doc(db, COLLECTIONS.USERS, id));
 
   // Jalankan semua proses hapus secara paralel
-  await Promise.all([
-    ...deleteAttendancePromises,
-    ...deleteLeavePromises,
-    deleteUserPromise
-  ]);
+  await Promise.all([...deleteAttendancePromises, ...deleteLeavePromises, deleteUserPromise]);
 }
 
 export function subscribeToEmployees(callback: (employees: Employee[]) => void) {
   const q = query(
     collection(db, COLLECTIONS.USERS),
-    where('role', 'in', ['employee', 'kurir', 'driver'])
+    where('role', 'in', ['employee', 'kurir', 'driver']),
   );
-  return listen(q, (snap) => {
-    const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
-    callback(data.sort((a, b) => a.name.localeCompare(b.name)));
-  }, 'subscribeToEmployees');
+  return listen(
+    q,
+    (snap) => {
+      const data = snap.docs.map((d) => mapEmployee(d.id, d.data()));
+      callback(data.sort((a, b) => a.name.localeCompare(b.name)));
+    },
+    'subscribeToEmployees',
+  );
 }
 
 // ============================================================
@@ -398,7 +407,9 @@ export async function getJamKerjas(): Promise<JamKerja[]> {
   return snap.docs.map((d) => mapJamKerja(d.id, d.data()));
 }
 
-export async function addJamKerja(data: Omit<JamKerja, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function addJamKerja(
+  data: Omit<JamKerja, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTIONS.JAM_KERJA), {
     ...data,
     createdAt: serverTimestamp(),
@@ -424,7 +435,6 @@ export function subscribeToJamKerjas(callback: (jamKerjas: JamKerja[]) => void) 
   });
 }
 
-
 // ============================================================
 // Leaves
 // ============================================================
@@ -440,18 +450,21 @@ export async function updateLeaveStatus(
   id: string,
   status: LeaveStatus,
   reviewedBy: string,
-  rejectionReason?: string
+  rejectionReason?: string,
 ): Promise<void> {
-  await fortressRetry(async () => {
-    await updateDoc(doc(db, COLLECTIONS.LEAVES, id), {
-      status,
-      reviewedBy,
-      rejectionReason: rejectionReason || null,
-      reviewedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-   }, { taskName: `Update Leave Status ${id}` });
- }
+  await fortressRetry(
+    async () => {
+      await updateDoc(doc(db, COLLECTIONS.LEAVES, id), {
+        status,
+        reviewedBy,
+        rejectionReason: rejectionReason || null,
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    },
+    { taskName: `Update Leave Status ${id}` },
+  );
+}
 
 export async function deleteLeave(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTIONS.LEAVES, id));
@@ -459,11 +472,11 @@ export async function deleteLeave(id: string): Promise<void> {
 
 export function subscribeToLeaves(
   status: LeaveStatus | 'all',
-  callback: (leaves: LeaveRequest[]) => void
+  callback: (leaves: LeaveRequest[]) => void,
 ) {
   const constraints: QueryConstraint[] = [];
   if (status !== 'all') constraints.push(where('status', '==', status));
-  
+
   const q = query(collection(db, COLLECTIONS.LEAVES), ...constraints);
   return listen(q, (snap) => {
     const data = snap.docs.map((d) => mapLeave(d.id, d.data()));
@@ -474,7 +487,6 @@ export function subscribeToLeaves(
     callback(sorted.slice(0, 50));
   });
 }
-
 
 // ============================================================
 // Overtime
@@ -507,16 +519,19 @@ export async function updateOvertimeStatus(
   reviewedBy: string,
   rejectionReason?: string,
 ): Promise<void> {
-  await fortressRetry(async () => {
-    await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), {
-      status,
-      reviewedBy,
-      rejectionReason: rejectionReason || null,
-      adminReason: rejectionReason || null,
-      reviewedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  }, { taskName: `Update Overtime Status ${id}` });
+  await fortressRetry(
+    async () => {
+      await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), {
+        status,
+        reviewedBy,
+        rejectionReason: rejectionReason || null,
+        adminReason: rejectionReason || null,
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    },
+    { taskName: `Update Overtime Status ${id}` },
+  );
 }
 
 export async function deleteOvertime(id: string): Promise<void> {
@@ -540,15 +555,11 @@ export function subscribeToOvertimes(
   });
 }
 
-
 // ============================================================
 // Attendance
 // ============================================================
 export async function getAttendanceByDate(date: string): Promise<AttendanceRecord[]> {
-  const q = query(
-    collection(db, COLLECTIONS.ATTENDANCE),
-    where('date', '==', date)
-  );
+  const q = query(collection(db, COLLECTIONS.ATTENDANCE), where('date', '==', date));
   const snap = await getDocs(q);
   const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
   return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -558,16 +569,16 @@ export async function getAttendanceByRange(
   startDate: string,
   endDate: string,
   userId?: string,
-  limitCount: number = 100
+  limitCount: number = 100,
 ): Promise<AttendanceRecord[]> {
   const constraints: QueryConstraint[] = [
     where('date', '>=', startDate),
     where('date', '<=', endDate),
     orderBy('date', 'desc'),
-    limit(limitCount)
+    limit(limitCount),
   ];
   if (userId) constraints.push(where('userId', '==', userId));
-  
+
   const q = query(collection(db, COLLECTIONS.ATTENDANCE), ...constraints);
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapAttendance(d.id, d.data()));
@@ -580,23 +591,24 @@ export async function deleteAttendance(id: string): Promise<void> {
 export function subscribeToTodayAttendance(
   date: string,
   callback: (records: AttendanceRecord[]) => void,
-  limitCount: number = 100
+  limitCount: number = 100,
 ) {
   // Single-field query — no composite index needed.
   // Also accept attendanceDate (legacy field name used by some mobile records).
   const q = query(
     collection(db, COLLECTIONS.ATTENDANCE),
     where('date', '==', date),
-    limit(limitCount)
+    limit(limitCount),
   );
   return listen(q, (snap) => {
     const data = snap.docs.map((d) => mapAttendance(d.id, d.data()));
     // Sort newest-first client-side (avoids orderBy composite index)
-    data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    data.sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+    );
     callback(data);
   });
 }
-
 
 // ============================================================
 // Notifications
@@ -605,7 +617,7 @@ export function subscribeToNotifications(callback: (notifs: AdminNotification[])
   const q = query(
     collection(db, COLLECTIONS.NOTIFICATIONS),
     orderBy('createdAt', 'desc'),
-    limit(30)
+    limit(30),
   );
   return listen(q, (snap) => {
     callback(snap.docs.map((d) => mapNotification(d.id, d.data())));
@@ -617,10 +629,7 @@ export async function markNotificationRead(id: string): Promise<void> {
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
-  const q = query(
-    collection(db, COLLECTIONS.NOTIFICATIONS),
-    where('isRead', '==', false)
-  );
+  const q = query(collection(db, COLLECTIONS.NOTIFICATIONS), where('isRead', '==', false));
   const snap = await getDocs(q);
   await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { isRead: true })));
 }
@@ -650,7 +659,9 @@ export async function getEvents(): Promise<CalendarEvent[]> {
   return snap.docs.map((d) => mapEvent(d.id, d.data()));
 }
 
-export async function addEvent(data: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function addEvent(
+  data: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTIONS.EVENTS), {
     ...data,
     createdAt: serverTimestamp(),
@@ -699,8 +710,8 @@ export async function scheduleMeetingNotifications(
   if (!departments.length && !employees.length) return;
 
   const startMs = new Date(startDateISO).getTime();
-  const dayBeforeMs  = startMs - 24 * 60 * 60 * 1000; // -1 day
-  const thirtyMinMs  = startMs - 30 * 60 * 1000;       // -30 minutes
+  const dayBeforeMs = startMs - 24 * 60 * 60 * 1000; // -1 day
+  const thirtyMinMs = startMs - 30 * 60 * 1000; // -30 minutes
 
   const base = {
     eventId,
@@ -734,7 +745,9 @@ export async function getDepartments(): Promise<DepartmentItem[]> {
   return data.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function addDepartment(data: Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function addDepartment(
+  data: Omit<DepartmentItem, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> {
   const ref = await addDoc(collection(db, COLLECTIONS.DEPARTMENTS), {
     ...data,
     createdAt: serverTimestamp(),
@@ -764,10 +777,14 @@ export function subscribeToDepartments(callback: (departments: DepartmentItem[])
 // ============================================================
 // Audit Log
 // ============================================================
-export async function logAudit(action: string, targetUserId: string, metadata?: Record<string, any>): Promise<void> {
+export async function logAudit(
+  action: string,
+  targetUserId: string,
+  metadata?: Record<string, any>,
+): Promise<void> {
   try {
     const currentUser = auth.currentUser;
-    
+
     await addDoc(collection(db, COLLECTIONS.AUDIT_LOG), {
       action,
       actorId: currentUser?.uid || 'system',
@@ -786,17 +803,28 @@ export async function logAudit(action: string, targetUserId: string, metadata?: 
 // ============================================================
 // Presence System (Firestore-based Heartbeat)
 // ============================================================
-export function updatePresence(userId: string, isOnline: boolean, deviceId?: string): Promise<void> {
-  return setDoc(doc(db, COLLECTIONS.PRESENCE, userId), {
-    userId,
-    isOnline,
-    lastSeen: serverTimestamp(),
-    deviceId: deviceId,
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
+export function updatePresence(
+  userId: string,
+  isOnline: boolean,
+  deviceId?: string,
+): Promise<void> {
+  return setDoc(
+    doc(db, COLLECTIONS.PRESENCE, userId),
+    {
+      userId,
+      isOnline,
+      lastSeen: serverTimestamp(),
+      deviceId: deviceId,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
-export function subscribeToPresence(userId: string, callback: (isOnline: boolean, lastSeen?: Date) => void) {
+export function subscribeToPresence(
+  userId: string,
+  callback: (isOnline: boolean, lastSeen?: Date) => void,
+) {
   const ref = doc(db, COLLECTIONS.PRESENCE, userId);
   return listen(ref, (snap) => {
     const data = snap.data();
@@ -812,7 +840,7 @@ export function subscribeToPresence(userId: string, callback: (isOnline: boolean
 export function subscribeToAllPresence(callback: Record<string, boolean>) {
   const q = query(collection(db, COLLECTIONS.PRESENCE));
   return listen(q, (snap) => {
-    snap.docs.forEach(doc => {
+    snap.docs.forEach((doc) => {
       const data = doc.data();
       if (data?.isOnline === true) {
         callback[doc.id] = true;
@@ -827,12 +855,16 @@ export function subscribeToAllPresence(callback: Record<string, boolean>) {
 // FCM Token Management
 // ============================================================
 export async function saveFCMToken(userId: string, token: string): Promise<void> {
-  await setDoc(doc(db, COLLECTIONS.FCM_TOKENS, token), {
-    userId,
-    token,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
+  await setDoc(
+    doc(db, COLLECTIONS.FCM_TOKENS, token),
+    {
+      userId,
+      token,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 export async function deleteFCMToken(token: string): Promise<void> {
@@ -842,7 +874,7 @@ export async function deleteFCMToken(token: string): Promise<void> {
 export function subscribeToUserFCMTokens(userId: string, callback: (tokens: string[]) => void) {
   const q = query(collection(db, COLLECTIONS.FCM_TOKENS), where('userId', '==', userId));
   return listen(q, (snap) => {
-    const tokens = snap.docs.map(d => d.id); // doc ID is the token
+    const tokens = snap.docs.map((d) => d.id); // doc ID is the token
     callback(tokens);
   });
 }

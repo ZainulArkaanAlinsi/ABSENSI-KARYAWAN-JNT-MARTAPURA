@@ -7,19 +7,30 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { ConfirmProvider } from '@/context/ConfirmContext';
 import { Toaster } from 'sonner';
 
-const inter       = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const outfit      = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-plus-jakarta' });
-const playfair    = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', weight: ['400', '700', '900'] });
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  weight: ['400', '700', '900'],
+});
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning className={`${inter.variable} ${outfit.variable} ${plusJakarta.variable} ${playfair.variable}`}>
+    <html
+      lang="id"
+      suppressHydrationWarning
+      className={`${inter.variable} ${outfit.variable} ${plusJakarta.variable} ${playfair.variable}`}
+    >
       <head>
         {/* Metadata di-set manual di <head> karena RootLayout ini client
             component ('use client') — Next tidak mengizinkan export metadata. */}
         <title>JNE Absensi — Panel Admin</title>
-        <meta name="description" content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan." />
+        <meta
+          name="description"
+          content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan."
+        />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
@@ -32,11 +43,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://admin-absensi-jne-mtp.web.app/" />
         <meta property="og:title" content="JNE Absensi — Panel Admin" />
-        <meta property="og:description" content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan." />
+        <meta
+          property="og:description"
+          content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan."
+        />
         <meta property="og:image" content="https://admin-absensi-jne-mtp.web.app/icon-512.png" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="JNE Absensi — Panel Admin" />
-        <meta name="twitter:description" content="Panel admin sistem absensi karyawan JNE Martapura." />
+        <meta
+          name="twitter:description"
+          content="Panel admin sistem absensi karyawan JNE Martapura."
+        />
         <meta name="twitter:image" content="https://admin-absensi-jne-mtp.web.app/icon-512.png" />
         <script
           dangerouslySetInnerHTML={{
@@ -66,9 +83,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthProvider>
               <ConfirmProvider>
                 {children}
-                <Toaster 
-                  position="top-center" 
-                  richColors 
+                <Toaster
+                  position="top-center"
+                  richColors
                   expand={false}
                   toastOptions={{
                     style: {

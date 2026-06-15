@@ -2,15 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { safeFormatDate } from '@/utils/dateFormatters';
 import {
-  CheckCircle, XCircle, FileText, Inbox, Loader2,
-  UserCheck, Search, Calendar, Trash2,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Inbox,
+  Loader2,
+  UserCheck,
+  Search,
+  Calendar,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
@@ -20,18 +36,18 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 const TABS = [
-  { key: 'pending',  label: 'Menunggu'  },
+  { key: 'pending', label: 'Menunggu' },
   { key: 'approved', label: 'Disetujui' },
-  { key: 'rejected', label: 'Ditolak'   },
+  { key: 'rejected', label: 'Ditolak' },
   { key: 'balances', label: 'Kelola Saldo' },
 ];
 
 const LEAVE_TYPES: Record<string, string> = {
-  sick:       'Sakit',
-  annual:     'Cuti Tahunan',
+  sick: 'Sakit',
+  annual: 'Cuti Tahunan',
   permission: 'Izin Keperluan',
-  personal:   'Keperluan Pribadi',
-  urgent:     'Keperluan Keluarga',
+  personal: 'Keperluan Pribadi',
+  urgent: 'Keperluan Keluarga',
 };
 
 const toDate = (val: any): Date => {
@@ -51,15 +67,15 @@ const toDate = (val: any): Date => {
 };
 
 export default function LeavesPage() {
-  const [allLeaves,       setAllLeaves]       = useState<LeaveRequest[]>([]);
-  const [leaves,          setLeaves]          = useState<LeaveRequest[]>([]);
-  const [loading,         setLoading]         = useState(true);
-  const [activeTab,       setActiveTab]       = useState('pending');
-  const [processing,      setProcessing]      = useState<string | null>(null);
+  const [allLeaves, setAllLeaves] = useState<LeaveRequest[]>([]);
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('pending');
+  const [processing, setProcessing] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [selectedLeave,   setSelectedLeave]   = useState<LeaveRequest | null>(null);
-  const [rejectReason,    setRejectReason]    = useState('');
-  const [currentPage,     setCurrentPage]     = useState(1);
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const { confirm } = useConfirm();
   const { user } = useAuth();
   const itemsPerPage = 10;
@@ -78,30 +94,37 @@ export default function LeavesPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'leaves'), orderBy('createdAt', 'desc'));
-    const unsubLeaves = listen(q, snap => {
-      setAllLeaves(snap.docs.map(d => ({ id: d.id, ...d.data() } as LeaveRequest)));
+    const unsubLeaves = listen(q, (snap) => {
+      setAllLeaves(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LeaveRequest));
       setLoading(false);
     });
 
-    const unsubEmployees = listen(collection(db, 'users'), snap => {
-      setEmployees(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
+    const unsubEmployees = listen(collection(db, 'users'), (snap) => {
+      setEmployees(snap.docs.map((d) => ({ uid: d.id, ...d.data() })));
     });
 
-    const unsubBalances = listen(collection(db, 'leave_balances'), snap => {
-      setBalances(snap.docs.map(d => ({ userId: d.id, ...d.data() })));
+    const unsubBalances = listen(collection(db, 'leave_balances'), (snap) => {
+      setBalances(snap.docs.map((d) => ({ userId: d.id, ...d.data() })));
     });
 
-    return () => { unsubLeaves(); unsubEmployees(); unsubBalances(); };
+    return () => {
+      unsubLeaves();
+      unsubEmployees();
+      unsubBalances();
+    };
   }, []);
 
   useEffect(() => {
-    setLeaves(allLeaves.filter(l => l.status === activeTab));
+    setLeaves(allLeaves.filter((l) => l.status === activeTab));
     setCurrentPage(1);
   }, [activeTab, allLeaves]);
 
-  const totalPages      = Math.ceil(leaves.length / itemsPerPage);
-  const paginatedLeaves = leaves.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const pendingCount    = allLeaves.filter(l => l.status === 'pending').length;
+  const totalPages = Math.ceil(leaves.length / itemsPerPage);
+  const paginatedLeaves = leaves.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+  const pendingCount = allLeaves.filter((l) => l.status === 'pending').length;
 
   const handleApprove = async (leave: LeaveRequest) => {
     const isConfirmed = await confirm({
@@ -109,7 +132,7 @@ export default function LeavesPage() {
       message: `Setujui pengajuan ${leave.type} dari ${leave.employeeName}?`,
       variant: 'info',
       confirmLabel: 'Setujui',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (!isConfirmed) return;
@@ -141,7 +164,10 @@ export default function LeavesPage() {
     }
   };
 
-  const openReject = (leave: LeaveRequest) => { setSelectedLeave(leave); setShowRejectModal(true); };
+  const openReject = (leave: LeaveRequest) => {
+    setSelectedLeave(leave);
+    setShowRejectModal(true);
+  };
 
   const handleRejectSubmit = async () => {
     if (!selectedLeave || !rejectReason.trim()) return;
@@ -199,7 +225,7 @@ export default function LeavesPage() {
   };
 
   const openBalanceModal = (emp: any) => {
-    const bal = balances.find(b => b.userId === emp.uid) || {
+    const bal = balances.find((b) => b.userId === emp.uid) || {
       annualQuota: 12,
       usedAnnual: 0,
       usedSick: 0,
@@ -251,17 +277,19 @@ export default function LeavesPage() {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-3">
         <Loader2 size={28} className="animate-spin text-emerald-500" />
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Memuat data cuti...</p>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          Memuat data cuti...
+        </p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -276,7 +304,9 @@ export default function LeavesPage() {
         {pendingCount > 0 && (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl shrink-0">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <p className="text-[12px] font-bold text-amber-700">{pendingCount} menunggu persetujuan</p>
+            <p className="text-[12px] font-bold text-amber-700">
+              {pendingCount} menunggu persetujuan
+            </p>
           </div>
         )}
       </motion.div>
@@ -284,21 +314,44 @@ export default function LeavesPage() {
       {/* ── SUMMARY STRIP ── */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Menunggu',  val: allLeaves.filter(l => l.status === 'pending').length,  dot: 'bg-amber-400',   text: 'text-amber-600',   bg: 'bg-amber-50'   },
-          { label: 'Disetujui', val: allLeaves.filter(l => l.status === 'approved').length, dot: 'bg-emerald-400', text: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Ditolak',   val: allLeaves.filter(l => l.status === 'rejected').length, dot: 'bg-red-400',     text: 'text-red-500',     bg: 'bg-red-50'     },
+          {
+            label: 'Menunggu',
+            val: allLeaves.filter((l) => l.status === 'pending').length,
+            dot: 'bg-amber-400',
+            text: 'text-amber-600',
+            bg: 'bg-amber-50',
+          },
+          {
+            label: 'Disetujui',
+            val: allLeaves.filter((l) => l.status === 'approved').length,
+            dot: 'bg-emerald-400',
+            text: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+          },
+          {
+            label: 'Ditolak',
+            val: allLeaves.filter((l) => l.status === 'rejected').length,
+            dot: 'bg-red-400',
+            text: 'text-red-500',
+            bg: 'bg-red-50',
+          },
         ].map((s, i) => (
           <motion.div
             key={s.label}
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06 + i * 0.07 }}
             className="bg-white rounded-2xl px-4 py-3.5 border border-slate-100 flex items-center gap-3"
             style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
           >
             <span className={`w-2.5 h-2.5 rounded-full ${s.dot} shrink-0`} />
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
-              <p className={`text-[22px] font-black leading-none tabular-nums ${s.text}`}>{s.val}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {s.label}
+              </p>
+              <p className={`text-[22px] font-black leading-none tabular-nums ${s.text}`}>
+                {s.val}
+              </p>
             </div>
           </motion.div>
         ))}
@@ -306,11 +359,13 @@ export default function LeavesPage() {
 
       {/* ── TAB BAR ── */}
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
         className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-2"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
       >
-        {TABS.map(tab => (
+        {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
@@ -341,12 +396,14 @@ export default function LeavesPage() {
       {/* ── LEAVE CARDS ── */}
       {leaves.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="bg-white border border-slate-100 rounded-2xl p-16 text-center"
           style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}
         >
           <motion.div
-            animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4"
           >
             <Inbox size={24} className="text-slate-300" />
@@ -361,15 +418,27 @@ export default function LeavesPage() {
               <table className="w-full text-left text-[12px]">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">Karyawan</th>
-                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">Quota Tahunan</th>
-                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">Terpakai (Cuti/Sakit)</th>
-                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
+                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">
+                      Karyawan
+                    </th>
+                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">
+                      Quota Tahunan
+                    </th>
+                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider">
+                      Terpakai (Cuti/Sakit)
+                    </th>
+                    <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-right">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {employees.map(emp => {
-                    const bal = balances.find(b => b.userId === emp.uid) || { annualQuota: 12, usedAnnual: 0, usedSick: 0 };
+                  {employees.map((emp) => {
+                    const bal = balances.find((b) => b.userId === emp.uid) || {
+                      annualQuota: 12,
+                      usedAnnual: 0,
+                      usedSick: 0,
+                    };
                     return (
                       <tr key={emp.uid} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4">
@@ -383,9 +452,12 @@ export default function LeavesPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-slate-700">{bal.annualQuota} Hari</td>
+                        <td className="px-6 py-4 font-bold text-slate-700">
+                          {bal.annualQuota} Hari
+                        </td>
                         <td className="px-6 py-4">
-                          <span className="text-emerald-600 font-bold">{bal.usedAnnual}</span> / <span className="text-red-500 font-bold">{bal.usedSick}</span>
+                          <span className="text-emerald-600 font-bold">{bal.usedAnnual}</span> /{' '}
+                          <span className="text-red-500 font-bold">{bal.usedSick}</span>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
@@ -423,28 +495,38 @@ export default function LeavesPage() {
                         </div>
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
                       </div>
-                      <p className="text-desc font-bold text-slate-800 leading-tight">{leave.employeeName}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{leave.employeeId}</p>
+                      <p className="text-desc font-bold text-slate-800 leading-tight">
+                        {leave.employeeName}
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                        {leave.employeeId}
+                      </p>
                     </div>
 
                     {/* Right: Leave details */}
                     <div className="flex-1 p-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Jenis Pengajuan</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                            Jenis Pengajuan
+                          </p>
                           <span className="inline-flex px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[12px] font-bold border border-emerald-200">
                             {LEAVE_TYPES[leave.type] ?? leave.type}
                           </span>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Durasi</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                            Durasi
+                          </p>
                           <div className="flex items-center gap-2">
                             <Calendar size={13} className="text-slate-400" />
                             <p className="text-[13px] font-bold text-slate-800">
-                              {safeFormatDate(leave.startDate, 'dd MMM')}
-                              {' '}<span className="text-slate-400">→</span>{' '}
+                              {safeFormatDate(leave.startDate, 'dd MMM')}{' '}
+                              <span className="text-slate-400">→</span>{' '}
                               {safeFormatDate(leave.endDate, 'dd MMM yyyy')}
-                              {leave.totalDays ? <span className="ml-1 text-emerald-600">({leave.totalDays}h)</span> : null}
+                              {leave.totalDays ? (
+                                <span className="ml-1 text-emerald-600">({leave.totalDays}h)</span>
+                              ) : null}
                             </p>
                           </div>
                         </div>
@@ -463,11 +545,16 @@ export default function LeavesPage() {
                         {leave.status === 'approved' && (
                           <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                             <UserCheck size={12} />
-                            Disetujui oleh <span className="font-bold text-slate-600">{leave.reviewedBy || 'Admin'}</span>
+                            Disetujui oleh{' '}
+                            <span className="font-bold text-slate-600">
+                              {leave.reviewedBy || 'Admin'}
+                            </span>
                           </div>
                         )}
                         {leave.status === 'rejected' && leave.rejectionReason && (
-                          <p className="text-[11px] text-red-500 italic">Ditolak: {leave.rejectionReason}</p>
+                          <p className="text-[11px] text-red-500 italic">
+                            Ditolak: {leave.rejectionReason}
+                          </p>
                         )}
                         {leave.status !== 'pending' && <span />}
 
@@ -475,7 +562,8 @@ export default function LeavesPage() {
                           {leave.status === 'pending' ? (
                             <>
                               <motion.button
-                                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
                                 onClick={() => openReject(leave)}
                                 disabled={!!processing}
                                 className="flex items-center gap-1.5 h-9 px-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-[12px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
@@ -483,31 +571,35 @@ export default function LeavesPage() {
                                 <XCircle size={14} /> Tolak
                               </motion.button>
                               <motion.button
-                                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
                                 onClick={() => handleApprove(leave)}
                                 disabled={!!processing}
                                 className="flex items-center gap-1.5 h-9 px-4 text-white rounded-xl text-[12px] font-bold disabled:opacity-50"
                                 style={{ background: '#10B981', boxShadow: 'none' }}
                               >
-                                {processing === leave.id
-                                  ? <Loader2 size={13} className="animate-spin" />
-                                  : <CheckCircle size={14} />
-                                }
+                                {processing === leave.id ? (
+                                  <Loader2 size={13} className="animate-spin" />
+                                ) : (
+                                  <CheckCircle size={14} />
+                                )}
                                 Setujui
                               </motion.button>
                             </>
                           ) : (
                             <motion.button
-                              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.97 }}
                               onClick={() => handleDelete(leave)}
                               disabled={!!processing}
                               className="flex items-center gap-1.5 h-9 px-3 bg-white border border-slate-200 text-slate-400 rounded-xl text-[11px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
                               title="Hapus pengajuan ini"
                             >
-                              {processing === leave.id
-                                ? <Loader2 size={12} className="animate-spin" />
-                                : <Trash2 size={12} />
-                              }
+                              {processing === leave.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={12} />
+                              )}
                               Hapus
                             </motion.button>
                           )}
@@ -525,48 +617,71 @@ export default function LeavesPage() {
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       {/* ── BALANCE MODAL ── */}
-      <Modal isOpen={showBalanceModal} onClose={() => setShowBalanceModal(false)} title="Pengaturan Saldo Karyawan" maxWidth={480}>
+      <Modal
+        isOpen={showBalanceModal}
+        onClose={() => setShowBalanceModal(false)}
+        title="Pengaturan Saldo Karyawan"
+        maxWidth={480}
+      >
         <div className="flex flex-col gap-5 pt-2">
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
             <p className="text-desc font-bold text-slate-800">{selectedBalance?.name}</p>
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest">{selectedBalance?.employeeId}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-widest">
+              {selectedBalance?.employeeId}
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Quota Tahunan</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                Quota Tahunan
+              </label>
               <input
                 type="number"
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-emerald-400 transition-all"
                 value={editBalance.annualQuota}
-                onChange={e => setEditBalance({ ...editBalance, annualQuota: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setEditBalance({ ...editBalance, annualQuota: parseInt(e.target.value) || 0 })
+                }
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Cuti Terpakai</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                Cuti Terpakai
+              </label>
               <input
                 type="number"
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-emerald-400 transition-all"
                 value={editBalance.usedAnnual}
-                onChange={e => setEditBalance({ ...editBalance, usedAnnual: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setEditBalance({ ...editBalance, usedAnnual: parseInt(e.target.value) || 0 })
+                }
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Sakit Terpakai</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                Sakit Terpakai
+              </label>
               <input
                 type="number"
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-emerald-400 transition-all"
                 value={editBalance.usedSick}
-                onChange={e => setEditBalance({ ...editBalance, usedSick: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setEditBalance({ ...editBalance, usedSick: parseInt(e.target.value) || 0 })
+                }
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Izin Terpakai</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                Izin Terpakai
+              </label>
               <input
                 type="number"
                 className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-emerald-400 transition-all"
                 value={editBalance.usedPermission}
-                onChange={e => setEditBalance({ ...editBalance, usedPermission: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setEditBalance({ ...editBalance, usedPermission: parseInt(e.target.value) || 0 })
+                }
               />
             </div>
           </div>
@@ -584,14 +699,23 @@ export default function LeavesPage() {
               className="flex-1 h-11 rounded-xl text-white text-[12px] font-bold disabled:opacity-50"
               style={{ background: '#10B981' }}
             >
-              {processing === selectedBalance?.uid ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Simpan Perubahan'}
+              {processing === selectedBalance?.uid ? (
+                <Loader2 size={16} className="animate-spin mx-auto" />
+              ) : (
+                'Simpan Perubahan'
+              )}
             </button>
           </div>
         </div>
       </Modal>
 
       {/* ── REJECT MODAL ── */}
-      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Alasan Penolakan" maxWidth={480}>
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        title="Alasan Penolakan"
+        maxWidth={480}
+      >
         <div className="flex flex-col gap-4 pt-2">
           <p className="text-[12px] text-slate-500">
             Berikan alasan mengapa pengajuan{' '}
@@ -601,7 +725,7 @@ export default function LeavesPage() {
             className="w-full h-28 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-[13px] text-slate-800 outline-none focus:border-emerald-400 focus:bg-white transition-all resize-none"
             placeholder="Tuliskan alasan penolakan..."
             value={rejectReason}
-            onChange={e => setRejectReason(e.target.value)}
+            onChange={(e) => setRejectReason(e.target.value)}
           />
           <div className="flex gap-2.5">
             <button
@@ -616,7 +740,11 @@ export default function LeavesPage() {
               className="flex-1 h-10 rounded-xl text-white text-[12px] font-bold disabled:opacity-50"
               style={{ background: '#EF4444' }}
             >
-              {processing ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'Konfirmasi Tolak'}
+              {processing ? (
+                <Loader2 size={14} className="animate-spin mx-auto" />
+              ) : (
+                'Konfirmasi Tolak'
+              )}
             </button>
           </div>
         </div>

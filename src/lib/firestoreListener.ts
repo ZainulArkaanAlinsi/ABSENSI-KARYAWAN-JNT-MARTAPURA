@@ -50,7 +50,9 @@ export function handleListenerError(err: FirestoreError, context?: string): void
     // Expected when a listener outlives its auth session. Nothing to do.
     if (process.env.NODE_ENV !== 'production') {
       // console.debug is NOT intercepted by the Next.js error overlay.
-      console.debug(`Firestore listener stopped${where}: ${err.code} (expected during sign-out/offline)`);
+      console.debug(
+        `Firestore listener stopped${where}: ${err.code} (expected during sign-out/offline)`,
+      );
     }
     return;
   }

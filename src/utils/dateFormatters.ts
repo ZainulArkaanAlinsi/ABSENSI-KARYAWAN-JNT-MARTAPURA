@@ -20,7 +20,9 @@ export function safeFormatDate(dateVal: any, fmt: string): string {
   if (!d) return typeof dateVal === 'string' ? dateVal : '—';
   try {
     return format(d, fmt, { locale: localeId });
-  } catch { return '—'; }
+  } catch {
+    return '—';
+  }
 }
 
 /** Format a time value safely — returns '—' on invalid input, never throws. */
@@ -29,5 +31,7 @@ export function safeFormatTime(timeVal: unknown, fmt = 'HH:mm'): string {
   if (!d) return '—';
   try {
     return format(d, fmt);
-  } catch { return '—'; }
+  } catch {
+    return '—';
+  }
 }

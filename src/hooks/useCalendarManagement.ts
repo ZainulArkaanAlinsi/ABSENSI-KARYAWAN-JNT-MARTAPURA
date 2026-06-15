@@ -15,8 +15,6 @@ export function useCalendarManagement() {
     return unsub;
   }, []);
 
-
-
   return {
     events,
     loading,

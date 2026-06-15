@@ -19,7 +19,9 @@ export default function NotificationsSettings({ settings, update }: Notification
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Bell size={16} />
           </div>
-          <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-wider">Broadcast Protocol</h4>
+          <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+            Broadcast Protocol
+          </h4>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -58,7 +60,9 @@ export default function NotificationsSettings({ settings, update }: Notification
                   <item.icon size={18} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">{item.label}</p>
+                  <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">
+                    {item.label}
+                  </p>
                 </div>
               </div>
               <ToggleSwitch
@@ -80,11 +84,15 @@ export default function NotificationsSettings({ settings, update }: Notification
               <Mail size={18} />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Email Notifications</p>
+              <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">
+                Email Notifications
+              </p>
             </div>
             <ToggleSwitch
               checked={settings.emailNotifications}
-              onChange={() => update('notifications', 'emailNotifications', !settings.emailNotifications)}
+              onChange={() =>
+                update('notifications', 'emailNotifications', !settings.emailNotifications)
+              }
               label=""
             />
           </div>
@@ -102,7 +110,10 @@ export default function NotificationsSettings({ settings, update }: Notification
                     Destination Address
                   </label>
                   <div className="relative">
-                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary/50" />
+                    <Mail
+                      size={14}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary/50"
+                    />
                     <input
                       type="email"
                       className="w-full h-10 bg-primary/5 border border-border-primary rounded-lg pl-10 pr-4 text-sm font-medium text-text-primary outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 transition-all placeholder:text-text-tertiary/40"

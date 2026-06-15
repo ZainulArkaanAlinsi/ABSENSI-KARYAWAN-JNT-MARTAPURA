@@ -1,5 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -22,8 +31,8 @@ async function seedEverything() {
     console.log('✅ Login berhasil! Memulai simulasi penggunaan fitur...');
 
     const usersSnap = await getDocs(collection(db, 'users'));
-    const employees = usersSnap.docs.filter(d => d.data().role === 'employee');
-    
+    const employees = usersSnap.docs.filter((d) => d.data().role === 'employee');
+
     if (employees.length === 0) {
       console.error('❌ Tidak ada karyawan ditemukan!');
       return;
@@ -35,7 +44,7 @@ async function seedEverything() {
       if (Math.random() > 0.2) {
         await updateDoc(doc(db, 'users', empDoc.id), {
           faceRegistered: true,
-          isActive: true
+          isActive: true,
         });
       }
     }
@@ -48,14 +57,16 @@ async function seedEverything() {
       currentDate.setDate(today.getDate() - i);
       if (currentDate.getDay() === 0) continue;
       const dateStr = currentDate.toISOString().split('T')[0];
-      
+
       for (const empDoc of employees) {
         const emp = empDoc.data();
         if (Math.random() > 0.9) continue;
 
         const isLate = Math.random() > 0.8;
         const checkInHour = isLate ? 8 : 7;
-        const checkInMin = isLate ? Math.floor(Math.random() * 45) + 16 : Math.floor(Math.random() * 59);
+        const checkInMin = isLate
+          ? Math.floor(Math.random() * 45) + 16
+          : Math.floor(Math.random() * 59);
         const checkInDate = new Date(currentDate);
         checkInDate.setHours(checkInHour, checkInMin, 0);
 
@@ -64,9 +75,10 @@ async function seedEverything() {
         const checkOutDate = new Date(currentDate);
         checkOutDate.setHours(checkOutHour, checkOutMin, 0);
 
-        const lateMinutes = checkInHour >= 8 && checkInMin > 15 ? (checkInHour - 8) * 60 + (checkInMin - 15) : 0;
+        const lateMinutes =
+          checkInHour >= 8 && checkInMin > 15 ? (checkInHour - 8) * 60 + (checkInMin - 15) : 0;
         const attId = `${empDoc.id}_${dateStr}`;
-        
+
         await setDoc(doc(db, 'attendance', attId), {
           userId: empDoc.id,
           userName: emp.name || 'Karyawan JNE',
@@ -78,7 +90,7 @@ async function seedEverything() {
           lateMinutes,
           locationIn: { latitude: -3.4245, longitude: 114.8512 },
           method: 'face_biometric',
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
         });
       }
     }
@@ -100,7 +112,7 @@ async function seedEverything() {
         start: Timestamp.fromDate(evDate),
         end: Timestamp.fromDate(evDate),
         allDay: true,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
     }
 
@@ -116,7 +128,7 @@ async function seedEverything() {
         requestType: 'check_out',
         requestedTime: '18:30',
         status: 'pending',
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
     }
 
@@ -133,7 +145,7 @@ async function seedEverything() {
         startDate: '2026-05-01',
         endDate: '2026-05-02',
         status: l < 3 ? 'approved' : 'pending',
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
     }
 

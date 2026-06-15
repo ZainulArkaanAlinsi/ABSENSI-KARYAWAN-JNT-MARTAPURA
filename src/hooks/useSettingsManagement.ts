@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import {
-  getSettings,
-  updateSettings,
-  subscribeToSettings,
-} from '@/lib/firestore/settings';
+import { getSettings, updateSettings, subscribeToSettings } from '@/lib/firestore/settings';
 import type { Settings } from '@/types';
 
 export const TABS = [
@@ -15,7 +11,7 @@ export const TABS = [
   { key: 'maintenance', label: 'Maintenance', icon: 'maintenance' },
 ] as const;
 
-export type TabKey = typeof TABS[number]['key'];
+export type TabKey = (typeof TABS)[number]['key'];
 
 /**
  * Validasi koordinat kantor sebelum disimpan. Mencegah lat/lng tertukar atau
@@ -143,23 +139,20 @@ export function useSettingsManagement() {
   }, [settings]);
 
   // ── Update: immutable field-level update ──
-  const update = useCallback(
-    (section: keyof Settings, field: string, value: any) => {
-      setSettings((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [section]: {
-            ...prev[section],
-            [field]: value,
-          },
-        };
-      });
-      // Clear any previous error on new edit
-      setError(null);
-    },
-    [],
-  );
+  const update = useCallback((section: keyof Settings, field: string, value: any) => {
+    setSettings((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      };
+    });
+    // Clear any previous error on new edit
+    setError(null);
+  }, []);
 
   // ── Save with robust error handling ──
   const handleSave = useCallback(async () => {
@@ -184,8 +177,7 @@ export function useSettingsManagement() {
     } catch (error: any) {
       console.error('Error saving settings:', error);
       setError(
-        error.message ||
-          'Gagal menyimpan pengaturan. Periksa koneksi internet dan coba lagi.',
+        error.message || 'Gagal menyimpan pengaturan. Periksa koneksi internet dan coba lagi.',
       );
       return false;
     } finally {

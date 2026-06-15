@@ -29,7 +29,7 @@ export function useHeaderLogic() {
     setShowNotifications(!showNotifications);
     setShowUserMenu(false);
   };
-  
+
   const toggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
     setShowNotifications(false);
@@ -48,6 +48,6 @@ export function useHeaderLogic() {
     toggleNotifications,
     toggleUserMenu,
     theme,
-    toggleTheme
+    toggleTheme,
   };
 }

@@ -6,7 +6,7 @@ import admin from 'firebase-admin';
 import serviceAccount from '../serviceAccountKey.json' assert { type: 'json' };
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const auth = admin.auth();
@@ -17,7 +17,7 @@ const adminPassword = 'JNE.martapura#kalsel';
 
 async function setupAdmin() {
   console.log('🛡️ Memulai setup akun Super Admin...');
-  
+
   try {
     let userRecord;
     try {
@@ -39,13 +39,16 @@ async function setupAdmin() {
     }
 
     console.log('📂 Mengupdate profil di Firestore...');
-    await db.collection('users').doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      name: 'Super Admin JNE',
-      email: adminEmail,
-      role: 'admin',
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+    await db.collection('users').doc(userRecord.uid).set(
+      {
+        uid: userRecord.uid,
+        name: 'Super Admin JNE',
+        email: adminEmail,
+        role: 'admin',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
 
     console.log('\n✅ SELESAI! Akun Admin Berhasil Disetup.');
     console.log(`ID: ${adminEmail}`);

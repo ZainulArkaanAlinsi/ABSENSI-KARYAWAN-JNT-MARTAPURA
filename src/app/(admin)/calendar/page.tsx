@@ -60,7 +60,7 @@ export default function CalendarPage() {
 
   // Fetch employees and attendance for heatmap
   useEffect(() => {
-    getEmployees().then(list => {
+    getEmployees().then((list) => {
       setEmployees(list);
       setTotalEmployeesCount(list.length);
     });
@@ -68,7 +68,7 @@ export default function CalendarPage() {
     const attQuery = query(collection(db, 'attendance'));
     const unsub = listen(attQuery, (snap) => {
       const map: Record<string, number> = {};
-      snap.docs.forEach(doc => {
+      snap.docs.forEach((doc) => {
         const data = doc.data();
         const date = data.date; // Fixed: was 'attendanceDate', should be 'date'
         if (date) {
@@ -90,7 +90,8 @@ export default function CalendarPage() {
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
       if (filterCategory !== 'all' && event.category !== filterCategory) return false;
-      if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        return false;
       return true;
     });
   }, [events, filterCategory, searchQuery]);
@@ -100,14 +101,15 @@ export default function CalendarPage() {
     for (const week of monthWeeks) {
       const day = week.find((d) => d?.date === selectedDateStr);
       if (day) {
-        const userEvts = filteredEvents.filter((event) =>
-          event.startDate && isSameDay(parseISO(event.startDate), parseISO(day.date))
+        const userEvts = filteredEvents.filter(
+          (event) => event.startDate && isSameDay(parseISO(event.startDate), parseISO(day.date)),
         );
         const sysEvents = holidaysMap[day.date] || [];
         const uiCategory = sysEvents.length > 0 ? 'holiday' : 'normal';
-        const uiColorHint = sysEvents.length > 0
-          ? { bg: '#F97316', text: '#FFFFFF', accent: '#FDBA74' }
-          : { bg: '#F8FAFC', text: '#1E293B', accent: '#CBD5E1' };
+        const uiColorHint =
+          sysEvents.length > 0
+            ? { bg: '#F97316', text: '#FFFFFF', accent: '#FDBA74' }
+            : { bg: '#F8FAFC', text: '#1E293B', accent: '#CBD5E1' };
 
         return {
           ...day,
@@ -192,7 +194,7 @@ export default function CalendarPage() {
       message: 'Yakin ingin menghapus acara ini? Tindakan ini tidak dapat dibatalkan.',
       variant: 'danger',
       confirmLabel: 'Hapus',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (isConfirmed) {
@@ -207,7 +209,7 @@ export default function CalendarPage() {
 
   const handleQuickAction = (type: 'notif' | 'chat' | 'global' | 'maps') => {
     const dateLabel = selectedDayDetails ? format(parseISO(selectedDayDetails.date), 'dd MMM') : '';
-    
+
     switch (type) {
       case 'notif':
         toast.info(`Membuka panel broadcast untuk ${dateLabel}`);
@@ -228,7 +230,12 @@ export default function CalendarPage() {
     }
   };
 
-  if (loading || loadingHolidays) return <div className="h-full flex items-center justify-center"><PageLoader /></div>;
+  if (loading || loadingHolidays)
+    return (
+      <div className="h-full flex items-center justify-center">
+        <PageLoader />
+      </div>
+    );
 
   return (
     <>

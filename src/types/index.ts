@@ -4,13 +4,7 @@
 
 export type UserRole = 'admin' | 'superadmin' | 'employee' | 'kurir' | 'driver';
 
-export type AttendanceStatus =
-  | 'present'
-  | 'late'
-  | 'absent'
-  | 'leave'
-  | 'overtime'
-  | 'holiday';
+export type AttendanceStatus = 'present' | 'late' | 'absent' | 'leave' | 'overtime' | 'holiday';
 
 export type LeaveType = 'sick' | 'annual' | 'personal' | 'permission' | 'urgent';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
@@ -24,7 +18,6 @@ export type WorkDay =
   | 'friday'
   | 'saturday'
   | 'sunday';
-
 
 export type NotificationType =
   | 'leave_request'
@@ -53,8 +46,8 @@ export interface DepartmentItem {
 export interface DepartmentRule {
   id: Department;
   name: string;
-  checkInTime: string;       // "HH:mm"
-  checkOutTime: string;      // "HH:mm"
+  checkInTime: string; // "HH:mm"
+  checkOutTime: string; // "HH:mm"
   checkOutNextDay?: boolean;
   toleranceMinutes: number;
   trackFromHome?: boolean;
@@ -66,7 +59,6 @@ export interface DepartmentRule {
   description: string;
   target?: string;
 }
-
 
 // ============================================================
 // Employee
@@ -109,7 +101,7 @@ export interface Employee {
 export interface JamKerja {
   id: string;
   name: string;
-  checkInTime: string;  // "HH:mm"
+  checkInTime: string; // "HH:mm"
   checkOutTime: string; // "HH:mm"
   toleranceMinutes: number;
   workingDays: WorkDay[];
@@ -119,7 +111,6 @@ export interface JamKerja {
   createdAt: string;
   updatedAt: string;
 }
-
 
 // ============================================================
 // Attendance
@@ -195,7 +186,7 @@ export interface OvertimeRequest {
   employeeName: string;
   employeeId: string;
   department: Department;
-  date: string;                // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   overtimeMinutes: number;
   overtimeHours: number;
   status: OvertimeStatus;
@@ -344,7 +335,7 @@ export interface CalendarEvent {
   title: string;
   description: string;
   startDate: string; // ISO string
-  endDate: string;   // ISO string
+  endDate: string; // ISO string
   location?: string;
   category: EventCategory;
   attendees: string[]; // employee IDs or names
@@ -408,7 +399,7 @@ export interface Settings {
 // ============================================================
 // Audit Log
 // ============================================================
-export type AuditAction = 
+export type AuditAction =
   | 'leave_approved'
   | 'leave_rejected'
   | 'leave_requested'

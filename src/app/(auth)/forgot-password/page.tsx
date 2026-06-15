@@ -27,14 +27,20 @@ export default function ForgotPasswordPage() {
         <div className="bg-[#1B2A4A] rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl p-8">
           {/* Top brand row */}
           <div className="flex items-center justify-between mb-8">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="inline-flex items-center gap-2 text-xs text-[#9BA4B4] hover:text-white transition-colors"
             >
               <ArrowLeft size={14} /> Back to Login
             </Link>
             <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md p-1.5">
-              <Image src={logoJne} alt="JNE Logo" width={28} height={28} className="object-contain" />
+              <Image
+                src={logoJne}
+                alt="JNE Logo"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
             </div>
           </div>
 
@@ -51,8 +57,11 @@ export default function ForgotPasswordPage() {
             </div>
 
             {!submitted ? (
-              <form 
-                onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setSubmitted(true);
+                }}
                 className="space-y-6"
               >
                 <div className="space-y-2">
@@ -93,7 +102,7 @@ export default function ForgotPasswordPage() {
               </motion.div>
             )}
           </div>
-          
+
           <div className="mt-8 text-center text-[#9BA4B4] text-[10px] uppercase tracking-[0.2em] opacity-40">
             JNE MTP SECURITY PROTOCOL v4.2
           </div>

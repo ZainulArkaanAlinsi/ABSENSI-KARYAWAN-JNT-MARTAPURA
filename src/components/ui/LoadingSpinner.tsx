@@ -41,10 +41,7 @@ export function PageLoader() {
   return (
     <div className="flex flex-col items-center justify-center gap-4" style={{ minHeight: 300 }}>
       <LoadingSpinner size={40} color="#E04B3A" />
-      <p
-        className="text-xs font-medium uppercase tracking-widest"
-        style={{ color: '#9BA4B4' }}
-      >
+      <p className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9BA4B4' }}>
         Loading...
       </p>
     </div>

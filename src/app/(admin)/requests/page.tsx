@@ -3,16 +3,29 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import {
-  collection, query, orderBy,
-  doc, updateDoc, addDoc, serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import {
-  CheckCircle, XCircle, Clock, Inbox, Loader2,
-  Search, AlertTriangle, CheckCircle2, Calendar,
-  FileText, Building2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Inbox,
+  Loader2,
+  Search,
+  AlertTriangle,
+  CheckCircle2,
+  Calendar,
+  FileText,
+  Building2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
@@ -62,17 +75,17 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key'];
 
 const TYPE_LABELS: Record<string, string> = {
-  sick:       'Sakit',
-  annual:     'Cuti Tahunan',
+  sick: 'Sakit',
+  annual: 'Cuti Tahunan',
   permission: 'Izin Mendadak',
-  personal:   'Keperluan Pribadi',
+  personal: 'Keperluan Pribadi',
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  sick:       'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
-  annual:     'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
+  sick: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
+  annual: 'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
   permission: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
-  personal:   'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400',
+  personal: 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400',
 };
 
 function getLabel(req: any): string {
@@ -82,8 +95,11 @@ function getLabel(req: any): string {
 }
 
 function getTypeCls(req: any): string {
-  if (req.source === 'attendance') return 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400';
-  return TYPE_COLORS[req.type] ?? 'bg-slate-100 text-slate-500 dark:bg-slate-500/15 dark:text-slate-400';
+  if (req.source === 'attendance')
+    return 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400';
+  return (
+    TYPE_COLORS[req.type] ?? 'bg-slate-100 text-slate-500 dark:bg-slate-500/15 dark:text-slate-400'
+  );
 }
 
 function getInitial(name?: string) {
@@ -109,11 +125,14 @@ function Avatar({ name, isSOS }: { name?: string; isSOS: boolean }) {
 
 function TypeChip({ req }: { req: any }) {
   const label = req.type === 'SOS' ? 'SOS' : getLabel(req);
-  const cls   = req.type === 'SOS'
-    ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
-    : getTypeCls(req);
+  const cls =
+    req.type === 'SOS'
+      ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
+      : getTypeCls(req);
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${cls}`}>
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${cls}`}
+    >
       <FileText size={9} />
       {label}
     </span>
@@ -122,18 +141,29 @@ function TypeChip({ req }: { req: any }) {
 
 // ── Request Card ──────────────────────────────────────────────
 function RequestCard({
-  req, i, onApprove, onReject,
-}: { req: any; i: number; onApprove: () => void; onReject: () => void }) {
-  const isSOS    = req.type === 'SOS';
+  req,
+  i,
+  onApprove,
+  onReject,
+}: {
+  req: any;
+  i: number;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const isSOS = req.type === 'SOS';
   const isPending = req.status === 'pending' || req.status === 'overtime';
 
-  const periodText = req.source === 'leave'
-    ? (() => {
-        try {
-          return `${format(toDate(req.startDate), 'dd MMM', { locale: idLocale })} – ${format(toDate(req.endDate), 'dd MMM yyyy', { locale: idLocale })}`;
-        } catch { return req.startDate ?? '-'; }
-      })()
-    : `${req.date ?? req.attendanceDate ?? '-'} · ${req.overtimeMinutes ?? 0} menit`;
+  const periodText =
+    req.source === 'leave'
+      ? (() => {
+          try {
+            return `${format(toDate(req.startDate), 'dd MMM', { locale: idLocale })} – ${format(toDate(req.endDate), 'dd MMM yyyy', { locale: idLocale })}`;
+          } catch {
+            return req.startDate ?? '-';
+          }
+        })()
+      : `${req.date ?? req.attendanceDate ?? '-'} · ${req.overtimeMinutes ?? 0} menit`;
 
   return (
     <motion.div
@@ -160,7 +190,10 @@ function RequestCard({
           {/* Top row: name + type chip + actions */}
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <span className="text-desc font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+              <span
+                className="text-desc font-bold truncate"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 {req.employeeName ?? 'Karyawan'}
               </span>
               <TypeChip req={req} />
@@ -192,11 +225,13 @@ function RequestCard({
                   </button>
                 </>
               ) : (
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold ${
-                  req.status === 'approved'
-                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
-                    : 'bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400'
-                }`}>
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold ${
+                    req.status === 'approved'
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+                      : 'bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-400'
+                  }`}
+                >
                   {req.status === 'approved' ? <CheckCircle size={12} /> : <XCircle size={12} />}
                   {req.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                 </div>
@@ -206,12 +241,18 @@ function RequestCard({
 
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            <span className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <span
+              className="flex items-center gap-1.5 text-[11px]"
+              style={{ color: 'var(--text-muted)' }}
+            >
               <Calendar size={10} />
               {periodText}
             </span>
             {req.department && (
-              <span className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+              <span
+                className="flex items-center gap-1.5 text-[11px]"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 <Building2 size={10} />
                 {req.department}
               </span>
@@ -220,7 +261,10 @@ function RequestCard({
 
           {/* Reason */}
           {(req.reason || req.notes) && (
-            <p className="text-[11px] italic mt-2 line-clamp-1 opacity-70" style={{ color: 'var(--text-muted)' }}>
+            <p
+              className="text-[11px] italic mt-2 line-clamp-1 opacity-70"
+              style={{ color: 'var(--text-muted)' }}
+            >
               "{req.reason || req.notes}"
             </p>
           )}
@@ -233,9 +277,21 @@ function RequestCard({
 // ── Empty State ───────────────────────────────────────────────
 function EmptyState({ tab }: { tab: string }) {
   const map: Record<string, { icon: any; text: string; sub: string }> = {
-    pending:  { icon: Inbox,        text: 'Tidak ada permintaan menunggu',  sub: 'Semua permintaan sudah diproses' },
-    approved: { icon: CheckCircle2, text: 'Belum ada yang disetujui',       sub: 'Permintaan yang disetujui akan muncul di sini' },
-    rejected: { icon: XCircle,      text: 'Tidak ada yang ditolak',         sub: 'Permintaan yang ditolak akan muncul di sini' },
+    pending: {
+      icon: Inbox,
+      text: 'Tidak ada permintaan menunggu',
+      sub: 'Semua permintaan sudah diproses',
+    },
+    approved: {
+      icon: CheckCircle2,
+      text: 'Belum ada yang disetujui',
+      sub: 'Permintaan yang disetujui akan muncul di sini',
+    },
+    rejected: {
+      icon: XCircle,
+      text: 'Tidak ada yang ditolak',
+      sub: 'Permintaan yang ditolak akan muncul di sini',
+    },
   };
   const { icon: Icon, text, sub } = map[tab] ?? { icon: Inbox, text: 'Tidak ada data', sub: '' };
 
@@ -254,10 +310,15 @@ function EmptyState({ tab }: { tab: string }) {
         <Icon size={24} className="text-slate-300 dark:text-slate-600" />
       </motion.div>
       <div className="text-center space-y-1">
-        <p className="text-[12px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
+        <p
+          className="text-[12px] font-bold uppercase tracking-widest"
+          style={{ color: 'var(--text-dim)' }}
+        >
           {text}
         </p>
-        <p className="text-[11px]" style={{ color: 'var(--text-dim)' }}>{sub}</p>
+        <p className="text-[11px]" style={{ color: 'var(--text-dim)' }}>
+          {sub}
+        </p>
       </div>
     </motion.div>
   );
@@ -265,22 +326,22 @@ function EmptyState({ tab }: { tab: string }) {
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function RequestCenterPage() {
-  const { user }                      = useAuth();
+  const { user } = useAuth();
   const [allRequests, setAllRequests] = useState<any[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [activeTab, setActiveTab]     = useState<TabKey>('pending');
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabKey>('pending');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showModal, setShowModal]     = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedReq, setSelectedReq] = useState<any>(null);
-  const [actionType, setActionType]   = useState<'approve' | 'reject'>('approve');
-  const [reason, setReason]           = useState('');
-  const [processing, setProcessing]   = useState(false);
+  const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
+  const [reason, setReason] = useState('');
+  const [processing, setProcessing] = useState(false);
 
   // ── Firestore listeners ──────────────────────────────────────
   useEffect(() => {
     setLoading(true);
     let leavesData: any[] = [];
-    let attData: any[]    = [];
+    let attData: any[] = [];
 
     const merge = () => {
       const combined = [...leavesData, ...attData].sort(
@@ -292,38 +353,43 @@ export default function RequestCenterPage() {
 
     const unsubLeaves = listen(
       query(collection(db, 'leaves'), orderBy('createdAt', 'desc')),
-      snap => {
-        leavesData = snap.docs.map(d => ({ id: d.id, ...d.data(), source: 'leave' }));
+      (snap) => {
+        leavesData = snap.docs.map((d) => ({ id: d.id, ...d.data(), source: 'leave' }));
         merge();
       },
     );
 
     const unsubAtt = listen(
       query(collection(db, 'attendance'), orderBy('createdAt', 'desc')),
-      snap => {
+      (snap) => {
         attData = snap.docs
-          .map(d => ({ id: d.id, ...d.data(), source: 'attendance' }))
+          .map((d) => ({ id: d.id, ...d.data(), source: 'attendance' }))
           .filter((a: any) => a.status === 'overtime' || a.status === 'pending');
         merge();
       },
     );
 
-    return () => { unsubLeaves(); unsubAtt(); };
+    return () => {
+      unsubLeaves();
+      unsubAtt();
+    };
   }, []);
 
   // ── Filtering ────────────────────────────────────────────────
-  const filtered = allRequests.filter(r => {
+  const filtered = allRequests.filter((r) => {
     const matchTab = r.status === activeTab || (activeTab === 'pending' && r.status === 'overtime');
     const q = searchQuery.toLowerCase();
-    const matchSearch = !q
-      || (r.employeeName ?? '').toLowerCase().includes(q)
-      || (r.employeeId   ?? '').toLowerCase().includes(q)
-      || (r.department   ?? '').toLowerCase().includes(q);
+    const matchSearch =
+      !q ||
+      (r.employeeName ?? '').toLowerCase().includes(q) ||
+      (r.employeeId ?? '').toLowerCase().includes(q) ||
+      (r.department ?? '').toLowerCase().includes(q);
     return matchTab && matchSearch;
   });
 
   const countFor = (key: TabKey) =>
-    allRequests.filter(r => r.status === key || (key === 'pending' && r.status === 'overtime')).length;
+    allRequests.filter((r) => r.status === key || (key === 'pending' && r.status === 'overtime'))
+      .length;
 
   const pendingCount = countFor('pending');
 
@@ -338,9 +404,9 @@ export default function RequestCenterPage() {
   const handleAction = async () => {
     if (!selectedReq || (actionType === 'reject' && !reason.trim())) return;
     const status = actionType === 'approve' ? 'approved' : 'rejected';
-    const prev   = [...allRequests];
+    const prev = [...allRequests];
 
-    setAllRequests(p => p.map(r => r.id === selectedReq.id ? { ...r, status } : r));
+    setAllRequests((p) => p.map((r) => (r.id === selectedReq.id ? { ...r, status } : r)));
     setShowModal(false);
     setProcessing(true);
 
@@ -353,10 +419,10 @@ export default function RequestCenterPage() {
         reviewedBy: user?.name ?? 'Admin',
       });
       await addDoc(collection(db, 'notifications'), {
-        userId:    selectedReq.userId,
-        title:     actionType === 'approve' ? 'Permintaan Disetujui ✅' : 'Permintaan Ditolak ❌',
-        message:   `Permintaan ${getLabel(selectedReq)} Anda telah ${status} oleh Admin.${reason ? ' Alasan: ' + reason : ''}`,
-        isRead:    false,
+        userId: selectedReq.userId,
+        title: actionType === 'approve' ? 'Permintaan Disetujui ✅' : 'Permintaan Ditolak ❌',
+        message: `Permintaan ${getLabel(selectedReq)} Anda telah ${status} oleh Admin.${reason ? ' Alasan: ' + reason : ''}`,
+        isRead: false,
         createdAt: serverTimestamp(),
       });
       toast.success(`Permintaan berhasil ${status === 'approved' ? 'disetujui' : 'ditolak'}`);
@@ -373,10 +439,10 @@ export default function RequestCenterPage() {
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-5 pb-4">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex items-center justify-between gap-4"
       >
@@ -389,14 +455,18 @@ export default function RequestCenterPage() {
               Kotak Masuk
             </span>
           </div>
-          <h1 className="editorial-heading text-[24px] font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
+          <h1
+            className="editorial-heading text-[24px] font-black tracking-tight leading-none"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Pusat <span className="text-[#E31E24]">Permintaan</span>
           </h1>
         </div>
 
         {pendingCount > 0 && (
           <motion.div
-            initial={{ scale: 0 }} animate={{ scale: 1 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
             className="flex items-center gap-2.5 px-4 py-2 rounded-2xl border
                        bg-amber-50 dark:bg-amber-500/10
                        border-amber-200 dark:border-amber-500/20"
@@ -415,7 +485,7 @@ export default function RequestCenterPage() {
       {/* ── STAT TABS ── */}
       <div className="grid grid-cols-3 gap-3">
         {TABS.map((tab, i) => {
-          const count    = countFor(tab.key);
+          const count = countFor(tab.key);
           const isActive = activeTab === tab.key;
 
           return (
@@ -426,22 +496,28 @@ export default function RequestCenterPage() {
               transition={{ delay: 0.05 + i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               onClick={() => setActiveTab(tab.key)}
               className={`relative text-left p-4 rounded-2xl border transition-all duration-300 ${
-                isActive
-                  ? `${tab.activeBg} ${tab.activeBorder}`
-                  : 'hover:shadow-md'
+                isActive ? `${tab.activeBg} ${tab.activeBorder}` : 'hover:shadow-md'
               }`}
-              style={!isActive ? {
-                background: 'var(--surface-card)',
-                borderColor: 'var(--border-card)',
-                boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-              } : undefined}
+              style={
+                !isActive
+                  ? {
+                      background: 'var(--surface-card)',
+                      borderColor: 'var(--border-card)',
+                      boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+                    }
+                  : undefined
+              }
             >
-              <p className={`text-h1 font-black leading-none tabular-nums ${isActive ? tab.activeText : ''}`}
-                 style={!isActive ? { color: 'var(--text-primary)' } : undefined}>
+              <p
+                className={`text-h1 font-black leading-none tabular-nums ${isActive ? tab.activeText : ''}`}
+                style={!isActive ? { color: 'var(--text-primary)' } : undefined}
+              >
                 {count}
               </p>
-              <p className={`text-[11px] font-semibold mt-1 ${isActive ? tab.activeText : ''}`}
-                 style={!isActive ? { color: 'var(--text-dim)' } : undefined}>
+              <p
+                className={`text-[11px] font-semibold mt-1 ${isActive ? tab.activeText : ''}`}
+                style={!isActive ? { color: 'var(--text-dim)' } : undefined}
+              >
                 {tab.label}
               </p>
 
@@ -458,16 +534,20 @@ export default function RequestCenterPage() {
 
       {/* ── SEARCH ── */}
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.22 }}
         className="relative"
       >
-        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" />
+        <Search
+          size={14}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500"
+        />
         <input
           type="text"
           placeholder="Cari nama karyawan, ID, atau departemen..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full h-10 rounded-xl pl-9 pr-4 text-[13px] outline-none transition-all
                      focus:ring-2 focus:ring-emerald-400/20 border"
           style={{
@@ -482,25 +562,29 @@ export default function RequestCenterPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <Loader2 className="animate-spin text-emerald-500" size={26} />
-          <p className="text-[12px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
+          <p
+            className="text-[12px] font-bold uppercase tracking-widest"
+            style={{ color: 'var(--text-dim)' }}
+          >
             Memuat data...
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
           <AnimatePresence mode="popLayout">
-            {filtered.length > 0
-              ? filtered.map((req, i) => (
-                  <RequestCard
-                    key={req.id}
-                    req={req}
-                    i={i}
-                    onApprove={() => openAction(req, 'approve')}
-                    onReject={() => openAction(req, 'reject')}
-                  />
-                ))
-              : <EmptyState key="empty" tab={activeTab} />
-            }
+            {filtered.length > 0 ? (
+              filtered.map((req, i) => (
+                <RequestCard
+                  key={req.id}
+                  req={req}
+                  i={i}
+                  onApprove={() => openAction(req, 'approve')}
+                  onReject={() => openAction(req, 'reject')}
+                />
+              ))
+            ) : (
+              <EmptyState key="empty" tab={activeTab} />
+            )}
           </AnimatePresence>
         </div>
       )}
@@ -513,7 +597,10 @@ export default function RequestCenterPage() {
       >
         <div className="space-y-5">
           {/* Employee info card */}
-          <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-card)' }}>
+          <div
+            className="p-4 rounded-2xl border"
+            style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-card)' }}
+          >
             <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-slate-400 dark:text-slate-500">
               Permintaan dari
             </p>
@@ -521,7 +608,8 @@ export default function RequestCenterPage() {
               {selectedReq?.employeeName}
             </p>
             <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {getLabel(selectedReq)} · {selectedReq?.reason || selectedReq?.notes || 'Tanpa keterangan'}
+              {getLabel(selectedReq)} ·{' '}
+              {selectedReq?.reason || selectedReq?.notes || 'Tanpa keterangan'}
             </p>
           </div>
 
@@ -538,9 +626,13 @@ export default function RequestCenterPage() {
                 color: 'var(--text-primary)',
                 borderColor: 'var(--border-default)',
               }}
-              placeholder={actionType === 'approve' ? 'Tambahkan catatan (opsional)...' : 'Wajib memberikan alasan penolakan...'}
+              placeholder={
+                actionType === 'approve'
+                  ? 'Tambahkan catatan (opsional)...'
+                  : 'Wajib memberikan alasan penolakan...'
+              }
               value={reason}
-              onChange={e => setReason(e.target.value)}
+              onChange={(e) => setReason(e.target.value)}
             />
           </div>
 
@@ -559,17 +651,22 @@ export default function RequestCenterPage() {
               disabled={processing || (actionType === 'reject' && !reason.trim())}
               className={`flex-1 h-11 rounded-xl text-[13px] font-bold text-white transition-all
                           flex items-center justify-center gap-2 disabled:opacity-50 ${
-                actionType === 'approve'
-                  ? 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
-                  : 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/25'
-              }`}
+                            actionType === 'approve'
+                              ? 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
+                              : 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/25'
+                          }`}
             >
-              {processing
-                ? <Loader2 className="animate-spin" size={16} />
-                : actionType === 'approve'
-                  ? <><CheckCircle2 size={14} /> Setujui</>
-                  : <><XCircle size={14} /> Tolak</>
-              }
+              {processing ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : actionType === 'approve' ? (
+                <>
+                  <CheckCircle2 size={14} /> Setujui
+                </>
+              ) : (
+                <>
+                  <XCircle size={14} /> Tolak
+                </>
+              )}
             </button>
           </div>
         </div>

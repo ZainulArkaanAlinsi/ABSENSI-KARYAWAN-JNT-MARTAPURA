@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (!action || !targetUserId) {
       return NextResponse.json(
         { error: 'Missing required fields: action, targetUserId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

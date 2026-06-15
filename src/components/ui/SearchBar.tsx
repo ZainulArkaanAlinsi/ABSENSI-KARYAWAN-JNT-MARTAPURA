@@ -35,7 +35,9 @@ export default function SearchBar({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync inward when the parent resets externally (e.g. clear-all-filters).
-  useEffect(() => { setDraft(value); }, [value]);
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
 
   // Push outward with debounce.
   useEffect(() => {
@@ -70,7 +72,10 @@ export default function SearchBar({
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
-            onClick={() => { setDraft(''); onChange(''); }}
+            onClick={() => {
+              setDraft('');
+              onChange('');
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             aria-label="Kosongkan pencarian"
           >

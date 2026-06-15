@@ -12,7 +12,10 @@ interface SaveStatusBarProps {
 
 export default function SaveStatusBar({ saving, saved, onSave, disabled }: SaveStatusBarProps) {
   return (
-    <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid var(--pg-border)' }}>
+    <div
+      className="flex items-center justify-between mt-8 pt-6"
+      style={{ borderTop: '1px solid var(--pg-border)' }}
+    >
       <AnimatePresence>
         {saved && (
           <motion.div

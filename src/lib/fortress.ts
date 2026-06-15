@@ -14,7 +14,7 @@ interface RetryOptions {
  */
 export async function fortressRetry<T>(
   action: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const { maxRetries = 3, taskName = 'Action', onRetry } = options;
   let attempt = 0;
@@ -30,11 +30,14 @@ export async function fortressRetry<T>(
       }
 
       const delay = attempt * attempt * 1000; // 1s, 4s, 9s...
-      console.warn(`[Fortress] ${taskName} attempt ${attempt} failed. Retrying in ${delay}ms...`, error);
-      
+      console.warn(
+        `[Fortress] ${taskName} attempt ${attempt} failed. Retrying in ${delay}ms...`,
+        error,
+      );
+
       if (onRetry) onRetry(attempt, error);
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }

@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { BarChart3, Search, Check, Loader2 } from 'lucide-react';
 import {
-  collection, query, where, getDocs, doc, setDoc, serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getEmployees } from '@/lib/firestore';
@@ -17,15 +23,20 @@ const isSales = (dept?: string): boolean =>
 
 const rupiah = (n: number) => 'Rp ' + (n || 0).toLocaleString('id-ID');
 
-interface Entry { amount: number; dirty: boolean; saving: boolean; saved: boolean; }
+interface Entry {
+  amount: number;
+  dirty: boolean;
+  saving: boolean;
+  saved: boolean;
+}
 
 export default function SalesPage() {
   const [officers, setOfficers] = useState<Employee[]>([]);
-  const [date, setDate]         = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [entries, setEntries]   = useState<Record<string, Entry>>({});
-  const [loading, setLoading]   = useState(true);
-  const [q, setQ]               = useState('');
-  const [trend, setTrend]       = useState<{ day: string; value: number }[]>([]);
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [entries, setEntries] = useState<Record<string, Entry>>({});
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState('');
+  const [trend, setTrend] = useState<{ day: string; value: number }[]>([]);
 
   const monthPrefix = date.slice(0, 7);
 
@@ -34,10 +45,15 @@ export default function SalesPage() {
     (async () => {
       try {
         const emps = await getEmployees();
-        if (alive) setOfficers(emps.filter((e) => isSales(e.department as string) && e.isActive !== false));
-      } catch (e) { console.error('load sales officers', e); }
+        if (alive)
+          setOfficers(emps.filter((e) => isSales(e.department as string) && e.isActive !== false));
+      } catch (e) {
+        console.error('load sales officers', e);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -52,10 +68,15 @@ export default function SalesPage() {
           map[data.userId] = { amount: data.amount ?? 0, dirty: false, saving: false, saved: true };
         });
         if (alive) setEntries(map);
-      } catch (e) { console.error('load sales', e); }
-      finally { if (alive) setLoading(false); }
+      } catch (e) {
+        console.error('load sales', e);
+      } finally {
+        if (alive) setLoading(false);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [date]);
 
   // Tren bulanan: total penjualan (Rp) per hari dalam bulan terpilih.
@@ -63,11 +84,13 @@ export default function SalesPage() {
     let alive = true;
     (async () => {
       try {
-        const snap = await getDocs(query(
-          collection(db, 'daily_sales'),
-          where('date', '>=', `${monthPrefix}-01`),
-          where('date', '<=', `${monthPrefix}-31`),
-        ));
+        const snap = await getDocs(
+          query(
+            collection(db, 'daily_sales'),
+            where('date', '>=', `${monthPrefix}-01`),
+            where('date', '<=', `${monthPrefix}-31`),
+          ),
+        );
         const byDay: Record<string, number> = {};
         snap.docs.forEach((d) => {
           const data = d.data();
@@ -81,44 +104,62 @@ export default function SalesPage() {
           return { day: String(i + 1), value: byDay[dd] || 0 };
         });
         if (alive) setTrend(arr);
-      } catch (e) { console.error('load sales trend', e); }
+      } catch (e) {
+        console.error('load sales trend', e);
+      }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [monthPrefix]);
 
   const setAmount = (uid: string, val: number) => {
     const n = Number.isFinite(val) ? Math.max(0, Math.floor(val)) : 0;
-    setEntries((prev) => ({ ...prev, [uid]: { amount: n, dirty: true, saving: false, saved: false } }));
+    setEntries((prev) => ({
+      ...prev,
+      [uid]: { amount: n, dirty: true, saving: false, saved: false },
+    }));
   };
 
-  const save = useCallback(async (o: Employee) => {
-    const entry = entries[o.uid];
-    if (!entry || !entry.dirty) return;
-    setEntries((prev) => ({ ...prev, [o.uid]: { ...prev[o.uid], saving: true } }));
-    try {
-      await setDoc(
-        doc(db, 'daily_sales', `${date}_${o.uid}`),
-        {
-          userId: o.uid,
-          officerName: o.name,
-          department: o.department ?? '',
-          date,
-          amount: entry.amount,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
-      setEntries((prev) => ({ ...prev, [o.uid]: { ...prev[o.uid], dirty: false, saving: false, saved: true } }));
-    } catch (e) {
-      console.error('save sales', e);
-      setEntries((prev) => ({ ...prev, [o.uid]: { ...prev[o.uid], saving: false } }));
-    }
-  }, [entries, date]);
+  const save = useCallback(
+    async (o: Employee) => {
+      const entry = entries[o.uid];
+      if (!entry || !entry.dirty) return;
+      setEntries((prev) => ({ ...prev, [o.uid]: { ...prev[o.uid], saving: true } }));
+      try {
+        await setDoc(
+          doc(db, 'daily_sales', `${date}_${o.uid}`),
+          {
+            userId: o.uid,
+            officerName: o.name,
+            department: o.department ?? '',
+            date,
+            amount: entry.amount,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+        setEntries((prev) => ({
+          ...prev,
+          [o.uid]: { ...prev[o.uid], dirty: false, saving: false, saved: true },
+        }));
+      } catch (e) {
+        console.error('save sales', e);
+        setEntries((prev) => ({ ...prev, [o.uid]: { ...prev[o.uid], saving: false } }));
+      }
+    },
+    [entries, date],
+  );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return officers
-      .filter((o) => !term || o.name.toLowerCase().includes(term) || (o.department || '').toLowerCase().includes(term))
+      .filter(
+        (o) =>
+          !term ||
+          o.name.toLowerCase().includes(term) ||
+          (o.department || '').toLowerCase().includes(term),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [officers, q]);
 
@@ -133,7 +174,9 @@ export default function SalesPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <BarChart3 size={18} style={{ color: '#E31E24' }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Operasional</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+              Operasional
+            </span>
           </div>
           <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
             Input <span style={{ color: '#E31E24' }}>Penjualan</span> Harian
@@ -143,21 +186,35 @@ export default function SalesPage() {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#E31E24' }}>{rupiah(total)}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total hari ini</p>
+          <p
+            className="text-[22px] font-black tabular-nums leading-none"
+            style={{ color: '#E31E24' }}
+          >
+            {rupiah(total)}
+          </p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Total hari ini
+          </p>
         </div>
       </div>
 
       {/* Tren bulanan */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-100" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Tren Penjualan Harian · {monthPrefix}</p>
+      <div
+        className="bg-white rounded-2xl p-5 border border-slate-100"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+      >
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
+          Tren Penjualan Harian · {monthPrefix}
+        </p>
         <MonthlyTrend
           data={trend}
           color="#E31E24"
           gradientId="salesTrend"
           valueFormatter={(n) =>
-            n >= 1_000_000 ? 'Rp ' + (n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1) + 'jt'
-              : n >= 1_000 ? 'Rp ' + Math.round(n / 1_000) + 'rb'
+            n >= 1_000_000
+              ? 'Rp ' + (n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1) + 'jt'
+              : n >= 1_000
+                ? 'Rp ' + Math.round(n / 1_000) + 'rb'
                 : 'Rp ' + n
           }
         />
@@ -190,12 +247,19 @@ export default function SalesPage() {
             <BarChart3 size={26} />
           </div>
           <p className="text-sm font-bold text-slate-500">Belum ada sales officer</p>
-          <p className="text-[12px] text-slate-400 mt-1">Tambah karyawan dept Sales/Counter di menu Karyawan.</p>
+          <p className="text-[12px] text-slate-400 mt-1">
+            Tambah karyawan dept Sales/Counter di menu Karyawan.
+          </p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((o) => {
-            const entry = entries[o.uid] ?? { amount: 0, dirty: false, saving: false, saved: false };
+            const entry = entries[o.uid] ?? {
+              amount: 0,
+              dirty: false,
+              saving: false,
+              saved: false,
+            };
             return (
               <div
                 key={o.id}
@@ -207,7 +271,9 @@ export default function SalesPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-bold text-slate-800 truncate">{o.name}</p>
-                  <p className="text-[11px] text-slate-400 truncate">{o.department || 'Sales'} · {rupiah(entry.amount)}</p>
+                  <p className="text-[11px] text-slate-400 truncate">
+                    {o.department || 'Sales'} · {rupiah(entry.amount)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[12px] font-bold text-slate-400">Rp</span>
@@ -222,13 +288,13 @@ export default function SalesPage() {
                   />
                 </div>
                 <div className="w-6 flex justify-center shrink-0">
-                  {entry.saving
-                    ? <Loader2 size={16} className="text-slate-400 animate-spin" />
-                    : entry.saved
-                      ? <Check size={16} className="text-emerald-500" />
-                      : entry.dirty
-                        ? <span className="text-[9px] font-bold text-amber-500 uppercase">simpan…</span>
-                        : null}
+                  {entry.saving ? (
+                    <Loader2 size={16} className="text-slate-400 animate-spin" />
+                  ) : entry.saved ? (
+                    <Check size={16} className="text-emerald-500" />
+                  ) : entry.dirty ? (
+                    <span className="text-[9px] font-bold text-amber-500 uppercase">simpan…</span>
+                  ) : null}
                 </div>
               </div>
             );

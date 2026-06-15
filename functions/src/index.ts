@@ -19,7 +19,6 @@
  * https://myaccount.google.com/apppasswords
  */
 
-
 import * as functions from 'firebase-functions/v1';
 const functionsRegion = functions.region('asia-southeast2');
 
@@ -68,7 +67,9 @@ async function sendOnboardingEmail(opts: {
   const cfg = functions.config();
   const fromName = cfg.smtp?.from_name || 'JNE Martapura HR';
   const fromAddr = cfg.smtp.user;
-  const apkUrl   = cfg.apk?.url || 'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
+  const apkUrl =
+    cfg.apk?.url ||
+    'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
 
   const html = `
   <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;padding:24px;">
@@ -149,15 +150,12 @@ async function sendPushToUser(
     channelId?: string;
   },
 ): Promise<number> {
-  const snap = await db
-    .collection('fcm_tokens')
-    .where('userId', '==', userId)
-    .get();
+  const snap = await db.collection('fcm_tokens').where('userId', '==', userId).get();
   if (snap.empty) {
     console.log(`No FCM tokens for user ${userId}`);
     return 0;
   }
-  const tokens = snap.docs.map(d => d.id);
+  const tokens = snap.docs.map((d) => d.id);
   const res = await messaging.sendEachForMulticast({
     tokens,
     notification: { title: payload.title, body: payload.body },
@@ -187,12 +185,9 @@ async function sendPushToUser(
       }
     }),
   );
-  console.log(
-    `sendPushToUser(${userId}): ${res.successCount}/${tokens.length} delivered`,
-  );
+  console.log(`sendPushToUser(${userId}): ${res.successCount}/${tokens.length} delivered`);
   return res.successCount;
 }
-
 
 // ============================================================
 // 1. onEmployeeCreated — Create Auth account + notify admin when employee is added
@@ -200,76 +195,79 @@ async function sendPushToUser(
 export const onEmployeeCreated = functionsRegion.firestore
 
   .document('users/{userId}')
-  .onCreate(async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
-    const data = snap.data();
-    if (!data || data.role !== 'employee') return;
-    if (!data.email || !data.name) {
-      console.error('onEmployeeCreated: missing email or name', { userId: context.params.userId });
-      return;
-    }
-
-    // Idempotency: if uid already set, skip auth creation
-    if (data.uid) {
-      console.log(`onEmployeeCreated: user ${context.params.userId} already has uid, skipping`);
-      return;
-    }
-
-    try {
-      // Password sementara: 12 byte random base64-url (16 char) — entropy
-      // ~96 bit. Math.random sebelumnya hanya ~40 bit dan tidak crypto-safe.
-      const tempPassword = crypto.randomBytes(12).toString('base64url');
-
-      const userRecord = await admin.auth().createUser({
-        uid: context.params.userId,
-        email: data.email,
-        password: tempPassword,
-        displayName: data.name,
-      });
-
-      // Update Firestore with uid + simpan temp password supaya admin tetap
-      // bisa membagikan kredensial manual kalau email gagal / SMTP belum diset.
-      // Hanya admin & pemilik yang bisa baca (Firestore rules), dan field ini
-      // dihapus otomatis saat user mengganti password (onUserProfileUpdated).
-      await snap.ref.update({
-        uid: userRecord.uid,
-        tempPasswordPlain: tempPassword,
-      });
-
-      // Kirim email onboarding ke email pribadi (kalau ada) atau ke email
-      // login. Email pribadi dipakai supaya karyawan tetap bisa baca
-      // kredensial walaupun belum punya akses email JNE-nya.
-      const emailTo = data.personalEmail || data.email;
-      const emailOk = await sendOnboardingEmail({
-        to: emailTo,
-        employeeName: data.name,
-        loginEmail: data.email,
-        tempPassword,
-      });
-      await snap.ref.update({ onboardingEmailSent: emailOk });
-
-      // Add admin notification — pesan menyesuaikan apakah email berhasil
-      try {
-        await db.collection('adminNotifications').add({
-          type: 'new_employee',
-          title: 'Karyawan Baru Ditambahkan',
-          message: emailOk
-            ? `${data.name} (${data.email}) telah ditambahkan. Email kredensial sudah dikirim ke ${emailTo}.`
-            : `${data.name} (${data.email}) telah ditambahkan. Email gagal terkirim — share kredensial manual.`,
-          employeeName: data.name,
-          employeeId: data.employeeId || null,
-          isRead: false,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  .onCreate(
+    async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
+      const data = snap.data();
+      if (!data || data.role !== 'employee') return;
+      if (!data.email || !data.name) {
+        console.error('onEmployeeCreated: missing email or name', {
+          userId: context.params.userId,
         });
-      } catch (notifError) {
-        console.error('Failed to write adminNotification:', notifError);
+        return;
       }
 
-      console.log(`Employee created: ${data.name} (${data.email}) emailSent=${emailOk}`);
-    } catch (error) {
-      console.error('Error creating employee auth account:', error);
-    }
-  });
+      // Idempotency: if uid already set, skip auth creation
+      if (data.uid) {
+        console.log(`onEmployeeCreated: user ${context.params.userId} already has uid, skipping`);
+        return;
+      }
 
+      try {
+        // Password sementara: 12 byte random base64-url (16 char) — entropy
+        // ~96 bit. Math.random sebelumnya hanya ~40 bit dan tidak crypto-safe.
+        const tempPassword = crypto.randomBytes(12).toString('base64url');
+
+        const userRecord = await admin.auth().createUser({
+          uid: context.params.userId,
+          email: data.email,
+          password: tempPassword,
+          displayName: data.name,
+        });
+
+        // Update Firestore with uid + simpan temp password supaya admin tetap
+        // bisa membagikan kredensial manual kalau email gagal / SMTP belum diset.
+        // Hanya admin & pemilik yang bisa baca (Firestore rules), dan field ini
+        // dihapus otomatis saat user mengganti password (onUserProfileUpdated).
+        await snap.ref.update({
+          uid: userRecord.uid,
+          tempPasswordPlain: tempPassword,
+        });
+
+        // Kirim email onboarding ke email pribadi (kalau ada) atau ke email
+        // login. Email pribadi dipakai supaya karyawan tetap bisa baca
+        // kredensial walaupun belum punya akses email JNE-nya.
+        const emailTo = data.personalEmail || data.email;
+        const emailOk = await sendOnboardingEmail({
+          to: emailTo,
+          employeeName: data.name,
+          loginEmail: data.email,
+          tempPassword,
+        });
+        await snap.ref.update({ onboardingEmailSent: emailOk });
+
+        // Add admin notification — pesan menyesuaikan apakah email berhasil
+        try {
+          await db.collection('adminNotifications').add({
+            type: 'new_employee',
+            title: 'Karyawan Baru Ditambahkan',
+            message: emailOk
+              ? `${data.name} (${data.email}) telah ditambahkan. Email kredensial sudah dikirim ke ${emailTo}.`
+              : `${data.name} (${data.email}) telah ditambahkan. Email gagal terkirim — share kredensial manual.`,
+            employeeName: data.name,
+            employeeId: data.employeeId || null,
+            isRead: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } catch (notifError) {
+          console.error('Failed to write adminNotification:', notifError);
+        }
+
+        console.log(`Employee created: ${data.name} (${data.email}) emailSent=${emailOk}`);
+      } catch (error) {
+        console.error('Error creating employee auth account:', error);
+      }
+    },
+  );
 
 // ============================================================
 // 2. onLeaveStatusUpdate — FCM to employee when leave approved/rejected
@@ -324,113 +322,114 @@ export const onLeaveStatusUpdate = functionsRegion.firestore
         console.error('Failed to mirror leave notification:', mirrorError);
       }
 
-      console.log(`Leave decision delivered to ${after.employeeName || after.userId}: ${after.status}`);
+      console.log(
+        `Leave decision delivered to ${after.employeeName || after.userId}: ${after.status}`,
+      );
     } catch (error) {
       console.error('Error sending leave FCM:', error);
     }
   });
-
 
 // ============================================================
 // 2b. onAttendanceCreated — Mirror to adminNotifications so admin bell rings
 // ============================================================
 export const onAttendanceCreated = functionsRegion.firestore
   .document('attendance/{attendanceId}')
-  .onCreate(async (
-    snap: functions.firestore.QueryDocumentSnapshot,
-    context: functions.EventContext,
-  ) => {
-    const data = snap.data();
-    if (!data) return;
-    try {
-      const status = String(data.status ?? 'present');
-      const title = status === 'late' ? 'Karyawan Terlambat' : 'Absen Masuk Baru';
-      const name = data.employeeName || data.userId || 'Karyawan';
-      const message =
-        status === 'late'
-          ? `${name} absen masuk dengan status TERLAMBAT.`
-          : `${name} sudah absen masuk hari ini.`;
+  .onCreate(
+    async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
+      const data = snap.data();
+      if (!data) return;
+      try {
+        const status = String(data.status ?? 'present');
+        const title = status === 'late' ? 'Karyawan Terlambat' : 'Absen Masuk Baru';
+        const name = data.employeeName || data.userId || 'Karyawan';
+        const message =
+          status === 'late'
+            ? `${name} absen masuk dengan status TERLAMBAT.`
+            : `${name} sudah absen masuk hari ini.`;
 
-      await db.collection('adminNotifications').add({
-        type: 'attendance_new',
-        title,
-        message,
-        employeeName: name,
-        employeeId: data.employeeId || null,
-        relatedId: context.params.attendanceId,
-        isRead: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      console.error('onAttendanceCreated mirror error:', e);
-    }
-  });
-
+        await db.collection('adminNotifications').add({
+          type: 'attendance_new',
+          title,
+          message,
+          employeeName: name,
+          employeeId: data.employeeId || null,
+          relatedId: context.params.attendanceId,
+          isRead: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        console.error('onAttendanceCreated mirror error:', e);
+      }
+    },
+  );
 
 // ============================================================
 // 2c. onUserProfileUpdated — Tell mobile when admin changes their account
 // ============================================================
 export const onUserProfileUpdated = functionsRegion.firestore
   .document('users/{userId}')
-  .onUpdate(async (
-    change: functions.Change<functions.firestore.QueryDocumentSnapshot>,
-    context: functions.EventContext,
-  ) => {
-    const before = change.before.data();
-    const after = change.after.data();
-    if (!before || !after) return;
+  .onUpdate(
+    async (
+      change: functions.Change<functions.firestore.QueryDocumentSnapshot>,
+      context: functions.EventContext,
+    ) => {
+      const before = change.before.data();
+      const after = change.after.data();
+      if (!before || !after) return;
 
-    // Keamanan: hapus temp password begitu user sudah mengganti password.
-    if (after.passwordChanged && after.tempPasswordPlain) {
+      // Keamanan: hapus temp password begitu user sudah mengganti password.
+      if (after.passwordChanged && after.tempPasswordPlain) {
+        try {
+          await change.after.ref.update({
+            tempPasswordPlain: admin.firestore.FieldValue.delete(),
+          });
+        } catch (e) {
+          console.error('Failed to clear tempPasswordPlain:', e);
+        }
+      }
+
+      // Surface the small set of admin-driven changes the employee actually
+      // needs to know about. Skip the high-volume churn fields (isOnline,
+      // updatedAt, fcmToken legacy field, faceRegistered — handled elsewhere,
+      // passwordChanged — internal, deviceModel — telemetry).
+      const watched: Array<{ key: keyof typeof after; label: string }> = [
+        { key: 'department', label: 'departemen' },
+        { key: 'position', label: 'jabatan' },
+        { key: 'role', label: 'role' },
+        { key: 'jamKerjaId', label: 'jam kerja' },
+        { key: 'isActive', label: 'status akun' },
+        { key: 'allowRemoteAttendance', label: 'akses absen remote' },
+      ];
+      const changed = watched.filter((w) => before[w.key] !== after[w.key]);
+      if (changed.length === 0) return;
+
+      const title = 'Profil Akun Diperbarui';
+      const body =
+        changed.length === 1
+          ? `Admin memperbarui ${changed[0].label} akun Anda.`
+          : `Admin memperbarui ${changed.length} data akun Anda.`;
+
+      await sendPushToUser(context.params.userId, {
+        title,
+        body,
+        data: { type: 'profile_updated', screen: 'profile' },
+      });
+
       try {
-        await change.after.ref.update({
-          tempPasswordPlain: admin.firestore.FieldValue.delete(),
+        await db.collection('userNotifications').add({
+          userId: context.params.userId,
+          type: 'profile_updated',
+          title,
+          message: body,
+          isRead: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        console.error('Failed to clear tempPasswordPlain:', e);
+        console.error('Failed to mirror profile_updated notification:', e);
       }
-    }
-
-    // Surface the small set of admin-driven changes the employee actually
-    // needs to know about. Skip the high-volume churn fields (isOnline,
-    // updatedAt, fcmToken legacy field, faceRegistered — handled elsewhere,
-    // passwordChanged — internal, deviceModel — telemetry).
-    const watched: Array<{ key: keyof typeof after; label: string }> = [
-      { key: 'department',            label: 'departemen'        },
-      { key: 'position',              label: 'jabatan'           },
-      { key: 'role',                  label: 'role'              },
-      { key: 'jamKerjaId',            label: 'jam kerja'         },
-      { key: 'isActive',              label: 'status akun'       },
-      { key: 'allowRemoteAttendance', label: 'akses absen remote'},
-    ];
-    const changed = watched.filter(w => before[w.key] !== after[w.key]);
-    if (changed.length === 0) return;
-
-    const title = 'Profil Akun Diperbarui';
-    const body = changed.length === 1
-      ? `Admin memperbarui ${changed[0].label} akun Anda.`
-      : `Admin memperbarui ${changed.length} data akun Anda.`;
-
-    await sendPushToUser(context.params.userId, {
-      title,
-      body,
-      data: { type: 'profile_updated', screen: 'profile' },
-    });
-
-    try {
-      await db.collection('userNotifications').add({
-        userId: context.params.userId,
-        type: 'profile_updated',
-        title,
-        message: body,
-        isRead: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      console.error('Failed to mirror profile_updated notification:', e);
-    }
-  });
-
+    },
+  );
 
 // ============================================================
 // 3. onFaceEnrolled — Notify admin when employee enrolls face
@@ -463,7 +462,6 @@ export const onFaceEnrolled = functionsRegion.firestore
     }
   });
 
-
 // ============================================================
 // 4. onAttendanceFailed — Notify admin of repeated face failures
 // ============================================================
@@ -495,7 +493,6 @@ export const onAttendanceFailed = functionsRegion.https.onCall(async (data: any)
   }
 });
 
-
 // ============================================================
 // 5. scheduledOvertimeCalc — Daily overtime calculation at 23:00 Asia/Jakarta
 // ============================================================
@@ -510,7 +507,8 @@ export const scheduledOvertimeCalc = functionsRegion.pubsub
       // Sertakan status 'late' — karyawan yang terlambat tetap bisa
       // dapat overtime kalau pulangnya melewati shift end. Sebelumnya
       // hanya 'present' yang dihitung dan ini sumber complaint.
-      const attendanceSnap = await db.collection('attendance')
+      const attendanceSnap = await db
+        .collection('attendance')
         .where('date', '==', today)
         .where('status', 'in', ['present', 'late'])
         .get();
@@ -521,16 +519,26 @@ export const scheduledOvertimeCalc = functionsRegion.pubsub
       for (const doc of attendanceSnap.docs) {
         try {
           const data = doc.data();
-          if (!data?.checkOut?.time || !data?.shiftId) { skipped++; continue; }
+          if (!data?.checkOut?.time || !data?.shiftId) {
+            skipped++;
+            continue;
+          }
 
           const shiftDoc = await db.collection('shifts').doc(data.shiftId).get();
           const shift = shiftDoc.data();
-          if (!shift) { skipped++; continue; }
+          if (!shift) {
+            skipped++;
+            continue;
+          }
 
           const scheduledMins = parseTimeToMinutes(shift.checkOutTime);
           const actualMins = parseTimeToMinutes(data.checkOut.time);
           if (scheduledMins === null || actualMins === null) {
-            console.warn('Invalid time format', { docId: doc.id, scheduled: shift.checkOutTime, actual: data.checkOut.time });
+            console.warn('Invalid time format', {
+              docId: doc.id,
+              scheduled: shift.checkOutTime,
+              actual: data.checkOut.time,
+            });
             skipped++;
             continue;
           }
@@ -549,12 +557,13 @@ export const scheduledOvertimeCalc = functionsRegion.pubsub
         }
       }
 
-      console.log(`Overtime calc done for ${today}: updated=${updated} skipped=${skipped} total=${attendanceSnap.size}`);
+      console.log(
+        `Overtime calc done for ${today}: updated=${updated} skipped=${skipped} total=${attendanceSnap.size}`,
+      );
     } catch (error) {
       console.error('scheduledOvertimeCalc failed:', error);
     }
   });
-
 
 // ============================================================
 // 6. onOvertimeStatusUpdate — FCM ke karyawan saat pengajuan lembur
@@ -606,7 +615,9 @@ export const onOvertimeStatusUpdate = functionsRegion.firestore
         console.error('Failed to mirror overtime notification:', mirrorError);
       }
 
-      console.log(`Overtime decision delivered to ${after.employeeName || after.userId}: ${after.status}`);
+      console.log(
+        `Overtime decision delivered to ${after.employeeName || after.userId}: ${after.status}`,
+      );
     } catch (error) {
       console.error('Error sending overtime FCM:', error);
     }

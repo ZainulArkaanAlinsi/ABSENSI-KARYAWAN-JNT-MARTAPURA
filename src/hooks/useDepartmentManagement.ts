@@ -94,7 +94,7 @@ export function useDepartmentManagement() {
       message: `Yakin ingin menghapus departemen "${name}"? Karyawan yang terdaftar di departemen ini mungkin perlu diperbarui secara manual.`,
       variant: 'danger',
       confirmLabel: 'Hapus',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (!isConfirmed) return;
@@ -108,9 +108,10 @@ export function useDepartmentManagement() {
     }
   };
 
-  const filteredDepartments = departments.filter((dept) =>
-    dept.name.toLowerCase().includes(search.toLowerCase()) ||
-    dept.description.toLowerCase().includes(search.toLowerCase())
+  const filteredDepartments = departments.filter(
+    (dept) =>
+      dept.name.toLowerCase().includes(search.toLowerCase()) ||
+      dept.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   return {

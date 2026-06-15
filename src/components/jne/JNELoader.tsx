@@ -11,7 +11,9 @@ const TruckSVG = () => (
     {/* Cargo box on back */}
     <rect x="4" y="13" width="30" height="20" rx="2" fill="#E31E24" />
     {/* JNE text on cargo */}
-    <text x="9" y="27" fontSize="7" fontWeight="bold" fill="white" fontFamily="sans-serif">JNE</text>
+    <text x="9" y="27" fontSize="7" fontWeight="bold" fill="white" fontFamily="sans-serif">
+      JNE
+    </text>
     {/* Cab */}
     <rect x="36" y="14" width="16" height="22" rx="2" fill="#002D5C" />
     {/* Windshield */}
@@ -52,7 +54,13 @@ const BoxSVG = ({ open }: { open: boolean }) => (
       style={{ transformOrigin: '26px 34px' }}
     >
       <circle cx="26" cy="34" r="8" fill="white" opacity="0.25" />
-      <path d="M21 34l3.5 3.5L31 30" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M21 34l3.5 3.5L31 30"
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </motion.g>
   </svg>
 );
@@ -86,8 +94,10 @@ export function JNEPageLoader({ message = 'Memuat data...' }: { message?: string
       >
         {/* JNE Branding */}
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{ background: '#E31E24' }}>
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
+            style={{ background: '#E31E24' }}
+          >
             <span className="text-white font-black text-base select-none">J</span>
           </div>
           <div>
@@ -130,7 +140,7 @@ export function JNECardLoader({ message = 'Memuat...' }: { message?: string }) {
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
-    const t = setInterval(() => setOpen(v => !v), 1200);
+    const t = setInterval(() => setOpen((v) => !v), 1200);
     return () => clearInterval(t);
   }, []);
 
@@ -146,7 +156,10 @@ export function JNECardLoader({ message = 'Memuat...' }: { message?: string }) {
 export function JNESpinner({ size = 18, color = '#E31E24' }: { size?: number; color?: string }) {
   return (
     <motion.svg
-      width={size} height={size} viewBox="0 0 24 24" fill="none"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
       animate={{ rotate: 360 }}
       transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
     >

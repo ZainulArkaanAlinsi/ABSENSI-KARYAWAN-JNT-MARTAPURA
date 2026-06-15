@@ -12,13 +12,7 @@ import {
   RefreshCcw,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import {
-  collection,
-  getDocs,
-  doc,
-  writeBatch,
-  serverTimestamp,
-} from 'firebase/firestore';
+import { collection, getDocs, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS, getEmployees, getJamKerjas } from '@/lib/firestore';
 import { format, subDays, startOfDay, addMinutes, isWeekend } from 'date-fns';
@@ -34,10 +28,11 @@ export default function MaintenanceSettings() {
   const clearAttendance = async () => {
     const isConfirmed = await confirm({
       title: 'Hapus Riwayat Absensi',
-      message: 'Apakah Anda yakin ingin menghapus SEMUA data absensi? Tindakan ini permanen dan tidak dapat dibatalkan.',
+      message:
+        'Apakah Anda yakin ingin menghapus SEMUA data absensi? Tindakan ini permanen dan tidak dapat dibatalkan.',
       variant: 'danger',
       confirmLabel: 'Ya, Hapus Semua',
-      cancelLabel: 'Batal'
+      cancelLabel: 'Batal',
     });
 
     if (!isConfirmed) return;
@@ -162,9 +157,7 @@ export default function MaintenanceSettings() {
               time: format(checkOutTime, 'HH:mm'),
               location: 'JNE Martapura Office',
             },
-            totalWorkMinutes: Math.floor(
-              (checkOutTime.getTime() - checkInTime.getTime()) / 60000,
-            ),
+            totalWorkMinutes: Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 60000),
             lateMinutes:
               status === 'late'
                 ? Math.floor((checkInTime.getTime() - baseIn.getTime()) / 60000)
@@ -199,21 +192,20 @@ export default function MaintenanceSettings() {
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-primary">
             <Database size={18} />
-            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">Simulated Data Generator</h4>
+            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">
+              Simulated Data Generator
+            </h4>
           </div>
           <p className="text-[11px] font-medium text-text-tertiary leading-relaxed">
-            Populate the database with 30 days of simulated attendance for visualization and testing.
+            Populate the database with 30 days of simulated attendance for visualization and
+            testing.
           </p>
           <button
             onClick={seedAttendance}
             disabled={loading}
             className="w-full flex items-center justify-center gap-2.5 h-10 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all disabled:opacity-50"
           >
-            {loading ? (
-              <Loader2 size={15} className="animate-spin" />
-            ) : (
-              <Zap size={15} />
-            )}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
             Generate 30-Day History
           </button>
         </div>
@@ -222,7 +214,9 @@ export default function MaintenanceSettings() {
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-danger">
             <Trash2 size={18} />
-            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">Data Cleanup</h4>
+            <h4 className="text-sm font-bold text-text-primary uppercase tracking-tight">
+              Data Cleanup
+            </h4>
           </div>
           <p className="text-[11px] font-medium text-text-tertiary leading-relaxed">
             Remove all attendance records. This action is irreversible.
@@ -232,11 +226,7 @@ export default function MaintenanceSettings() {
             disabled={loading}
             className="w-full flex items-center justify-center gap-2.5 h-10 rounded-lg bg-danger/10 text-danger border border-danger/20 font-bold text-[10px] uppercase tracking-widest hover:bg-danger hover:text-white transition-all disabled:opacity-50"
           >
-            {loading ? (
-              <Loader2 size={15} className="animate-spin" />
-            ) : (
-              <Trash2 size={15} />
-            )}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
             Delete All Records
           </button>
         </div>
@@ -252,9 +242,13 @@ export default function MaintenanceSettings() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <History size={13} className="text-text-tertiary" />
-              <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">{status}</span>
+              <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">
+                {status}
+              </span>
             </div>
-            {loading && <span className="text-[9px] font-medium text-text-tertiary">{progress}%</span>}
+            {loading && (
+              <span className="text-[9px] font-medium text-text-tertiary">{progress}%</span>
+            )}
           </div>
           {loading && (
             <div className="w-full h-1 bg-secondary rounded-full overflow-hidden border border-border-primary/50">
@@ -273,7 +267,8 @@ export default function MaintenanceSettings() {
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-mustard uppercase tracking-tight">Notice</p>
           <p className="text-[10px] font-medium text-text-tertiary leading-relaxed">
-            These tools are intended for testing and demonstration. Data generation time depends on the number of employees.
+            These tools are intended for testing and demonstration. Data generation time depends on
+            the number of employees.
           </p>
         </div>
       </div>

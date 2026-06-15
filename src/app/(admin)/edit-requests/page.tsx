@@ -3,7 +3,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
-import { AlertCircle, Clock3, Edit3, Filter, RefreshCw, Search, ShieldCheck, TriangleAlert } from 'lucide-react';
+import {
+  AlertCircle,
+  Clock3,
+  Edit3,
+  Filter,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  TriangleAlert,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { db } from '@/lib/firebase';
@@ -83,7 +92,7 @@ export default function EditRequestsPage() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const docs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as EditRequestDoc));
+        const docs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as EditRequestDoc);
         setRequests(docs);
         setLoading(false);
         setError(null);
@@ -137,13 +146,16 @@ export default function EditRequestsPage() {
               Koreksi Absensi
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Review permintaan perubahan data absensi yang dikirim oleh karyawan. Semua perubahan tetap mengikuti struktur Firestore yang sudah ada.
+              Review permintaan perubahan data absensi yang dikirim oleh karyawan. Semua perubahan
+              tetap mengikuti struktur Firestore yang sudah ada.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-slate-950">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">Update Terakhir</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
+                Update Terakhir
+              </p>
               <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">
                 {formatDistanceToNow(new Date(), { addSuffix: true, locale: localeId })}
               </p>
@@ -168,10 +180,34 @@ export default function EditRequestsPage() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Request" value={stats.total} icon={Edit3} accent="text-slate-700" accentBg="bg-slate-100" />
-        <StatCard label="Pending" value={stats.pending} icon={Clock3} accent="text-amber-600" accentBg="bg-amber-100" />
-        <StatCard label="Approved" value={stats.approved} icon={ShieldCheck} accent="text-emerald-600" accentBg="bg-emerald-100" />
-        <StatCard label="Rejected" value={stats.rejected} icon={TriangleAlert} accent="text-red-600" accentBg="bg-red-100" />
+        <StatCard
+          label="Total Request"
+          value={stats.total}
+          icon={Edit3}
+          accent="text-slate-700"
+          accentBg="bg-slate-100"
+        />
+        <StatCard
+          label="Pending"
+          value={stats.pending}
+          icon={Clock3}
+          accent="text-amber-600"
+          accentBg="bg-amber-100"
+        />
+        <StatCard
+          label="Approved"
+          value={stats.approved}
+          icon={ShieldCheck}
+          accent="text-emerald-600"
+          accentBg="bg-emerald-100"
+        />
+        <StatCard
+          label="Rejected"
+          value={stats.rejected}
+          icon={TriangleAlert}
+          accent="text-red-600"
+          accentBg="bg-red-100"
+        />
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
@@ -206,14 +242,18 @@ export default function EditRequestsPage() {
       <section className="rounded-3xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
         <div className="border-b border-slate-200 px-5 py-4 dark:border-white/10">
           <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">
-            Queue {getStatusFilterLabel(filter)} <span className="ml-2 text-slate-400">({filtered.length})</span>
+            Queue {getStatusFilterLabel(filter)}{' '}
+            <span className="ml-2 text-slate-400">({filtered.length})</span>
           </p>
         </div>
 
         {loading ? (
           <div className="space-y-3 p-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/5" />
+              <div
+                key={i}
+                className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/5"
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -221,9 +261,12 @@ export default function EditRequestsPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-white/5">
               <Edit3 size={22} />
             </div>
-            <p className="text-lg font-black text-slate-900 dark:text-white">Belum ada data yang cocok</p>
+            <p className="text-lg font-black text-slate-900 dark:text-white">
+              Belum ada data yang cocok
+            </p>
             <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Coba ubah filter atau kata kunci pencarian. Jika koleksi masih kosong, artinya belum ada request edit yang dikirim dari mobile.
+              Coba ubah filter atau kata kunci pencarian. Jika koleksi masih kosong, artinya belum
+              ada request edit yang dikirim dari mobile.
             </p>
           </div>
         ) : (
@@ -231,26 +274,43 @@ export default function EditRequestsPage() {
             {filtered.map((request) => {
               const meta = STATUS_META[request.status];
               return (
-                <article key={request.id} className="p-5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5">
+                <article
+                  key={request.id}
+                  className="p-5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5"
+                >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-base font-black text-slate-900 dark:text-white">
                           {request.userName}
                         </h3>
-                        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${meta.className}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${meta.className}`}
+                        >
                           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                           {meta.label}
                         </span>
                       </div>
 
                       <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
-                        <span><span className="font-bold text-slate-700 dark:text-slate-200">Attendance ID:</span> {request.attendanceId}</span>
-                        <span><span className="font-bold text-slate-700 dark:text-slate-200">User ID:</span> {request.userId}</span>
+                        <span>
+                          <span className="font-bold text-slate-700 dark:text-slate-200">
+                            Attendance ID:
+                          </span>{' '}
+                          {request.attendanceId}
+                        </span>
+                        <span>
+                          <span className="font-bold text-slate-700 dark:text-slate-200">
+                            User ID:
+                          </span>{' '}
+                          {request.userId}
+                        </span>
                       </div>
 
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Alasan Koreksi</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          Alasan Koreksi
+                        </p>
                         <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
                           {request.reason}
                         </p>
@@ -259,7 +319,9 @@ export default function EditRequestsPage() {
 
                     <div className="w-full lg:w-72">
                       <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-950">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Requested Changes</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          Requested Changes
+                        </p>
                         <div className="mt-3 space-y-2 text-sm">
                           <ChangeRow label="Check In" value={request.requestedChanges?.checkIn} />
                           <ChangeRow label="Check Out" value={request.requestedChanges?.checkOut} />
@@ -268,7 +330,13 @@ export default function EditRequestsPage() {
                       </div>
 
                       <p className="mt-3 text-[11px] font-medium text-slate-400">
-                        Dibuat {request.createdAt ? formatDistanceToNow(toDate(request.createdAt), { addSuffix: true, locale: localeId }) : 'baru saja'}
+                        Dibuat{' '}
+                        {request.createdAt
+                          ? formatDistanceToNow(toDate(request.createdAt), {
+                              addSuffix: true,
+                              locale: localeId,
+                            })
+                          : 'baru saja'}
                       </p>
                     </div>
                   </div>
@@ -335,7 +403,9 @@ function FilterPill({
 function ChangeRow({ label, value }: { label: string; value?: string | number }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
-      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</span>
+      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </span>
       <span className="truncate text-sm font-bold text-slate-800 dark:text-slate-200">
         {value ?? '—'}
       </span>

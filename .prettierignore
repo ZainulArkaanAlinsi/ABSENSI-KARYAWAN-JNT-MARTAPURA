@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+functions/lib
+.firebase
+public
+dataconnect
+package-lock.json
+*.md
+*.min.js
+*.min.css

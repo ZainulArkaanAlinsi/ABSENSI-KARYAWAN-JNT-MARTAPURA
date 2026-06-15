@@ -12,28 +12,45 @@ import type { Employee, AttendanceRecord } from '@/types';
 const rupiah = (n: number) => 'Rp ' + (n || 0).toLocaleString('id-ID');
 const MEDALS = ['🥇', '🥈', '🥉'];
 
-interface Row { uid: string; name: string; dept: string; value: number; sub?: string; }
+interface Row {
+  uid: string;
+  name: string;
+  dept: string;
+  value: number;
+  sub?: string;
+}
 
 export default function LeaderboardPage() {
-  const [emps, setEmps]       = useState<Employee[]>([]);
-  const [att, setAtt]         = useState<AttendanceRecord[]>([]);
-  const [pkgs, setPkgs]       = useState<{ userId: string; value: number }[]>([]);
-  const [sales, setSales]     = useState<{ userId: string; value: number }[]>([]);
+  const [emps, setEmps] = useState<Employee[]>([]);
+  const [att, setAtt] = useState<AttendanceRecord[]>([]);
+  const [pkgs, setPkgs] = useState<{ userId: string; value: number }[]>([]);
+  const [sales, setSales] = useState<{ userId: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const monthPrefix = format(new Date(), 'yyyy-MM');
-  const monthLabel  = format(new Date(), 'MMMM yyyy', { locale: idLocale });
+  const monthLabel = format(new Date(), 'MMMM yyyy', { locale: idLocale });
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const lo = `${monthPrefix}-01`, hi = `${monthPrefix}-31`;
+        const lo = `${monthPrefix}-01`,
+          hi = `${monthPrefix}-31`;
         const [e, a, p, s] = await Promise.all([
           getEmployees(),
-          getDocs(query(collection(db, 'attendance'), where('date', '>=', lo), where('date', '<=', hi))),
-          getDocs(query(collection(db, 'courier_packages'), where('date', '>=', lo), where('date', '<=', hi))),
-          getDocs(query(collection(db, 'daily_sales'), where('date', '>=', lo), where('date', '<=', hi))),
+          getDocs(
+            query(collection(db, 'attendance'), where('date', '>=', lo), where('date', '<=', hi)),
+          ),
+          getDocs(
+            query(
+              collection(db, 'courier_packages'),
+              where('date', '>=', lo),
+              where('date', '<=', hi),
+            ),
+          ),
+          getDocs(
+            query(collection(db, 'daily_sales'), where('date', '>=', lo), where('date', '<=', hi)),
+          ),
         ]);
         if (!alive) return;
         setEmps(e);
@@ -46,12 +63,16 @@ export default function LeaderboardPage() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [monthPrefix]);
 
   const nameOf = useMemo(() => {
     const m: Record<string, Employee> = {};
-    emps.forEach((e) => { if (e.uid) m[e.uid] = e; });
+    emps.forEach((e) => {
+      if (e.uid) m[e.uid] = e;
+    });
     return m;
   }, [emps]);
 
@@ -84,14 +105,19 @@ export default function LeaderboardPage() {
       agg[r.userId] = (agg[r.userId] || 0) + (r.value || 0);
     });
     return Object.entries(agg)
-      .map(([uid, value]) => ({ uid, name: nameOf[uid]?.name ?? '—', dept: nameOf[uid]?.department ?? '', value }))
+      .map(([uid, value]) => ({
+        uid,
+        name: nameOf[uid]?.name ?? '—',
+        dept: nameOf[uid]?.department ?? '',
+        value,
+      }))
       .filter((r) => r.name !== '—' && r.value > 0)
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
   };
 
   const topCouriers = useMemo(() => sumBy(pkgs), [pkgs, nameOf]);
-  const topSales    = useMemo(() => sumBy(sales), [sales, nameOf]);
+  const topSales = useMemo(() => sumBy(sales), [sales, nameOf]);
 
   return (
     <div className="space-y-6">
@@ -99,7 +125,9 @@ export default function LeaderboardPage() {
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Trophy size={18} style={{ color: '#E31E24' }} />
-          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Apresiasi</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+            Apresiasi
+          </span>
         </div>
         <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
           Papan <span style={{ color: '#E31E24' }}>Peringkat</span>
@@ -123,12 +151,23 @@ export default function LeaderboardPage() {
 }
 
 function Board({
-  title, icon: Icon, rows, unit, format: fmt,
+  title,
+  icon: Icon,
+  rows,
+  unit,
+  format: fmt,
 }: {
-  title: string; icon: React.ElementType; rows: Row[]; unit?: string; format?: (n: number) => string;
+  title: string;
+  icon: React.ElementType;
+  rows: Row[];
+  unit?: string;
+  format?: (n: number) => string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-100" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+    <div
+      className="bg-white rounded-2xl p-5 border border-slate-100"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+    >
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
           <Icon size={16} />
@@ -150,12 +189,18 @@ function Board({
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-bold text-slate-800 truncate">{r.name}</p>
                 <p className="text-[10px] text-slate-400 truncate">
-                  {r.dept || '—'}{r.sub ? ` · ${r.sub}` : ''}
+                  {r.dept || '—'}
+                  {r.sub ? ` · ${r.sub}` : ''}
                 </p>
               </div>
-              <p className="text-[14px] font-black tabular-nums shrink-0" style={{ color: i < 3 ? '#E31E24' : '#0f172a' }}>
+              <p
+                className="text-[14px] font-black tabular-nums shrink-0"
+                style={{ color: i < 3 ? '#E31E24' : '#0f172a' }}
+              >
                 {fmt ? fmt(r.value) : r.value}
-                {unit && !fmt ? <span className="text-[9px] font-bold text-slate-400 ml-1">{unit}</span> : null}
+                {unit && !fmt ? (
+                  <span className="text-[9px] font-bold text-slate-400 ml-1">{unit}</span>
+                ) : null}
               </p>
             </div>
           ))}

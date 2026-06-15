@@ -8,57 +8,57 @@ interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   animationType?: 'pop' | 'lift' | 'tilt';
 }
 
-export const AnimatedButton: React.FC<AnimatedButtonProps> = ({ 
-  children, 
-  animationType = 'pop', 
+export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
+  children,
+  animationType = 'pop',
   className,
   onClick,
-  ...props 
+  ...props
 }) => {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!btnRef.current) return;
-    
+
     if (animationType === 'lift') {
       animate(btnRef.current, {
         translateY: -3,
         scale: 1.02,
         duration: 300,
-        easing: 'outQuad'
+        easing: 'outQuad',
       });
     } else if (animationType === 'pop') {
       animate(btnRef.current, {
         scale: 1.05,
         duration: 200,
-        easing: 'outQuad'
+        easing: 'outQuad',
       });
     }
-    
+
     if (props.onMouseEnter) props.onMouseEnter(e);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!btnRef.current) return;
-    
+
     animate(btnRef.current, {
       translateY: 0,
       scale: 1,
       duration: 300,
-      easing: 'outQuad'
+      easing: 'outQuad',
     });
-    
+
     if (props.onMouseLeave) props.onMouseLeave(e);
   };
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!btnRef.current) return;
-    
+
     // Click "juice" effect
     animate(btnRef.current, {
       scale: [1, 0.95, 1],
       duration: 200,
-      easing: 'inOutQuad'
+      easing: 'inOutQuad',
     });
 
     if (onClick) onClick(e);

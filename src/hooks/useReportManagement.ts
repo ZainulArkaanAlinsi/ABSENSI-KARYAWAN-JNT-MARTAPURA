@@ -21,10 +21,10 @@ export function useReportManagement() {
         const dateObj = parseISO(`${month}-01`);
         const start = startOfMonth(dateObj);
         const end = endOfMonth(dateObj);
-        
+
         const data = await getAttendanceByRange(
           format(start, 'yyyy-MM-dd'),
-          format(end, 'yyyy-MM-dd')
+          format(end, 'yyyy-MM-dd'),
         );
         setAttendance(data);
       } catch (error) {
@@ -39,13 +39,15 @@ export function useReportManagement() {
 
   // Transform attendance to per-employee reports
   const reports = useMemo(() => {
-    return employees.map(emp => {
-      const empAttendance = attendance.filter(a => a.userId === emp.id);
-      const presentDays = empAttendance.filter(a => ['present', 'late', 'overtime'].includes(a.status)).length;
-      const lateDays = empAttendance.filter(a => a.status === 'late').length;
+    return employees.map((emp) => {
+      const empAttendance = attendance.filter((a) => a.userId === emp.id);
+      const presentDays = empAttendance.filter((a) =>
+        ['present', 'late', 'overtime'].includes(a.status),
+      ).length;
+      const lateDays = empAttendance.filter((a) => a.status === 'late').length;
       const totalLateMinutes = empAttendance.reduce((acc, a) => acc + (a.lateMinutes || 0), 0);
-      const absentDays = empAttendance.filter(a => a.status === 'absent').length;
-      const leaveDays = empAttendance.filter(a => a.status === 'leave').length;
+      const absentDays = empAttendance.filter((a) => a.status === 'absent').length;
+      const leaveDays = empAttendance.filter((a) => a.status === 'leave').length;
 
       return {
         userId: emp.id,
@@ -56,50 +58,52 @@ export function useReportManagement() {
         lateDays,
         absentDays,
         leaveDays,
-        totalLateMinutes
+        totalLateMinutes,
       };
     });
   }, [employees, attendance]);
 
   const filteredReports = useMemo(() => {
-    return reports.filter(r => 
-      r.userName.toLowerCase().includes(search.toLowerCase()) ||
-      r.department.toLowerCase().includes(search.toLowerCase())
+    return reports.filter(
+      (r) =>
+        r.userName.toLowerCase().includes(search.toLowerCase()) ||
+        r.department.toLowerCase().includes(search.toLowerCase()),
     );
   }, [reports, search]);
 
   const stats = useMemo(() => {
     if (reports.length === 0) return { onTimeRate: 0, lateCount: 0, absentCount: 0 };
-    
+
     const totalPresent = reports.reduce((acc, r) => acc + r.presentDays, 0);
     const totalLate = reports.reduce((acc, r) => acc + r.lateDays, 0);
     const totalAbsent = reports.reduce((acc, r) => acc + r.absentDays, 0);
     const totalLeave = reports.reduce((acc, r) => acc + (r as any).leaveDays, 0);
     const totalLateMins = reports.reduce((acc, r) => acc + r.totalLateMinutes, 0);
 
-    const onTimeRate = totalPresent > 0 ? Math.round(((totalPresent - totalLate) / totalPresent) * 100) : 0;
+    const onTimeRate =
+      totalPresent > 0 ? Math.round(((totalPresent - totalLate) / totalPresent) * 100) : 0;
 
     return {
       onTimeRate,
       lateCount: totalLateMins,
       absentCount: totalAbsent,
-      leaveCount: totalLeave
+      leaveCount: totalLeave,
     };
   }, [reports]);
 
   const handleExport = () => {
     const headers = ['Nama', 'ID Karyawan', 'Unit', 'Hadir', 'Telat', 'Izin', 'Alfa'];
-    const rows = filteredReports.map(r => [
+    const rows = filteredReports.map((r) => [
       r.userName,
       r.employeeId,
       r.department,
       r.presentDays,
       r.lateDays,
       (r as any).leaveDays,
-      r.absentDays
+      r.absentDays,
     ]);
-    
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -118,6 +122,6 @@ export function useReportManagement() {
     reports,
     filteredReports,
     handleExport,
-    stats
+    stats,
   };
 }

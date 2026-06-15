@@ -3,18 +3,24 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import {
-  collection, query, orderBy,
-  doc, updateDoc, where, addDoc,
-} from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, where, addDoc } from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Check, X, FileText, Inbox, RefreshCw, ChevronLeft,
-  Search, Clock3, Download, Filter, ShieldCheck,
+  Check,
+  X,
+  FileText,
+  Inbox,
+  RefreshCw,
+  ChevronLeft,
+  Search,
+  Clock3,
+  Download,
+  Filter,
+  ShieldCheck,
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
@@ -22,13 +28,20 @@ import { toast } from 'sonner';
 // ─── Status Badge ─────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-    pending:  { label: 'Menunggu',  dot: 'bg-amber-400',   bg: 'bg-amber-50',   text: 'text-amber-700'   },
-    approved: { label: 'Disetujui', dot: 'bg-emerald-400', bg: 'bg-emerald-50', text: 'text-emerald-700' },
-    rejected: { label: 'Ditolak',   dot: 'bg-red-400',     bg: 'bg-red-50',     text: 'text-red-600'     },
+    pending: { label: 'Menunggu', dot: 'bg-amber-400', bg: 'bg-amber-50', text: 'text-amber-700' },
+    approved: {
+      label: 'Disetujui',
+      dot: 'bg-emerald-400',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+    },
+    rejected: { label: 'Ditolak', dot: 'bg-red-400', bg: 'bg-red-50', text: 'text-red-600' },
   };
   const s = cfg[status] ?? cfg.pending;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${s.bg} ${s.text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 ${s.bg} ${s.text}`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>
@@ -37,8 +50,10 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Skeleton ─────────────────────────────────────────────────
 const CardSkeleton = () => (
-  <div className="bg-white rounded-2xl p-5 border border-slate-100 animate-pulse space-y-4"
-    style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+  <div
+    className="bg-white rounded-2xl p-5 border border-slate-100 animate-pulse space-y-4"
+    style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+  >
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-xl bg-slate-100" />
       <div className="flex-1 space-y-2">
@@ -66,27 +81,31 @@ const toDate = (val: any): Date => {
 // ─── Main ─────────────────────────────────────────────────────
 export default function LeaveRequestsPage() {
   const router = useRouter();
-  const [requests,   setRequests]   = useState<LeaveRequest[]>([]);
-  const [loading,    setLoading]    = useState(true);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const { confirm } = useConfirm();
-  const [filter,     setFilter]     = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [search,     setSearch]     = useState('');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let q = query(collection(db, 'leaves'), orderBy('createdAt', 'desc'));
     if (filter !== 'all')
-      q = query(collection(db, 'leaves'), where('status', '==', filter), orderBy('createdAt', 'desc'));
+      q = query(
+        collection(db, 'leaves'),
+        where('status', '==', filter),
+        orderBy('createdAt', 'desc'),
+      );
 
-    const unsub = listen(q, snap => {
-      setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as LeaveRequest)));
+    const unsub = listen(q, (snap) => {
+      setRequests(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as LeaveRequest));
       setLoading(false);
     });
     return () => unsub();
   }, [filter]);
 
   const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
-    const request = requests.find(r => r.id === requestId);
+    const request = requests.find((r) => r.id === requestId);
     if (!request) return;
 
     const isConfirmed = await confirm({
@@ -94,7 +113,7 @@ export default function LeaveRequestsPage() {
       message: `Konfirmasi untuk ${status === 'approved' ? 'menyetujui' : 'menolak'} pengajuan ${request.type} dari ${request.employeeName}?`,
       variant: status === 'approved' ? 'info' : 'danger',
       confirmLabel: status === 'approved' ? 'Setujui' : 'Tolak',
-      cancelLabel: 'Batalkan'
+      cancelLabel: 'Batalkan',
     });
 
     if (!isConfirmed) return;
@@ -102,22 +121,28 @@ export default function LeaveRequestsPage() {
     setProcessing(requestId);
     try {
       await updateDoc(doc(db, 'leaves', requestId), {
-        status, updatedAt: new Date().toISOString(), reviewedAt: new Date().toISOString(),
+        status,
+        updatedAt: new Date().toISOString(),
+        reviewedAt: new Date().toISOString(),
       });
 
       if (status === 'approved') {
-        const start    = toDate(request.startDate);
-        const end      = toDate(request.endDate);
+        const start = toDate(request.startDate);
+        const end = toDate(request.endDate);
         const dayCount = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
-        const ref      = collection(db, 'attendance');
+        const ref = collection(db, 'attendance');
         for (let i = 0; i < dayCount; i++) {
           const d = new Date(start);
           d.setDate(start.getDate() + i);
           await addDoc(ref, {
-            userId: request.userId, employeeName: request.employeeName,
-            employeeId: request.employeeId, department: request.department,
-            date: format(d, 'yyyy-MM-dd'), status: 'leave',
-            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            userId: request.userId,
+            employeeName: request.employeeName,
+            employeeId: request.employeeId,
+            department: request.department,
+            date: format(d, 'yyyy-MM-dd'),
+            status: 'leave',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             type: 'system_leave',
           });
         }
@@ -131,25 +156,32 @@ export default function LeaveRequestsPage() {
     }
   };
 
-  const filtered = useMemo(() =>
-    requests.filter(r =>
-      (r.employeeName?.toLowerCase() || '').includes(search.toLowerCase()) ||
-      (r.employeeId?.toLowerCase()   || '').includes(search.toLowerCase())
-    ), [requests, search]);
+  const filtered = useMemo(
+    () =>
+      requests.filter(
+        (r) =>
+          (r.employeeName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+          (r.employeeId?.toLowerCase() || '').includes(search.toLowerCase()),
+      ),
+    [requests, search],
+  );
 
-  const counts = useMemo(() => ({
-    total:    requests.length,
-    pending:  requests.filter(r => r.status === 'pending').length,
-    approved: requests.filter(r => r.status === 'approved').length,
-    rejected: requests.filter(r => r.status === 'rejected').length,
-  }), [requests]);
+  const counts = useMemo(
+    () => ({
+      total: requests.length,
+      pending: requests.filter((r) => r.status === 'pending').length,
+      approved: requests.filter((r) => r.status === 'approved').length,
+      rejected: requests.filter((r) => r.status === 'rejected').length,
+    }),
+    [requests],
+  );
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
@@ -182,21 +214,48 @@ export default function LeaveRequestsPage() {
       {/* ── SUMMARY STRIP ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Total', val: counts.total,    clr: 'text-blue-600',    bg: 'bg-blue-50',    dot: 'bg-blue-400'    },
-          { label: 'Menunggu', val: counts.pending,  clr: 'text-amber-600',   bg: 'bg-amber-50',   dot: 'bg-amber-400'   },
-          { label: 'Disetujui', val: counts.approved, clr: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-400' },
-          { label: 'Ditolak',   val: counts.rejected, clr: 'text-red-600',     bg: 'bg-red-50',     dot: 'bg-red-400'     },
+          {
+            label: 'Total',
+            val: counts.total,
+            clr: 'text-blue-600',
+            bg: 'bg-blue-50',
+            dot: 'bg-blue-400',
+          },
+          {
+            label: 'Menunggu',
+            val: counts.pending,
+            clr: 'text-amber-600',
+            bg: 'bg-amber-50',
+            dot: 'bg-amber-400',
+          },
+          {
+            label: 'Disetujui',
+            val: counts.approved,
+            clr: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            dot: 'bg-emerald-400',
+          },
+          {
+            label: 'Ditolak',
+            val: counts.rejected,
+            clr: 'text-red-600',
+            bg: 'bg-red-50',
+            dot: 'bg-red-400',
+          },
         ].map((s, i) => (
           <motion.div
             key={s.label}
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.06 }}
             className="bg-white rounded-2xl px-4 py-3.5 border border-slate-100 flex items-center gap-3"
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
           >
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.dot}`} />
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {s.label}
+              </p>
               <p className={`text-[22px] font-black leading-none tabular-nums ${s.clr}`}>{s.val}</p>
             </div>
           </motion.div>
@@ -211,7 +270,7 @@ export default function LeaveRequestsPage() {
             type="text"
             placeholder="Cari nama atau ID karyawan..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full h-10 bg-white border border-slate-200 rounded-xl pl-10 pr-4 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all shadow-sm"
           />
         </div>
@@ -219,7 +278,7 @@ export default function LeaveRequestsPage() {
           <Filter size={13} className="text-slate-400 shrink-0" />
           <select
             value={filter}
-            onChange={e => setFilter(e.target.value as any)}
+            onChange={(e) => setFilter(e.target.value as any)}
             className="bg-transparent text-[12px] font-semibold text-slate-700 outline-none appearance-none cursor-pointer flex-1"
           >
             <option value="all">Semua Status</option>
@@ -233,21 +292,29 @@ export default function LeaveRequestsPage() {
       {/* ── CARDS GRID ── */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
+          {[1, 2, 3].map((i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="bg-white border border-slate-100 rounded-2xl p-16 text-center"
           style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}
         >
-          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4"
+          >
             <Inbox size={24} className="text-slate-300" />
           </motion.div>
           <p className="text-[13px] font-bold text-slate-600">Tidak ada pengajuan</p>
           <p className="text-[11px] text-slate-400 mt-1">
-            {filter === 'all' ? 'Belum ada pengajuan izin masuk.' : `Tidak ada pengajuan dengan status "${filter}".`}
+            {filter === 'all'
+              ? 'Belum ada pengajuan izin masuk.'
+              : `Tidak ada pengajuan dengan status "${filter}".`}
           </p>
         </motion.div>
       ) : (
@@ -271,7 +338,9 @@ export default function LeaveRequestsPage() {
                     {req.employeeName?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-desc font-bold text-slate-800 truncate leading-tight">{req.employeeName}</p>
+                    <p className="text-desc font-bold text-slate-800 truncate leading-tight">
+                      {req.employeeName}
+                    </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">{req.employeeId}</p>
                   </div>
                   <StatusBadge status={req.status} />
@@ -281,7 +350,9 @@ export default function LeaveRequestsPage() {
                 <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <FileText size={11} className="text-emerald-500" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alasan</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Alasan
+                    </p>
                   </div>
                   <p className="text-[12px] font-medium text-slate-600 italic leading-relaxed line-clamp-2">
                     "{req.reason}"
@@ -291,11 +362,15 @@ export default function LeaveRequestsPage() {
                 {/* Date + Type grid */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Durasi</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Durasi
+                    </p>
                     <p className="text-[13px] font-black text-slate-800">{req.totalDays} Hari</p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tipe</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Tipe
+                    </p>
                     <p className="text-[12px] font-bold text-emerald-600 capitalize">{req.type}</p>
                   </div>
                 </div>
@@ -304,7 +379,8 @@ export default function LeaveRequestsPage() {
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
                   <Clock3 size={12} className="text-slate-400 shrink-0" />
                   <span className="tabular-nums">
-                    {format(toDate(req.startDate), 'dd MMM', { locale: idLocale })} — {format(toDate(req.endDate), 'dd MMM yyyy', { locale: idLocale })}
+                    {format(toDate(req.startDate), 'dd MMM', { locale: idLocale })} —{' '}
+                    {format(toDate(req.endDate), 'dd MMM yyyy', { locale: idLocale })}
                   </span>
                 </div>
 
@@ -325,11 +401,15 @@ export default function LeaveRequestsPage() {
                         )}
                       </motion.button>
                       <motion.button
-                        whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.97 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => handleAction(req.id, 'approved')}
                         disabled={!!processing}
                         className="flex-1 h-10 rounded-xl text-white text-[12px] font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
-                        style={{ background: 'linear-gradient(135deg,#10B981,#059669)', boxShadow: '0 4px 14px -4px rgba(16,185,129,0.4)' }}
+                        style={{
+                          background: 'linear-gradient(135deg,#10B981,#059669)',
+                          boxShadow: '0 4px 14px -4px rgba(16,185,129,0.4)',
+                        }}
                       >
                         {processing === req.id ? (
                           <RefreshCw size={14} className="animate-spin" />
@@ -341,7 +421,10 @@ export default function LeaveRequestsPage() {
                     </div>
                   ) : (
                     <div className="w-full h-10 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center gap-2">
-                      <ShieldCheck size={14} className={req.status === 'approved' ? 'text-emerald-400' : 'text-red-400'} />
+                      <ShieldCheck
+                        size={14}
+                        className={req.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}
+                      />
                       <span className="text-[11px] font-semibold text-slate-500">
                         {req.status === 'approved' ? 'Sudah disetujui' : 'Sudah ditolak'}
                       </span>

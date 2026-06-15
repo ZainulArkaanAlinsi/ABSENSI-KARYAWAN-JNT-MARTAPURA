@@ -8,9 +8,20 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate } from '
 import Link from 'next/link';
 import { Pagination } from '@/components/ui/Pagination';
 import {
-  Trash2, ChevronRight, UserPlus, Search,
-  Users, ShieldCheck, AlertCircle, Building2,
-  Mail, Loader2, LayoutGrid, List, Wifi, X,
+  Trash2,
+  ChevronRight,
+  UserPlus,
+  Search,
+  Users,
+  ShieldCheck,
+  AlertCircle,
+  Building2,
+  Mail,
+  Loader2,
+  LayoutGrid,
+  List,
+  Wifi,
+  X,
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
@@ -18,24 +29,37 @@ import { toast } from 'sonner';
 // ── Animated counter ──────────────────────────────────────────
 function AnimCount({ to }: { to: number }) {
   const count = useMotionValue(0);
-  const rounded = useTransform(count, v => Math.round(v));
+  const rounded = useTransform(count, (v) => Math.round(v));
   const [display, setDisplay] = useState(0);
   useEffect(() => {
-    const unsub = rounded.on('change', v => setDisplay(v));
-    const ctrl  = animate(count, to, { duration: 0.8, ease: 'easeOut' });
-    return () => { ctrl.stop(); unsub(); };
+    const unsub = rounded.on('change', (v) => setDisplay(v));
+    const ctrl = animate(count, to, { duration: 0.8, ease: 'easeOut' });
+    return () => {
+      ctrl.stop();
+      unsub();
+    };
   }, [to]);
   return <span className="tabular-nums">{display}</span>;
 }
 
 // ── Stat card ──────────────────────────────────────────────────
-function StatCard({ label, val, icon: Icon, color, delay }: {
-  label: string; val: number; icon: React.ElementType;
-  color: { bar: string; icon: string; num: string }; delay: number;
+function StatCard({
+  label,
+  val,
+  icon: Icon,
+  color,
+  delay,
+}: {
+  label: string;
+  val: number;
+  icon: React.ElementType;
+  color: { bar: string; icon: string; num: string };
+  delay: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
       className="bg-white rounded-2xl p-5 border border-slate-100 flex items-center gap-4 cursor-default overflow-hidden relative"
@@ -43,11 +67,15 @@ function StatCard({ label, val, icon: Icon, color, delay }: {
     >
       {/* Left accent bar */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${color.bar}`} />
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color.icon}`}>
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color.icon}`}
+      >
         <Icon size={20} strokeWidth={2} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{label}</p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+          {label}
+        </p>
         <p className={`text-[28px] font-black leading-tight mt-1 ${color.num}`}>
           <AnimCount to={val} />
         </p>
@@ -72,9 +100,7 @@ function getAvatarColor(name: string) {
 }
 
 // ── Grid card ──────────────────────────────────────────────────
-function EmployeeCard({
-  emp, idx, onDelete,
-}: { emp: any; idx: number; onDelete: () => void }) {
+function EmployeeCard({ emp, idx, onDelete }: { emp: any; idx: number; onDelete: () => void }) {
   const { confirm } = useConfirm();
   const avatarGradient = getAvatarColor(emp.name);
 
@@ -88,8 +114,8 @@ function EmployeeCard({
       whileHover={{ y: -4 }}
       className="group bg-white border border-slate-100 rounded-2xl overflow-hidden flex flex-col cursor-default"
       style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s' }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 32px rgba(227,30,36,0.12)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)')}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 12px 32px rgba(227,30,36,0.12)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)')}
     >
       {/* Top strip */}
       <div className="h-1.5 w-full bg-linear-to-r from-[#E31E24] to-[#005596] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -98,8 +124,10 @@ function EmployeeCard({
         {/* Avatar + name row */}
         <div className="flex items-start gap-3.5">
           <div className="relative shrink-0">
-            <div className={`w-13 h-13 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-[18px] font-black text-white`}
-              style={{ width: 52, height: 52 }}>
+            <div
+              className={`w-13 h-13 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-[18px] font-black text-white`}
+              style={{ width: 52, height: 52 }}
+            >
               {emp.name.charAt(0).toUpperCase()}
             </div>
             {emp.isOnline && (
@@ -117,7 +145,9 @@ function EmployeeCard({
           {emp.isOnline && (
             <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg shrink-0">
               <Wifi size={10} className="text-emerald-500" />
-              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Online</span>
+              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
+                Online
+              </span>
             </div>
           )}
         </div>
@@ -126,7 +156,9 @@ function EmployeeCard({
         <div className="bg-slate-50 rounded-xl px-3.5 py-2.5 border border-slate-100 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <Building2 size={12} className="text-slate-400 shrink-0" />
-            <p className="text-[12px] font-semibold text-slate-700 truncate">{emp.department || 'Operasional'}</p>
+            <p className="text-[12px] font-semibold text-slate-700 truncate">
+              {emp.department || 'Operasional'}
+            </p>
           </div>
           <FaceBadge registered={emp.faceRegistered} />
         </div>
@@ -146,17 +178,18 @@ function EmployeeCard({
         {/* Actions */}
         <div className="flex items-center gap-2">
           <motion.button
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
-            onClick={async (e) => { 
-              e.stopPropagation(); 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={async (e) => {
+              e.stopPropagation();
               const isConfirmed = await confirm({
                 title: 'Hapus Karyawan',
                 message: `Yakin ingin menghapus data ${emp.name}? Semua riwayat absensi juga akan dihapus.`,
                 variant: 'danger',
                 confirmLabel: 'Hapus',
-                cancelLabel: 'Batal'
+                cancelLabel: 'Batal',
               });
-              if (isConfirmed) onDelete(); 
+              if (isConfirmed) onDelete();
             }}
             className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-all shrink-0"
           >
@@ -165,7 +198,8 @@ function EmployeeCard({
 
           <Link href={`/employees/detail?id=${emp.uid}`} className="flex-1">
             <motion.button
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               className="w-full h-9 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-2 transition-all"
               style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)' }}
             >
@@ -179,7 +213,13 @@ function EmployeeCard({
 }
 
 // ── List row ───────────────────────────────────────────────────
-function EmployeeRow({ emp, idx, onDelete, selected, onSelectToggle }: {
+function EmployeeRow({
+  emp,
+  idx,
+  onDelete,
+  selected,
+  onSelectToggle,
+}: {
   emp: any;
   idx: number;
   onDelete: () => void;
@@ -210,16 +250,24 @@ function EmployeeRow({ emp, idx, onDelete, selected, onSelectToggle }: {
 
       {/* Avatar */}
       <div className="relative shrink-0">
-        <div className={`w-10 h-10 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-desc font-black text-white`}>
+        <div
+          className={`w-10 h-10 rounded-xl bg-linear-to-br ${avatarGradient} flex items-center justify-center text-desc font-black text-white`}
+        >
           {emp.name.charAt(0).toUpperCase()}
         </div>
-        {emp.isOnline && <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />}
+        {emp.isOnline && (
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />
+        )}
       </div>
 
       {/* Name + ID */}
       <div className="w-44 min-w-0 shrink-0">
-        <p className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[#E31E24] transition-colors">{emp.name}</p>
-        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{emp.employeeId}</p>
+        <p className="text-[13px] font-bold text-slate-800 truncate group-hover:text-[#E31E24] transition-colors">
+          {emp.name}
+        </p>
+        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+          {emp.employeeId}
+        </p>
       </div>
 
       {/* Dept */}
@@ -243,16 +291,16 @@ function EmployeeRow({ emp, idx, onDelete, selected, onSelectToggle }: {
       <div className="flex items-center gap-2 shrink-0">
         <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={async (e) => { 
-            e.stopPropagation(); 
+          onClick={async (e) => {
+            e.stopPropagation();
             const isConfirmed = await confirm({
               title: 'Hapus Karyawan',
               message: `Yakin ingin menghapus data ${emp.name}?`,
               variant: 'danger',
               confirmLabel: 'Hapus',
-              cancelLabel: 'Batal'
+              cancelLabel: 'Batal',
             });
-            if (isConfirmed) onDelete(); 
+            if (isConfirmed) onDelete();
           }}
           className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
         >
@@ -260,7 +308,8 @@ function EmployeeRow({ emp, idx, onDelete, selected, onSelectToggle }: {
         </motion.button>
         <Link href={`/employees/detail?id=${emp.uid}`}>
           <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             className="h-8 px-4 rounded-lg text-[11px] font-bold text-white flex items-center gap-1.5 transition-all"
             style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)' }}
           >
@@ -293,7 +342,9 @@ function EmptyState({ hasFilter }: { hasFilter: boolean }) {
           {hasFilter ? 'Tidak ditemukan' : 'Belum ada karyawan'}
         </p>
         <p className="text-[12px] text-slate-400 mt-1">
-          {hasFilter ? 'Coba ubah filter atau kata kunci pencarian' : 'Tambah karyawan pertama untuk mulai'}
+          {hasFilter
+            ? 'Coba ubah filter atau kata kunci pencarian'
+            : 'Tambah karyawan pertama untuk mulai'}
         </p>
       </div>
     </motion.div>
@@ -303,11 +354,20 @@ function EmptyState({ hasFilter }: { hasFilter: boolean }) {
 // ── Main page ──────────────────────────────────────────────────
 export default function EmployeesPage() {
   const {
-    employees, loading, search, setSearch,
-    filterDept, setFilterDept, filterFace, setFilterFace,
-    showAddModal, setShowAddModal,
-    departmentItems, jamKerjas,
-    filteredEmployees, deleteEmployeeOptimistic,
+    employees,
+    loading,
+    search,
+    setSearch,
+    filterDept,
+    setFilterDept,
+    filterFace,
+    setFilterFace,
+    showAddModal,
+    setShowAddModal,
+    departmentItems,
+    jamKerjas,
+    filteredEmployees,
+    deleteEmployeeOptimistic,
   } = useEmployeeManagement();
 
   useEffect(() => {
@@ -323,25 +383,30 @@ export default function EmployeesPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const { confirm } = useConfirm();
 
-  useEffect(() => { setCurrentPage(1); }, [filteredEmployees]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredEmployees]);
 
   // Clear selection when filter changes — selected ids may no longer be visible.
-  useEffect(() => { setSelected(new Set()); }, [search, filterDept, filterFace]);
+  useEffect(() => {
+    setSelected(new Set());
+  }, [search, filterDept, filterFace]);
 
   const toggleOne = (id: string) =>
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 
   const togglePage = () => {
-    const visibleIds = paginatedEmployees.map(e => e.id);
-    const allSelected = visibleIds.every(id => selected.has(id));
-    setSelected(prev => {
+    const visibleIds = paginatedEmployees.map((e) => e.id);
+    const allSelected = visibleIds.every((id) => selected.has(id));
+    setSelected((prev) => {
       const next = new Set(prev);
-      if (allSelected) visibleIds.forEach(id => next.delete(id));
-      else visibleIds.forEach(id => next.add(id));
+      if (allSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
       return next;
     });
   };
@@ -358,7 +423,8 @@ export default function EmployeesPage() {
     if (!ok) return;
     setBulkDeleting(true);
     const ids = Array.from(selected);
-    let okCount = 0, failCount = 0;
+    let okCount = 0,
+      failCount = 0;
     for (const id of ids) {
       try {
         await deleteEmployeeOptimistic(id);
@@ -373,7 +439,7 @@ export default function EmployeesPage() {
     else toast.error(`${okCount} berhasil, ${failCount} gagal. Coba ulangi yang gagal.`);
   };
 
-  const totalPages         = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
   const paginatedEmployees = filteredEmployees.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
@@ -382,17 +448,17 @@ export default function EmployeesPage() {
   const hasFilter = !!(search || filterDept !== 'all' || filterFace !== 'all');
 
   const FACE_OPTS = [
-    { value: 'all',          label: 'Semua' },
-    { value: 'registered',   label: 'Verified' },
+    { value: 'all', label: 'Semua' },
+    { value: 'registered', label: 'Verified' },
     { value: 'unregistered', label: 'Belum Daftar' },
   ];
 
   return (
     <div className="flex flex-col gap-5 pb-6">
-
       {/* ── HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
       >
@@ -400,7 +466,9 @@ export default function EmployeesPage() {
           {/* Section label */}
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-4 rounded-full" style={{ background: '#E31E24' }} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">Manajemen SDM</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">
+              Manajemen SDM
+            </span>
           </div>
           <h1 className="editorial-heading text-[24px] font-black text-slate-900 tracking-tight leading-none">
             Data <span style={{ color: '#E31E24' }}>Karyawan</span>
@@ -413,7 +481,7 @@ export default function EmployeesPage() {
         <div className="flex items-center gap-2">
           {/* View toggle */}
           <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5">
-            {(['grid', 'list'] as const).map(mode => (
+            {(['grid', 'list'] as const).map((mode) => (
               <motion.button
                 key={mode}
                 onClick={() => setViewMode(mode)}
@@ -428,7 +496,9 @@ export default function EmployeesPage() {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
                   />
                 )}
-                <span className={`relative z-10 transition-colors ${viewMode === mode ? 'text-slate-700' : 'text-slate-400'}`}>
+                <span
+                  className={`relative z-10 transition-colors ${viewMode === mode ? 'text-slate-700' : 'text-slate-400'}`}
+                >
                   {mode === 'grid' ? <LayoutGrid size={15} /> : <List size={15} />}
                 </span>
               </motion.button>
@@ -440,7 +510,10 @@ export default function EmployeesPage() {
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 h-10 px-5 rounded-xl text-[12px] font-bold text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg,#E31E24,#b5161b)', boxShadow: '0 2px 8px rgba(227,30,36,0.25)' }}
+            style={{
+              background: 'linear-gradient(135deg,#E31E24,#b5161b)',
+              boxShadow: '0 2px 8px rgba(227,30,36,0.25)',
+            }}
           >
             <UserPlus size={15} />
             Tambah Karyawan
@@ -450,35 +523,55 @@ export default function EmployeesPage() {
 
       {/* ── STAT CARDS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard delay={0.06} label="Total Karyawan" val={employees.length}
+        <StatCard
+          delay={0.06}
+          label="Total Karyawan"
+          val={employees.length}
           icon={Users}
-          color={{ bar: 'bg-slate-400', icon: 'bg-slate-600', num: 'text-slate-700' }} />
-        <StatCard delay={0.10} label="Terverifikasi" val={employees.filter(e => e.faceRegistered).length}
+          color={{ bar: 'bg-slate-400', icon: 'bg-slate-600', num: 'text-slate-700' }}
+        />
+        <StatCard
+          delay={0.1}
+          label="Terverifikasi"
+          val={employees.filter((e) => e.faceRegistered).length}
           icon={ShieldCheck}
-          color={{ bar: 'bg-[#005596]', icon: 'bg-[#005596]', num: 'text-[#005596]' }} />
-        <StatCard delay={0.14} label="Belum Daftar" val={employees.filter(e => !e.faceRegistered).length}
+          color={{ bar: 'bg-[#005596]', icon: 'bg-[#005596]', num: 'text-[#005596]' }}
+        />
+        <StatCard
+          delay={0.14}
+          label="Belum Daftar"
+          val={employees.filter((e) => !e.faceRegistered).length}
           icon={AlertCircle}
-          color={{ bar: 'bg-amber-500', icon: 'bg-amber-500', num: 'text-amber-600' }} />
-        <StatCard delay={0.18} label="Sedang Online" val={employees.filter(e => e.isOnline).length}
+          color={{ bar: 'bg-amber-500', icon: 'bg-amber-500', num: 'text-amber-600' }}
+        />
+        <StatCard
+          delay={0.18}
+          label="Sedang Online"
+          val={employees.filter((e) => e.isOnline).length}
           icon={Wifi}
-          color={{ bar: 'bg-emerald-500', icon: 'bg-emerald-500', num: 'text-emerald-600' }} />
+          color={{ bar: 'bg-emerald-500', icon: 'bg-emerald-500', num: 'text-emerald-600' }}
+        />
       </div>
 
       {/* ── FILTER BAR ── */}
       <motion.div
-        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
         className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
       >
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search
+            size={15}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          />
           <input
             type="text"
             placeholder="Cari nama, ID, atau departemen..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full h-10 pl-9 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-red-300 focus:ring-2 focus:ring-red-50 focus:bg-white transition-all"
           />
           <AnimatePresence>
@@ -500,26 +593,33 @@ export default function EmployeesPage() {
         <div className="relative shrink-0 w-full sm:w-44">
           <select
             value={filterDept}
-            onChange={e => setFilterDept(e.target.value)}
+            onChange={(e) => setFilterDept(e.target.value)}
             className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-8 text-[12px] font-semibold text-slate-600 outline-none appearance-none cursor-pointer focus:border-red-300 transition-all"
           >
             <option value="all">Semua Dept.</option>
-            {departmentItems.map(d => (
-              <option key={d.id} value={d.name}>{d.name}</option>
+            {departmentItems.map((d) => (
+              <option key={d.id} value={d.name}>
+                {d.name}
+              </option>
             ))}
           </select>
-          <Building2 size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Building2
+            size={12}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          />
         </div>
 
         {/* Face status pills */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {FACE_OPTS.map(opt => (
+          {FACE_OPTS.map((opt) => (
             <motion.button
               key={opt.value}
               whileTap={{ scale: 0.94 }}
               onClick={() => setFilterFace(opt.value as any)}
               className={`relative h-10 px-4 rounded-xl text-[12px] font-bold transition-all ${
-                filterFace === opt.value ? 'text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                filterFace === opt.value
+                  ? 'text-white'
+                  : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
               }`}
             >
               {filterFace === opt.value && (
@@ -549,9 +649,7 @@ export default function EmployeesPage() {
               <div className="w-7 h-7 rounded-lg bg-red-500 text-white flex items-center justify-center font-black text-[12px]">
                 {selected.size}
               </div>
-              <span className="text-[12px] font-bold text-red-700">
-                karyawan terpilih
-              </span>
+              <span className="text-[12px] font-bold text-red-700">karyawan terpilih</span>
               <button
                 onClick={() => setSelected(new Set())}
                 className="text-[11px] font-semibold text-red-500 hover:text-red-700 underline ml-2"
@@ -584,23 +682,33 @@ export default function EmployeesPage() {
             {search && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-100 rounded-full text-[11px] font-semibold text-red-600">
                 Cari: "{search}"
-                <button onClick={() => setSearch('')}><X size={10} /></button>
+                <button onClick={() => setSearch('')}>
+                  <X size={10} />
+                </button>
               </span>
             )}
             {filterDept !== 'all' && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[11px] font-semibold text-blue-600">
                 Dept: {filterDept}
-                <button onClick={() => setFilterDept('all')}><X size={10} /></button>
+                <button onClick={() => setFilterDept('all')}>
+                  <X size={10} />
+                </button>
               </span>
             )}
             {filterFace !== 'all' && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-100 rounded-full text-[11px] font-semibold text-amber-600">
                 {filterFace === 'registered' ? 'Verified' : 'Belum Daftar'}
-                <button onClick={() => setFilterFace('all')}><X size={10} /></button>
+                <button onClick={() => setFilterFace('all')}>
+                  <X size={10} />
+                </button>
               </span>
             )}
             <button
-              onClick={() => { setSearch(''); setFilterDept('all'); setFilterFace('all'); }}
+              onClick={() => {
+                setSearch('');
+                setFilterDept('all');
+                setFilterFace('all');
+              }}
               className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 underline transition-colors"
             >
               Hapus semua
@@ -615,29 +723,38 @@ export default function EmployeesPage() {
       {/* ── CONTENT ── */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(227,30,36,0.08)' }}>
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            style={{ background: 'rgba(227,30,36,0.08)' }}
+          >
             <Loader2 size={22} className="animate-spin" style={{ color: '#E31E24' }} />
           </div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Memuat data...</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+            Memuat data...
+          </p>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence mode="popLayout">
-            {paginatedEmployees.length === 0
-              ? <EmptyState hasFilter={hasFilter} />
-              : paginatedEmployees.map((emp, idx) => (
-                  <EmployeeCard
-                    key={emp.id} emp={emp} idx={idx}
-                    onDelete={() => deleteEmployeeOptimistic(emp.id)}
-                  />
-                ))
-            }
+            {paginatedEmployees.length === 0 ? (
+              <EmptyState hasFilter={hasFilter} />
+            ) : (
+              paginatedEmployees.map((emp, idx) => (
+                <EmployeeCard
+                  key={emp.id}
+                  emp={emp}
+                  idx={idx}
+                  onDelete={() => deleteEmployeeOptimistic(emp.id)}
+                />
+              ))
+            )}
           </AnimatePresence>
         </div>
       ) : (
         /* List view */
         <motion.div
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
           style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
         >
@@ -646,7 +763,10 @@ export default function EmployeesPage() {
             <label className="cursor-pointer shrink-0" title="Pilih semua di halaman ini">
               <input
                 type="checkbox"
-                checked={paginatedEmployees.length > 0 && paginatedEmployees.every(e => selected.has(e.id))}
+                checked={
+                  paginatedEmployees.length > 0 &&
+                  paginatedEmployees.every((e) => selected.has(e.id))
+                }
                 onChange={togglePage}
                 className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-2 focus:ring-red-200 cursor-pointer"
               />
@@ -656,17 +776,20 @@ export default function EmployeesPage() {
             </p>
           </div>
           <AnimatePresence mode="popLayout">
-            {paginatedEmployees.length === 0
-              ? <EmptyState hasFilter={hasFilter} />
-              : paginatedEmployees.map((emp, idx) => (
-                  <EmployeeRow
-                    key={emp.id} emp={emp} idx={idx}
-                    onDelete={() => deleteEmployeeOptimistic(emp.id)}
-                    selected={selected.has(emp.id)}
-                    onSelectToggle={() => toggleOne(emp.id)}
-                  />
-                ))
-            }
+            {paginatedEmployees.length === 0 ? (
+              <EmptyState hasFilter={hasFilter} />
+            ) : (
+              paginatedEmployees.map((emp, idx) => (
+                <EmployeeRow
+                  key={emp.id}
+                  emp={emp}
+                  idx={idx}
+                  onDelete={() => deleteEmployeeOptimistic(emp.id)}
+                  selected={selected.has(emp.id)}
+                  onSelectToggle={() => toggleOne(emp.id)}
+                />
+              ))
+            )}
           </AnimatePresence>
         </motion.div>
       )}
@@ -674,11 +797,16 @@ export default function EmployeesPage() {
       {/* ── PAGINATION ── */}
       {totalPages > 1 && (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
           className="flex justify-center pt-2"
         >
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </motion.div>
       )}
 

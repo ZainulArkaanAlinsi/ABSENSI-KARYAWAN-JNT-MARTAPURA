@@ -24,7 +24,14 @@ function getDisplayName(name: string) {
 
 function getInitials(name: string) {
   const d = getDisplayName(name);
-  return d.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) || 'AD';
+  return (
+    d
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || 'AD'
+  );
 }
 
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
@@ -78,7 +85,6 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
   return (
     <div className="w-full h-full flex items-center justify-between px-4 lg:px-6 gap-4">
-
       {/* ── LEFT ── */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile hamburger */}
@@ -86,7 +92,11 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
           whileTap={{ scale: 0.92 }}
           onClick={onMenuClick}
           className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-colors"
-          style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-default)', color: 'var(--text-dim)' }}
+          style={{
+            background: 'var(--surface-hover)',
+            borderColor: 'var(--border-default)',
+            color: 'var(--text-dim)',
+          }}
         >
           <Menu size={17} />
         </motion.button>
@@ -104,7 +114,10 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
               {getDisplayName(user?.name || '')}
             </span>
           </div>
-          <p className="text-[12px] font-bold leading-none truncate" style={{ color: 'var(--text-primary)' }}>
+          <p
+            className="text-[12px] font-bold leading-none truncate"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {today}
           </p>
         </div>
@@ -123,7 +136,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
             type="text"
             placeholder={t('search_placeholder')}
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             className="w-full h-[38px] rounded-2xl pl-10 pr-4 text-[13px] font-medium outline-none
                        transition-all border focus:ring-2 focus:ring-red-400/20 focus:border-red-300"
@@ -138,7 +151,6 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
       {/* ── RIGHT ── */}
       <div className="flex items-center gap-1.5 shrink-0">
-
         <ThemeToggle />
 
         {/* Bell + popover */}
@@ -157,7 +169,8 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
             <Bell size={16} />
             {unreadCount > 0 && (
               <motion.span
-                initial={{ scale: 0 }} animate={{ scale: 1 }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
                 className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-white text-[9px] font-black flex items-center justify-center border-2"
                 style={{ background: '#E31E24', borderColor: 'var(--surface-header)' }}
               >
@@ -180,7 +193,8 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
         {/* Profile chip */}
         <motion.div
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-2xl cursor-pointer border transition-all"
           style={{ background: 'var(--surface-hover)', borderColor: 'var(--border-default)' }}
         >
@@ -195,7 +209,10 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
             {getInitials(user?.name || 'Admin')}
           </div>
           <div className="hidden md:block">
-            <p className="text-[12px] font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
+            <p
+              className="text-[12px] font-bold leading-none"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {getDisplayName(user?.name || '')}
             </p>
             <p className="text-[10px] font-semibold mt-0.5" style={{ color: 'var(--text-dim)' }}>
