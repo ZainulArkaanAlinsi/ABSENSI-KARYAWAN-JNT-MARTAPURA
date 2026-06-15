@@ -2,13 +2,15 @@
 
 import { useReportManagement } from '@/hooks/useReportManagement';
 import {
-  FileText,
   Download,
+  Printer,
+  Layers,
   Calendar as CalendarIcon,
   Search,
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Timer,
   Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,9 +22,10 @@ export default function ReportsPage() {
     setSearch,
     month,
     setMonth,
-    reports,
     filteredReports,
     handleExport,
+    handleExportDept,
+    handlePrint,
     stats,
   } = useReportManagement();
 
@@ -48,11 +51,11 @@ export default function ReportsPage() {
     },
     {
       label: 'Keterlambatan',
-      value: stats?.lateCount ?? 0,
+      value: `${stats?.lateCount ?? 0} mnt`,
       icon: Clock,
       accent: 'text-amber-600',
       bg: 'bg-amber-100',
-      sub: 'Total kejadian',
+      sub: 'Total menit telat',
     },
     {
       label: 'Mangkir (Alfa)',
@@ -63,12 +66,12 @@ export default function ReportsPage() {
       sub: 'Tanpa keterangan',
     },
     {
-      label: 'Log Absensi',
-      value: reports?.length ?? 0,
-      icon: FileText,
-      accent: 'text-sky-600',
-      bg: 'bg-sky-100',
-      sub: 'Bulan berjalan',
+      label: 'Total Lembur',
+      value: `${stats?.overtimeHours ?? 0} jam`,
+      icon: Timer,
+      accent: 'text-violet-600',
+      bg: 'bg-violet-100',
+      sub: 'Akumulasi bulan ini',
     },
   ];
 
@@ -89,19 +92,43 @@ export default function ReportsPage() {
             Rekap data kehadiran karyawan JNE Martapura
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleExport}
-          className="flex items-center gap-2 h-10 px-5 rounded-xl text-[12px] font-bold text-white shrink-0"
-          style={{
-            background: 'linear-gradient(135deg,#10B981,#059669)',
-            boxShadow: '0 4px 14px -4px rgba(16,185,129,0.4)',
-          }}
-        >
-          <Download size={15} />
-          Export Data
-        </motion.button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handlePrint}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-[12px] font-bold text-white"
+            style={{
+              background: 'linear-gradient(135deg,#E31E24,#A8151A)',
+              boxShadow: '0 4px 14px -4px rgba(227,30,36,0.45)',
+            }}
+          >
+            <Printer size={15} />
+            Cetak PDF
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleExport}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-[12px] font-bold text-white"
+            style={{
+              background: 'linear-gradient(135deg,#10B981,#059669)',
+              boxShadow: '0 4px 14px -4px rgba(16,185,129,0.4)',
+            }}
+          >
+            <Download size={15} />
+            Excel/CSV
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleExportDept}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-[12px] font-bold text-slate-600 bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-600 transition-all"
+          >
+            <Layers size={15} />
+            Ringkasan Unit
+          </motion.button>
+        </div>
       </motion.div>
 
       {/* ── SUMMARY CARDS ── */}
@@ -180,10 +207,19 @@ export default function ReportsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['Karyawan', 'Unit Kerja', 'Hadir', 'Telat', 'Alfa', 'Aksi'].map((h, i) => (
+                {[
+                  'Karyawan',
+                  'Unit Kerja',
+                  'Hadir',
+                  'Telat',
+                  'Izin',
+                  'Alfa',
+                  'Lembur',
+                  'Tepat Waktu',
+                ].map((h, i) => (
                   <th
                     key={h}
-                    className={`px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 2 && i < 5 ? 'text-center' : ''} ${i === 5 ? 'text-right' : ''}`}
+                    className={`px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i >= 2 ? 'text-center' : ''}`}
                   >
                     {h}
                   </th>
@@ -221,13 +257,21 @@ export default function ReportsPage() {
                     <td className="px-5 py-4 text-center font-black text-amber-500">
                       {report.lateDays}
                     </td>
+                    <td className="px-5 py-4 text-center font-black text-slate-500">
+                      {report.leaveDays}
+                    </td>
                     <td className="px-5 py-4 text-center font-black text-red-500">
                       {report.absentDays}
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      <button className="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 flex items-center justify-center transition-all ml-auto">
-                        <FileText size={14} />
-                      </button>
+                    <td className="px-5 py-4 text-center font-black text-violet-600">
+                      {report.overtimeDays}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <span
+                        className={`px-2 py-1 rounded-lg text-[11px] font-black ${report.onTimeRate >= 90 ? 'bg-emerald-50 text-emerald-600' : report.onTimeRate < 70 ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-600'}`}
+                      >
+                        {report.onTimeRate}%
+                      </span>
                     </td>
                   </motion.tr>
                 ))}
@@ -235,7 +279,7 @@ export default function ReportsPage() {
               {(!filteredReports || filteredReports.length === 0) && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="px-5 py-12 text-center text-[12px] font-semibold text-slate-400"
                   >
                     Tidak ada data laporan ditemukan.
