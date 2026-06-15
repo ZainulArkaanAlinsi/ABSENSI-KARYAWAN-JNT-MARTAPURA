@@ -1,0 +1,53 @@
+name: Deploy Admin
+
+# CD panel admin (target hosting "admin"). Gated pada FIREBASE_TOKEN + butuh
+# 6 secret NEXT_PUBLIC_FIREBASE_* (nilai REAL agar situs ter-deploy berfungsi).
+# Skip mulus (warning, bukan failure) bila token belum di-set.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & deploy admin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cek FIREBASE_TOKEN
+        id: token
+        run: echo "present=${{ secrets.FIREBASE_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.token.outputs.present == 'true'
+        run: npm ci
+
+      - name: Build (static export)
+        if: steps.token.outputs.present == 'true'
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+        run: npm run build
+
+      - name: Deploy ke Firebase Hosting (target admin)
+        if: steps.token.outputs.present == 'true'
+        run: >-
+          npx firebase-tools deploy --only hosting:admin
+          --project admin-absensi-jne-mtp --token "${{ secrets.FIREBASE_TOKEN }}"
+
+      - name: Token belum di-set
+        if: steps.token.outputs.present != 'true'
+        run: echo "::warning::FIREBASE_TOKEN belum di-set — auto-deploy admin dilewati. Tambahkan FIREBASE_TOKEN + secret NEXT_PUBLIC_FIREBASE_* untuk mengaktifkan."
