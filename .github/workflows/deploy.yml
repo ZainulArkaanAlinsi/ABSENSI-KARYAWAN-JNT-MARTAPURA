@@ -1,8 +1,8 @@
 name: Deploy Admin
 
-# CD panel admin (target hosting "admin"). Gated pada FIREBASE_TOKEN + butuh
-# 6 secret NEXT_PUBLIC_FIREBASE_* (nilai REAL agar situs ter-deploy berfungsi).
-# Skip mulus (warning, bukan failure) bila token belum di-set.
+# CD panel admin (target hosting "admin"). Hanya butuh 1 secret: FIREBASE_TOKEN.
+# Config Firebase web di-hardcode di bawah — nilai PUBLIK (keamanan via Firestore
+# rules, bukan kerahasiaan apiKey). Skip mulus bila token belum di-set.
 
 on:
   push:
@@ -33,13 +33,13 @@ jobs:
       - name: Build (static export)
         if: steps.token.outputs.present == 'true'
         env:
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyD8_xQ095GsDSOr_nhONflsPa0qtMnWfkY
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: admin-absensi-jne-mtp.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: admin-absensi-jne-mtp
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: admin-absensi-jne-mtp.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '586449872388'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:586449872388:web:e72ef8330d71be35ce3751'
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-19LD1SX6W3
         run: npm run build
 
       - name: Deploy ke Firebase Hosting (target admin)
@@ -50,4 +50,4 @@ jobs:
 
       - name: Token belum di-set
         if: steps.token.outputs.present != 'true'
-        run: echo "::warning::FIREBASE_TOKEN belum di-set — auto-deploy admin dilewati. Tambahkan FIREBASE_TOKEN + secret NEXT_PUBLIC_FIREBASE_* untuk mengaktifkan."
+        run: echo "::warning::FIREBASE_TOKEN belum di-set — auto-deploy admin dilewati. Tambahkan secret FIREBASE_TOKEN untuk mengaktifkan."
