@@ -27,6 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Metadata di-set manual di <head> karena RootLayout ini client
             component ('use client') — Next tidak mengizinkan export metadata. */}
         <title>JNE Absensi — Panel Admin</title>
+        {/* Panel admin privat — jangan diindeks mesin pencari */}
+        <meta name="robots" content="noindex, nofollow" />
         <meta
           name="description"
           content="Panel admin sistem absensi karyawan JNE Martapura — kelola kehadiran, cuti, lembur, dan laporan."
