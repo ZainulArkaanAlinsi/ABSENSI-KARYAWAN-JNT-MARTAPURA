@@ -26,6 +26,15 @@ jobs:
       - name: ESLint
         run: npm run lint
       - name: Build (static export)
+        # Firebase web config bersifat publik (sudah ter-embed di bundle live);
+        # CI cukup nilai non-kosong agar getAuth tidak throw saat prerender.
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ci-build-placeholder
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci-build.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci-build
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ci-build.appspot.com
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:000000000000:web:0000000000000000000000'
         run: npm run build
 
   functions:
