@@ -1,17 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
 import {
-  collection,
-  query,
-  orderBy,
-  doc,
-  updateDoc,
-  addDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { listen } from '@/lib/firestoreListener';
+  subscribeToLeaves,
+  subscribeToOvertimes,
+  updateLeaveStatus,
+  updateOvertimeStatus,
+} from '@/lib/firestore';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import {
@@ -95,7 +90,7 @@ function getLabel(req: any): string {
 }
 
 function getTypeCls(req: any): string {
-  if (req.source === 'attendance')
+  if (req.source === 'overtime')
     return 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400';
   return (
     TYPE_COLORS[req.type] ?? 'bg-slate-100 text-slate-500 dark:bg-slate-500/15 dark:text-slate-400'
@@ -152,7 +147,7 @@ function RequestCard({
   onReject: () => void;
 }) {
   const isSOS = req.type === 'SOS';
-  const isPending = req.status === 'pending' || req.status === 'overtime';
+  const isPending = req.status === 'pending';
 
   const periodText =
     req.source === 'leave'
@@ -163,7 +158,7 @@ function RequestCard({
             return req.startDate ?? '-';
           }
         })()
-      : `${req.date ?? req.attendanceDate ?? '-'} · ${req.overtimeMinutes ?? 0} menit`;
+      : `${req.date ?? '-'} · ${req.overtimeHours ?? 0} jam lembur`;
 
   return (
     <motion.div
@@ -341,43 +336,38 @@ export default function RequestCenterPage() {
   useEffect(() => {
     setLoading(true);
     let leavesData: any[] = [];
-    let attData: any[] = [];
+    let overtimeData: any[] = [];
 
+    const timeOf = (v: any) => new Date(v ?? 0).getTime();
     const merge = () => {
-      const combined = [...leavesData, ...attData].sort(
-        (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
+      const combined = [...leavesData, ...overtimeData].sort(
+        (a, b) => timeOf(b.createdAt) - timeOf(a.createdAt),
       );
       setAllRequests(combined);
       setLoading(false);
     };
 
-    const unsubLeaves = listen(
-      query(collection(db, 'leaves'), orderBy('createdAt', 'desc')),
-      (snap) => {
-        leavesData = snap.docs.map((d) => ({ id: d.id, ...d.data(), source: 'leave' }));
-        merge();
-      },
-    );
+    // Cuti dari koleksi `leaves`, lembur dari koleksi `overtime` (BUKAN
+    // `attendance` — itu bug lama). Keduanya client-sorted, tak butuh index.
+    const unsubLeaves = subscribeToLeaves('all', (data) => {
+      leavesData = data.map((l) => ({ ...l, source: 'leave' }));
+      merge();
+    });
 
-    const unsubAtt = listen(
-      query(collection(db, 'attendance'), orderBy('createdAt', 'desc')),
-      (snap) => {
-        attData = snap.docs
-          .map((d) => ({ id: d.id, ...d.data(), source: 'attendance' }))
-          .filter((a: any) => a.status === 'overtime' || a.status === 'pending');
-        merge();
-      },
-    );
+    const unsubOvertime = subscribeToOvertimes('all', (data) => {
+      overtimeData = data.map((o) => ({ ...o, source: 'overtime' }));
+      merge();
+    });
 
     return () => {
       unsubLeaves();
-      unsubAtt();
+      unsubOvertime();
     };
   }, []);
 
   // ── Filtering ────────────────────────────────────────────────
   const filtered = allRequests.filter((r) => {
-    const matchTab = r.status === activeTab || (activeTab === 'pending' && r.status === 'overtime');
+    const matchTab = r.status === activeTab;
     const q = searchQuery.toLowerCase();
     const matchSearch =
       !q ||
@@ -387,9 +377,7 @@ export default function RequestCenterPage() {
     return matchTab && matchSearch;
   });
 
-  const countFor = (key: TabKey) =>
-    allRequests.filter((r) => r.status === key || (key === 'pending' && r.status === 'overtime'))
-      .length;
+  const countFor = (key: TabKey) => allRequests.filter((r) => r.status === key).length;
 
   const pendingCount = countFor('pending');
 
@@ -411,20 +399,15 @@ export default function RequestCenterPage() {
     setProcessing(true);
 
     try {
-      const col = selectedReq.source === 'leave' ? 'leaves' : 'attendance';
-      await updateDoc(doc(db, col, selectedReq.id), {
-        status,
-        adminReason: reason,
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: user?.name ?? 'Admin',
-      });
-      await addDoc(collection(db, 'notifications'), {
-        userId: selectedReq.userId,
-        title: actionType === 'approve' ? 'Permintaan Disetujui ✅' : 'Permintaan Ditolak ❌',
-        message: `Permintaan ${getLabel(selectedReq)} Anda telah ${status} oleh Admin.${reason ? ' Alasan: ' + reason : ''}`,
-        isRead: false,
-        createdAt: serverTimestamp(),
-      });
+      // Update doc di koleksi yang benar (leaves / overtime). Notifikasi ke
+      // karyawan ditangani Cloud Function (onLeaveStatusUpdate /
+      // onOvertimeStatusUpdate) — jadi tidak perlu tulis notifikasi manual.
+      const reviewer = user?.name ?? 'Admin';
+      if (selectedReq.source === 'leave') {
+        await updateLeaveStatus(selectedReq.id, status, reviewer, reason || undefined);
+      } else {
+        await updateOvertimeStatus(selectedReq.id, status, reviewer, reason || undefined);
+      }
       toast.success(`Permintaan berhasil ${status === 'approved' ? 'disetujui' : 'ditolak'}`);
     } catch (error) {
       console.error('Error handling request action:', error);
