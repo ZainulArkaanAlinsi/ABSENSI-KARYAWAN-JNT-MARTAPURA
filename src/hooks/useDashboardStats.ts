@@ -17,10 +17,18 @@ export interface RecentActivity {
   department: string;
   status: string;
   checkIn: string; // "HH:mm" or "—"
+  checkOut?: string;
+  employeeId?: string;
   color: string;
   actionLabel: string;
   // NEW: Real-time timestamp for live updates
   timestamp: Date;
+}
+
+interface PendingRequest {
+  id: string;
+  type: string;
+  [key: string]: unknown;
 }
 
 interface AnalyticsStats {
@@ -52,29 +60,51 @@ interface AnalyticsStats {
     absent: number;
   }[];
   recentActivities: RecentActivity[];
-  pendingRequests: any[];
+  pendingRequests: PendingRequest[];
 }
 
-const toDate = (val: any): Date | null => {
+const toDate = (val: unknown): Date | null => {
   if (!val) return null;
-  if (typeof val === 'object' && val.toDate && typeof val.toDate === 'function')
-    return val.toDate();
-  if (typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
-  const d = new Date(val);
+  if (typeof val === 'object') {
+    const o = val as { toDate?: () => Date; seconds?: number };
+    if (typeof o.toDate === 'function') return o.toDate();
+    if ('seconds' in val && typeof o.seconds === 'number') return new Date(o.seconds * 1000);
+  }
+  const d = new Date(val as string | number);
   return isNaN(d.getTime()) ? null : d;
+};
+
+// Extract "HH:mm" from a check-in/check-out entry, which may be a nested
+// `{ time }` object, a raw "HH:mm" string, or a Firestore Timestamp.
+// Returns '—' when unavailable.
+const extractHHMM = (check: unknown): string => {
+  if (!check) return '—';
+  if (typeof check === 'string') return check;
+  if (typeof check !== 'object') return '—';
+  const t = (check as { time?: unknown }).time;
+  if (!t) return '—';
+  if (typeof t === 'string') return t;
+  if (typeof t === 'object') {
+    if ('toDate' in t && typeof (t as { toDate?: unknown }).toDate === 'function') {
+      return format((t as { toDate: () => Date }).toDate(), 'HH:mm');
+    }
+    if ('seconds' in t) {
+      return format(new Date((t as { seconds: number }).seconds * 1000), 'HH:mm');
+    }
+  }
+  return '—';
 };
 
 export function useDashboardStats() {
   const [data, setData] = useState<AnalyticsStats | null>(null);
-  const [sosAlerts, setSosAlerts] = useState<any[]>([]);
-  const sosAlertsRef = useRef<any[]>([]);
-  const pendingLeavesRef = useRef<any[]>([]);
+  const [, setSosAlerts] = useState<PendingRequest[]>([]);
+  const sosAlertsRef = useRef<PendingRequest[]>([]);
+  const pendingLeavesRef = useRef<PendingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
-    setLoading(true);
 
     async function initListeners() {
       try {
@@ -154,7 +184,8 @@ export function useDashboardStats() {
                 const data = doc.data();
                 if (!data.timestamp) return false;
                 const lastHeartbeat =
-                  (data.timestamp as any).toDate?.() || new Date(data.timestamp);
+                  (data.timestamp as { toDate?: () => Date }).toDate?.() ||
+                  new Date(data.timestamp);
                 return now.getTime() - lastHeartbeat.getTime() < onlineThreshold;
               }).length;
 
@@ -258,9 +289,10 @@ export function useDashboardStats() {
               };
               const recentActivities: RecentActivity[] = todayRecords
                 .sort((a, b) => {
-                  const getTime = (val: any) => {
+                  const getTime = (val: unknown) => {
                     if (!val) return '';
-                    if (typeof val === 'object' && val.time) return String(val.time);
+                    if (typeof val === 'object' && 'time' in val)
+                      return String((val as { time: unknown }).time);
                     return String(val);
                   };
                   const timeA = getTime(a.checkIn);
@@ -272,32 +304,14 @@ export function useDashboardStats() {
                   const emp = employees.find((e) => e.id === r.userId || e.uid === r.userId);
                   const meta = STATUS_META[r.status] ?? { label: r.status, color: '#94A3B8' };
 
-                  let checkInTime = '—';
-                  if (r.checkIn) {
-                    if (typeof r.checkIn === 'object') {
-                      const t = r.checkIn.time;
-                      if (t) {
-                        if (typeof t === 'string') checkInTime = t;
-                        else if (
-                          typeof t === 'object' &&
-                          'toDate' in t &&
-                          typeof (t as any).toDate === 'function'
-                        )
-                          checkInTime = format((t as any).toDate(), 'HH:mm');
-                        else if (typeof t === 'object' && 'seconds' in t)
-                          checkInTime = format(new Date((t as any).seconds * 1000), 'HH:mm');
-                      }
-                    } else if (typeof r.checkIn === 'string') {
-                      checkInTime = r.checkIn;
-                    }
-                  }
-
                   return {
                     id: r.userId,
                     userName: emp?.name ?? 'Karyawan',
+                    employeeId: emp?.employeeId ?? '—',
                     department: emp?.department ?? '-',
                     status: r.status,
-                    checkIn: String(checkInTime),
+                    checkIn: extractHHMM(r.checkIn),
+                    checkOut: extractHHMM(r.checkOut),
                     color: meta.color,
                     actionLabel: meta.label,
                     timestamp: new Date(r.createdAt || Date.now()),

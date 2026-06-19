@@ -2,11 +2,11 @@
 
 import ToggleSwitch from './ToggleSwitch';
 import type { Settings } from '@/types';
-import { UserCheck, ShieldCheck, Zap, Lock, Eye, Clock, Fingerprint, Activity } from 'lucide-react';
+import { ShieldCheck, Zap, Lock, Eye, Clock, Fingerprint, Activity } from 'lucide-react';
 
 interface AttendanceSettingsProps {
   settings: Settings['attendance'];
-  update: (section: 'attendance', field: string, value: any) => void;
+  update: (section: 'attendance', field: string, value: unknown) => void;
 }
 
 export default function AttendanceSettings({ settings, update }: AttendanceSettingsProps) {
@@ -153,8 +153,8 @@ export default function AttendanceSettings({ settings, update }: AttendanceSetti
                 </div>
               </div>
               <ToggleSwitch
-                checked={Boolean((settings as any)[item.key])}
-                onChange={() => update('attendance', item.key, !(settings as any)[item.key])}
+                checked={Boolean((settings as Record<string, unknown>)[item.key])}
+                onChange={() => update('attendance', item.key, !(settings as Record<string, unknown>)[item.key])}
                 description={item.desc}
               />
             </div>

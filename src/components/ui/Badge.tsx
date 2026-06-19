@@ -1,5 +1,5 @@
 import type { AttendanceStatus, LeaveStatus, LeaveType } from '@/types';
-import { ShieldCheck, ShieldAlert, Zap, Clock, UserCheck } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Zap, Clock, UserCheck, type LucideIcon } from 'lucide-react';
 
 interface BadgeProps {
   status: AttendanceStatus | LeaveStatus | LeaveType | string;
@@ -76,7 +76,7 @@ export function FaceBadge({ registered }: { registered: boolean }) {
 }
 
 export function ContractBadge({ type }: { type: string }) {
-  const configMap: Record<string, { label: string; bg: string; text: string; icon: any }> = {
+  const configMap: Record<string, { label: string; bg: string; text: string; icon: LucideIcon }> = {
     permanent: {
       label: 'TETAP',
       bg: 'bg-emerald-500/10',

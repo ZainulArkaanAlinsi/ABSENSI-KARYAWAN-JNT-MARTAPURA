@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Clock3,
   Edit3,
-  Filter,
   RefreshCw,
   Search,
   ShieldCheck,

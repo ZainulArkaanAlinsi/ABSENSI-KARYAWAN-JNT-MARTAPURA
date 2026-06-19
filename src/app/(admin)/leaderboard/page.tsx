@@ -116,7 +116,9 @@ export default function LeaderboardPage() {
       .slice(0, 8);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const topCouriers = useMemo(() => sumBy(pkgs), [pkgs, nameOf]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const topSales = useMemo(() => sumBy(sales), [sales, nameOf]);
 
   return (

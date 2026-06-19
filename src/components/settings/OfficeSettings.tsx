@@ -6,7 +6,7 @@ import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 interface OfficeSettingsProps {
   settings: Settings['office'];
-  update: (section: 'office', field: string, value: any) => void;
+  update: (section: 'office', field: string, value: unknown) => void;
 }
 
 export default function OfficeSettings({ settings, update }: OfficeSettingsProps) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { getAttendanceByRange, deleteAttendance } from '@/lib/firestore';
 import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   Users,
   CheckCircle2,
+  type LucideIcon,
   AlertCircle,
   Clock,
   Camera,
@@ -60,7 +61,21 @@ function StatusChip({ status }: { status: string }) {
 }
 
 // ─── Summary Card ─────────────────────────────────────────────
-const SummaryCard = ({ label, value, icon: Icon, color, bg, delay }: any) => (
+const SummaryCard = ({
+  label,
+  value,
+  icon: Icon,
+  color,
+  bg,
+  delay,
+}: {
+  label: string;
+  value: ReactNode;
+  icon: LucideIcon;
+  color: string;
+  bg: string;
+  delay: number;
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
@@ -448,6 +463,7 @@ export default function AttendanceHistoryPage() {
                             rel="noreferrer"
                             title="Lihat foto absen masuk"
                           >
+                            {/* eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage photo in a static export; next/image optimization is disabled */}
                             <img
                               src={rec.checkIn.photoUrl}
                               alt="foto absen"

@@ -133,21 +133,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setLoading(false);
       return true;
-    } catch (err: any) {
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
       console.error('Login error detail:', err);
       let msg = 'Gagal masuk. Periksa kembali email dan password Anda.';
 
       if (
-        err.code === 'auth/user-not-found' ||
-        err.code === 'auth/wrong-password' ||
-        err.code === 'auth/invalid-credential'
+        e.code === 'auth/user-not-found' ||
+        e.code === 'auth/wrong-password' ||
+        e.code === 'auth/invalid-credential'
       ) {
         msg = 'Email atau password salah.';
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (e.code === 'auth/too-many-requests') {
         msg = 'Terlalu banyak percobaan. Coba lagi nanti.';
       }
 
-      setError(`${msg} (Error: ${err.code || err.message})`);
+      setError(`${msg} (Error: ${e.code || e.message})`);
       setLoading(false);
       return false;
     }

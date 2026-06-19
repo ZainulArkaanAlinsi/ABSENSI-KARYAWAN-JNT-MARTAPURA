@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import type { TabKey } from '@/hooks/useSettingsManagement';
 import type { Settings } from '@/types';
-import { InteractiveButton } from '@/components/ui/Interactive';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import OfficeSettings from './OfficeSettings';
 import CompanySettings from './CompanySettings';
@@ -26,7 +25,7 @@ import MaintenanceSettings from './MaintenanceSettings';
 interface SettingsPanelProps {
   activeTab: TabKey;
   settings: Settings;
-  update: (section: keyof Settings, field: string, value: any) => void;
+  update: (section: keyof Settings, field: string, value: unknown) => void;
   handleSave: () => void;
   saving: boolean;
   saved: boolean;
@@ -47,7 +46,6 @@ export default function SettingsPanel({
   error,
   lastSync,
   setError,
-  setActiveTab,
   tabs,
 }: SettingsPanelProps) {
   const currentTab = tabs.find((t) => t.key === activeTab);

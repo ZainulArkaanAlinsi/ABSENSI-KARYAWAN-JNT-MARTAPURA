@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { registerEmployee, getNextEmployeeId } from '@/lib/firestore';
 import { toast } from 'sonner';
-import type { JamKerja, Department } from '@/types';
+import type { Department, UserRole } from '@/types';
 
 export function useAddEmployeeLogic(onClose: () => void) {
   const [loading, setLoading] = useState(false);
@@ -29,13 +29,13 @@ export function useAddEmployeeLogic(onClose: () => void) {
     fetchNextId();
   }, []);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => {
-      const newForm = { ...prev, [field]: value };
+      const newForm = { ...prev, [field]: value } as typeof prev;
 
       // Auto-fill position if department changes
       if (field === 'department') {
-        const valLower = value.toLowerCase();
+        const valLower = String(value).toLowerCase();
         const isDelivery =
           valLower.includes('rider') ||
           valLower.includes('driver') ||
@@ -82,7 +82,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
 
       // Determine role based on department
       const valLower = form.department.toLowerCase();
-      let dynamicRole: any = 'employee';
+      let dynamicRole: UserRole = 'employee';
       if (
         valLower.includes('rider') ||
         valLower.includes('motor') ||
@@ -119,7 +119,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
           password: 'JNE123!',
           phone: '',
           employeeId: '',
-          department: '' as any,
+          department: '' as Department,
           position: '',
           jamKerjaId: '',
           contractType: 'permanent',
@@ -129,9 +129,9 @@ export function useAddEmployeeLogic(onClose: () => void) {
         });
         onClose();
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Gagal menambah karyawan:', err);
-      toast.error(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      toast.error((err as Error).message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
   return {
     loading,
     success,
-    form: form as any, // Using any here to bypass persistent inference issues in the component for now, but will improve later
+    form,
     handleChange,
     handleSubmit,
   };

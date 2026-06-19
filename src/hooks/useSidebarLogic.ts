@@ -8,22 +8,18 @@ import {
   Calendar,
   FileText,
   Settings,
-  Map,
   Layers,
-  ShieldCheck,
   UserCheck,
   AlertCircle,
   FileEdit,
   BarChart3,
   Trophy,
-  LogOut,
   Briefcase,
   Truck,
   Package,
   Receipt,
   History,
   ClipboardCheck,
-  Building2,
 } from 'lucide-react';
 
 export function useSidebarLogic() {

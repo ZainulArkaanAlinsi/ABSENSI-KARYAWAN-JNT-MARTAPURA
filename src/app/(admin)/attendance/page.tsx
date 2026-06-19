@@ -90,13 +90,13 @@ export default function AttendancePage() {
   const [activeTab, setActiveTab] = useState('Semua');
 
   const tabs = useMemo(() => {
-    const depts = stats?.departmentDistribution?.map((d: any) => d.name) ?? [];
+    const depts = stats?.departmentDistribution?.map((d) => d.name) ?? [];
     return ['Semua', ...depts];
   }, [stats]);
 
   const filtered = useMemo(() => {
     if (!stats?.recentActivities) return [];
-    return stats.recentActivities.filter((p: any) => {
+    return stats.recentActivities.filter((p) => {
       const q = search.toLowerCase();
       return (
         (!q ||
@@ -320,7 +320,7 @@ export default function AttendancePage() {
                 <th className="px-4 py-2.5 w-8" />
               </tr>
             </thead>
-            <tbody className="divide-y" style={{ '--tw-divide-opacity': 1 } as any}>
+            <tbody className="divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
@@ -338,7 +338,7 @@ export default function AttendancePage() {
                 </tr>
               ) : (
                 <AnimatePresence>
-                  {filtered.map((p: any, i: number) => (
+                  {filtered.map((p, i) => (
                     <motion.tr
                       key={p.id ?? i}
                       initial={{ opacity: 0 }}

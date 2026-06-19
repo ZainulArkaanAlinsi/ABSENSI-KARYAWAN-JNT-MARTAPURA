@@ -11,11 +11,11 @@ import {
   Settings2,
   Loader2,
   Edit2,
-  Trash2,
+  type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 interface ShiftTemplate {
   id: string;
@@ -27,7 +27,7 @@ interface ShiftTemplate {
   employeeCount?: number;
 }
 
-const SHIFT_ICON_MAP: Record<string, any> = {
+const SHIFT_ICON_MAP: Record<string, LucideIcon> = {
   pagi: Sun,
   sore: Settings2,
   malam: Moon,

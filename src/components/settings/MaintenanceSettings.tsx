@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Database,
-  Trash2,
-  Zap,
-  CheckCircle2,
-  AlertTriangle,
-  History,
-  Loader2,
-  RefreshCcw,
-} from 'lucide-react';
+import { Database, Trash2, Zap, AlertTriangle, History, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { collection, getDocs, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';

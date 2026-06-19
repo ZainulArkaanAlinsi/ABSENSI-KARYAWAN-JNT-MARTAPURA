@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { adminAuth, adminDb, adminMessaging } from '@/lib/firebase-admin';
-import { serverTimestamp } from 'firebase/firestore';
 
 // Only allow authenticated admin users
 export async function POST(request: NextRequest) {
@@ -12,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user exists and is admin
-    const userRecord = await adminAuth.getUser(session.value);
+    await adminAuth.getUser(session.value);
     const userDoc = await adminDb.collection('users').doc(session.value).get();
     const userData = userDoc.data();
 
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'No FCM tokens found for user' });
     }
 
-    const tokens = tokensSnap.docs.map((doc: any) => doc.id);
+    const tokens = tokensSnap.docs.map((doc) => doc.id);
 
     // Send to all user tokens (multicast)
     const messagePayload: import('firebase-admin/messaging').MulticastMessage = {
@@ -67,8 +66,8 @@ export async function POST(request: NextRequest) {
 
     // Clean up invalid tokens
     const invalidTokens = response.responses
-      .filter((res: any) => !res.success)
-      .map((res: any, idx: number) => tokens[idx]);
+      .filter((res) => !res.success)
+      .map((res, idx) => tokens[idx]);
 
     if (invalidTokens.length > 0) {
       const batch = adminDb.batch();
@@ -84,8 +83,8 @@ export async function POST(request: NextRequest) {
       sentCount: response.successCount,
       failureCount: response.failureCount,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('FCM send error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

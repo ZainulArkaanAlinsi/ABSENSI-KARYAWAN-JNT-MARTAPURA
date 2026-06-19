@@ -6,7 +6,7 @@
 interface RetryOptions {
   maxRetries?: number;
   taskName?: string;
-  onRetry?: (attempt: number, error: any) => void;
+  onRetry?: (attempt: number, error: unknown) => void;
 }
 
 /**

@@ -24,18 +24,25 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 
 // ── Custom tooltip ────────────────────────────────────────────
-const ChartTooltip = ({ active, payload, label }: any) => {
+const ChartTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { dataKey: string; color: string; value: number }[];
+  label?: string;
+}) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-xl shadow-lg border border-slate-100 px-3 py-2.5 text-[11px]">
       <p className="font-bold text-slate-700 mb-1.5">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-1.5 mb-0.5">
           <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
           <span className="text-slate-500">
@@ -60,14 +67,6 @@ export default function AnalyticsPage() {
       </div>
     );
   }
-
-  const attendanceRate =
-    data.totalEmployees > 0 ? Math.round((data.presentToday / data.totalEmployees) * 100) : 0;
-
-  const avgLateRate =
-    data.totalAttendanceRecords > 0
-      ? Math.round((data.lateToday / data.totalAttendanceRecords) * 100)
-      : 0;
 
   return (
     <div className="flex flex-col gap-5 pb-6">

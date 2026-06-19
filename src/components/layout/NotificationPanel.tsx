@@ -2,19 +2,20 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, X, AlertCircle, Clock, Trash2 } from 'lucide-react';
+import { Bell, Check, X, AlertCircle, Clock } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-const toDate = (val: any): Date => {
+const toDate = (val: unknown): Date => {
   if (!val) return new Date();
   if (val instanceof Date) return val;
   if (typeof val === 'object' && val !== null) {
-    if ('seconds' in val) return new Date(val.seconds * 1000);
-    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+    const o = val as { seconds?: number; toDate?: () => Date };
+    if ('seconds' in val) return new Date((o.seconds as number) * 1000);
+    if ('toDate' in val && typeof o.toDate === 'function') return o.toDate();
   }
-  const d = new Date(val);
+  const d = new Date(val as string | number);
   return isNaN(d.getTime()) ? new Date() : d;
 };
 

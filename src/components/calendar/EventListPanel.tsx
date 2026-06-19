@@ -15,8 +15,14 @@ import {
 import { format, parseISO } from 'date-fns';
 import type { CalendarEvent } from '@/types';
 
+type SelectedDayDetails = {
+  date: string;
+  systemEvents: string[];
+  userEvents: CalendarEvent[];
+};
+
 type EventListPanelProps = {
-  selectedDayDetails: any | null;
+  selectedDayDetails: SelectedDayDetails | null;
   searchQuery: string;
   filterCategory: string;
   onSearchChange: (value: string) => void;
@@ -101,7 +107,7 @@ export default function EventListPanel({
                 ))}
 
                 {/* User Events */}
-                {selectedDayDetails.userEvents.map((event: any, idx: number) => (
+                {selectedDayDetails.userEvents.map((event) => (
                   <motion.div
                     key={`user-${event.id}`}
                     initial={{ opacity: 0, x: 20 }}
@@ -173,7 +179,7 @@ export default function EventListPanel({
           ].map((action, i) => (
             <button
               key={i}
-              onClick={() => onQuickAction(action.type as any)}
+              onClick={() => onQuickAction(action.type as 'notif' | 'chat' | 'global' | 'maps')}
               className="flex flex-col items-center gap-2 group/action transition-all"
             >
               <div className="w-10 h-10 rounded-xl bg-(--bg-main) border border-(--border-color) flex items-center justify-center text-(--text-secondary) transition-all group-hover/action:bg-(--accent-info) group-hover/action:text-white group-hover/action:scale-110 group-hover/action:rotate-3 shadow-sm">

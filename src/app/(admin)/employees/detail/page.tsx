@@ -37,14 +37,15 @@ import { FaceBadge } from '@/components/ui/Badge';
 import { safeFormatTime } from '@/utils/dateFormatters';
 import type { Employee, AttendanceRecord } from '@/types';
 
-const toDate = (val: any): Date => {
+const toDate = (val: unknown): Date => {
   if (!val) return new Date();
   if (val instanceof Date) return val;
   if (typeof val === 'object' && val !== null) {
-    if ('seconds' in val) return new Date(val.seconds * 1000);
-    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+    const o = val as { seconds?: number; toDate?: () => Date };
+    if ('seconds' in val) return new Date((o.seconds as number) * 1000);
+    if ('toDate' in val && typeof o.toDate === 'function') return o.toDate();
   }
-  const d = new Date(val);
+  const d = new Date(val as string | number);
   return isNaN(d.getTime()) ? new Date() : d;
 };
 
@@ -510,7 +511,7 @@ export default function EmployeeDetailPage() {
                   Skema Aktif
                 </p>
                 <p className="text-desc font-bold text-slate-800 mt-1">
-                  {(employee as any).jamKerjaName ?? 'Reguler'}
+                  {(employee as { jamKerjaName?: string }).jamKerjaName ?? 'Reguler'}
                 </p>
               </div>
             </motion.div>
@@ -591,31 +592,32 @@ function AttendancePhotoGallery({
   onPreview: (p: PreviewState) => void;
 }) {
   const withPhotos = records.filter((r) => {
-    const ci = pickPhotoUrl(r.checkIn, (r as any).checkInPhotoUrl);
-    const co = pickPhotoUrl(r.checkOut, (r as any).checkOutPhotoUrl);
+    const ci = pickPhotoUrl(r.checkIn, (r as { checkInPhotoUrl?: string }).checkInPhotoUrl);
+    const co = pickPhotoUrl(r.checkOut, (r as { checkOutPhotoUrl?: string }).checkOutPhotoUrl);
     return ci || co;
   });
 
-  const dateLabelFull = (d: any) => {
+  const toDt = (d: unknown): Date =>
+    typeof d === 'string'
+      ? new Date(d)
+      : ((d as { toDate?: () => Date })?.toDate?.() ?? new Date(d as string | number));
+  const dateLabelFull = (d: unknown) => {
     try {
-      const dt = typeof d === 'string' ? new Date(d) : (d?.toDate?.() ?? new Date(d));
-      return format(dt, 'EEEE, dd MMM yyyy', { locale: dateFnsId });
+      return format(toDt(d), 'EEEE, dd MMM yyyy', { locale: dateFnsId });
     } catch {
       return '—';
     }
   };
-  const dateLabelShort = (d: any) => {
+  const dateLabelShort = (d: unknown) => {
     try {
-      const dt = typeof d === 'string' ? new Date(d) : (d?.toDate?.() ?? new Date(d));
-      return format(dt, 'dd MMM yyyy', { locale: dateFnsId });
+      return format(toDt(d), 'dd MMM yyyy', { locale: dateFnsId });
     } catch {
       return '—';
     }
   };
-  const dayName = (d: any) => {
+  const dayName = (d: unknown) => {
     try {
-      const dt = typeof d === 'string' ? new Date(d) : (d?.toDate?.() ?? new Date(d));
-      return format(dt, 'EEEE', { locale: dateFnsId });
+      return format(toDt(d), 'EEEE', { locale: dateFnsId });
     } catch {
       return '—';
     }
@@ -664,8 +666,11 @@ function AttendancePhotoGallery({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5">
           {withPhotos.map((r) => {
-            const ci = pickPhotoUrl(r.checkIn, (r as any).checkInPhotoUrl);
-            const co = pickPhotoUrl(r.checkOut, (r as any).checkOutPhotoUrl);
+            const ci = pickPhotoUrl(r.checkIn, (r as { checkInPhotoUrl?: string }).checkInPhotoUrl);
+            const co = pickPhotoUrl(
+              r.checkOut,
+              (r as { checkOutPhotoUrl?: string }).checkOutPhotoUrl,
+            );
             return (
               <div
                 key={r.id}

@@ -2,7 +2,7 @@
 
 import { Plus, Clock, Edit2, Trash2, Zap, Loader2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
-import { useJamKerjaManagement, DAYS, JAM_KERJA_COLORS } from '@/hooks/useJamKerjaManagement';
+import { useJamKerjaManagement, DAYS } from '@/hooks/useJamKerjaManagement';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Pagination } from '@/components/ui/Pagination';

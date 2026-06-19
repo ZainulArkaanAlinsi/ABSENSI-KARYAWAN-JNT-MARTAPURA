@@ -33,6 +33,7 @@ export default function DepartmentsPage() {
   const itemsPerPage = 9;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search]);
 

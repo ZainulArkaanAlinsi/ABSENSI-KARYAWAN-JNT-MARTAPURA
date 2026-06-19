@@ -7,7 +7,7 @@ import { useCallback, useRef, useEffect } from 'react';
  */
 export const useAnime = <T extends HTMLElement>(params: AnimationParams) => {
   const elementRef = useRef<T>(null);
-  const animationRef = useRef<any>(null);
+  const animationRef = useRef<ReturnType<typeof animate> | null>(null);
 
   const play = useCallback(
     (extraParams?: AnimationParams) => {

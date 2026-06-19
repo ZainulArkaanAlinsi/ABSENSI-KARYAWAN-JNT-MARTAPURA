@@ -24,7 +24,8 @@ import { useAuth } from './AuthContext';
 function playAdminDing() {
   if (typeof window === 'undefined') return;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const ctx = new (window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
 
     const frequencies = [880, 1108.73]; // A5 + C#6 → nada nyaring
     const duration = 0.7;
@@ -78,6 +79,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!user) {
+      // Reset notification state on sign-out (syncing to auth state).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNotifications([]);
       setUnreadChatCount(0);
       setIsLoading(false);

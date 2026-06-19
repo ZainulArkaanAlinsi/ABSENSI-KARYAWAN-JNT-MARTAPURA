@@ -34,6 +34,8 @@ function useCountUp(target: number, duration = 0.8, delay = 0) {
       return () => ctrl.stop();
     }, delay * 1000);
     return () => clearTimeout(t);
+    // delay/duration are fixed per-mount props; only `target` should retrigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
   return count;
 }
@@ -306,13 +308,21 @@ function PendingBannerCard({ pending, delay }: { pending: number; delay: number 
 }
 
 // ─── Chart Tooltip ─────────────────────────────────────────────────────────────
-const ChartTooltip = ({ active, payload, label }: any) => {
+const ChartTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { dataKey: string; color: string; value: number }[];
+  label?: string;
+}) => {
   const { t } = useT();
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-xl shadow-lg border border-slate-100 px-3 py-2.5 text-[11px]">
       <p className="font-bold text-slate-700 mb-1.5">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-1.5 mb-0.5">
           <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
           <span className="text-slate-500">
@@ -331,7 +341,18 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // ─── Request Row ───────────────────────────────────────────────────────────────
-function RequestRow({ req, i }: { req: any; i: number }) {
+interface DashboardRequest {
+  id?: string;
+  type?: string;
+  employeeName?: string;
+  totalDays?: number;
+  startDate?: unknown;
+  createdAt?: unknown;
+  timestamp?: unknown;
+  [key: string]: unknown;
+}
+
+function RequestRow({ req, i }: { req: DashboardRequest; i: number }) {
   const isSOS = req.type === 'SOS';
   const { t, lang } = useT();
   return (
@@ -370,7 +391,7 @@ function RequestRow({ req, i }: { req: any; i: number }) {
               if (dateVal instanceof Date) {
                 d = dateVal;
               } else if (typeof dateVal === 'object' && dateVal !== null && 'seconds' in dateVal) {
-                d = new Date((dateVal as any).seconds * 1000);
+                d = new Date((dateVal as { seconds: number }).seconds * 1000);
               } else if (typeof dateVal === 'string' && dateVal.length > 0) {
                 d = new Date(dateVal);
               }
@@ -715,7 +736,7 @@ export default function Dashboard() {
           <div className="p-2 flex-1 overflow-auto">
             <AnimatePresence>
               {requests.length > 0 ? (
-                requests.map((r: any, i: number) => <RequestRow key={r.id} req={r} i={i} />)
+                requests.map((r, i) => <RequestRow key={r.id} req={r} i={i} />)
               ) : (
                 <Empty icon={CheckCircle2} text={t('queue_empty')} />
               )}

@@ -32,7 +32,6 @@ import type {
   LeaveStatus,
   CalendarEvent,
   DepartmentItem,
-  AuditLogEntry,
   OvertimeRequest,
   OvertimeStatus,
 } from '@/types';
@@ -141,18 +140,20 @@ function mapLeave(id: string, data: DocumentData): LeaveRequest {
 
 function mapAttendance(id: string, data: DocumentData): AttendanceRecord {
   // Always return "HH:mm" string — never ISO or raw Timestamp
-  const extractTime = (obj: any): string | undefined => {
-    if (!obj) return undefined;
+  const extractTime = (obj: unknown): string | undefined => {
+    if (!obj || typeof obj !== 'object') return undefined;
     const toHHMM = (d: Date) =>
       `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-    if (obj.time !== undefined && obj.time !== null) {
-      if (typeof obj.time === 'string') {
-        if (obj.time.includes('T')) return toHHMM(new Date(obj.time)); // ISO → HH:mm
-        return obj.time.slice(0, 5); // Already "HH:mm"
+    const o = obj as { time?: unknown; toDate?: () => Date };
+    if (o.time !== undefined && o.time !== null) {
+      if (typeof o.time === 'string') {
+        if (o.time.includes('T')) return toHHMM(new Date(o.time)); // ISO → HH:mm
+        return o.time.slice(0, 5); // Already "HH:mm"
       }
-      if (obj.time.toDate) return toHHMM(obj.time.toDate()); // Firestore Timestamp
+      const t = o.time as { toDate?: () => Date };
+      if (t.toDate) return toHHMM(t.toDate()); // Firestore Timestamp
     }
-    if (obj.toDate) return toHHMM(obj.toDate()); // obj itself is a Timestamp
+    if (o.toDate) return toHHMM(o.toDate()); // obj itself is a Timestamp
     return undefined;
   };
 
@@ -343,10 +344,10 @@ export async function registerEmployee(
     });
 
     return uid;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error registering employee:', error);
 
-    if (error.code === 'auth/email-already-in-use') {
+    if ((error as { code?: string }).code === 'auth/email-already-in-use') {
       throw new Error(
         'Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.',
       );
@@ -780,7 +781,7 @@ export function subscribeToDepartments(callback: (departments: DepartmentItem[])
 export async function logAudit(
   action: string,
   targetUserId: string,
-  metadata?: Record<string, any>,
+  metadata?: Record<string, unknown>,
 ): Promise<void> {
   try {
     const currentUser = auth.currentUser;
@@ -829,7 +830,7 @@ export function subscribeToPresence(
   return listen(ref, (snap) => {
     const data = snap.data();
     if (data) {
-      const lastSeen = data.lastSeen?.toDate?.() || new Date(data.lastSeen as any);
+      const lastSeen = data.lastSeen?.toDate?.() || new Date(data.lastSeen as string | number);
       callback(data.isOnline === true, lastSeen);
     } else {
       callback(false);

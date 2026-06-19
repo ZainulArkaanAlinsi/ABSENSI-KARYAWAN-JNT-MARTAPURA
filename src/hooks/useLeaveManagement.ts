@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { subscribeToLeaves, updateLeaveStatus, deleteLeave } from '@/lib/firestore';
 import type { LeaveRequest, LeaveStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
 
@@ -29,7 +28,6 @@ export const LEAVE_TYPE_LABELS: Record<string, string> = {
 
 export function useLeaveManagement() {
   const { user } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<LeaveStatus | 'all'>('pending');
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);

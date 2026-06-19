@@ -4,7 +4,7 @@ import type { Settings } from '@/types';
 
 interface CompanySettingsProps {
   settings: Settings['company'];
-  update: (section: 'company', field: string, value: any) => void;
+  update: (section: 'company', field: string, value: unknown) => void;
 }
 
 export default function CompanySettings({ settings, update }: CompanySettingsProps) {
@@ -26,7 +26,7 @@ export default function CompanySettings({ settings, update }: CompanySettingsPro
             type={field.type}
             className="w-full h-10 bg-secondary border border-border-primary rounded-lg px-4 text-sm font-medium text-text-primary outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 transition-all placeholder:text-text-tertiary/40"
             placeholder={field.placeholder}
-            value={(settings as any)[field.key] ?? ''}
+            value={(settings as Record<string, string>)[field.key] ?? ''}
             onChange={(e) => update('company', field.key, e.target.value)}
           />
         </div>

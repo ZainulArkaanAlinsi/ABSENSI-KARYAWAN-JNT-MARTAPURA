@@ -6,7 +6,6 @@ import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListe
 import {
   AlertCircle,
   BellRing,
-  Filter,
   Search,
   ShieldAlert,
   ShieldCheck,

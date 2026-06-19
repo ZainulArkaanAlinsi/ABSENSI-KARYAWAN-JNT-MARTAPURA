@@ -70,11 +70,12 @@ const CardSkeleton = () => (
   </div>
 );
 
-const toDate = (val: any): Date => {
+const toDate = (val: unknown): Date => {
   if (!val) return new Date();
   if (val instanceof Date) return val;
-  if (typeof val === 'object' && 'seconds' in val) return new Date(val.seconds * 1000);
-  const d = new Date(val);
+  if (typeof val === 'object' && 'seconds' in val)
+    return new Date((val as { seconds: number }).seconds * 1000);
+  const d = new Date(val as string | number);
   return isNaN(d.getTime()) ? new Date() : d;
 };
 
@@ -278,7 +279,9 @@ export default function LeaveRequestsPage() {
           <Filter size={13} className="text-slate-400 shrink-0" />
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
+            onChange={(e) =>
+              setFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')
+            }
             className="bg-transparent text-[12px] font-semibold text-slate-700 outline-none appearance-none cursor-pointer flex-1"
           >
             <option value="all">Semua Status</option>
@@ -355,7 +358,7 @@ export default function LeaveRequestsPage() {
                     </p>
                   </div>
                   <p className="text-[12px] font-medium text-slate-600 italic leading-relaxed line-clamp-2">
-                    "{req.reason}"
+                    &quot;{req.reason}&quot;
                   </p>
                 </div>
 

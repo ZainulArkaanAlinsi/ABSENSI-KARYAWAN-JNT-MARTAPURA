@@ -3,21 +3,11 @@
 import React, { useState } from 'react';
 import { Database, Trash2, Zap, CheckCircle2, AlertTriangle, History, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
-import {
-  collection,
-  getDocs,
-  addDoc,
-  deleteDoc,
-  doc,
-  writeBatch,
-  serverTimestamp,
-  query,
-  where,
-} from 'firebase/firestore';
+import { collection, getDocs, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { COLLECTIONS, getEmployees, getJamKerjas } from '@/lib/firestore';
 import { useAuth } from '@/context/AuthContext';
-import { format, subDays, startOfDay, addMinutes, isWeekend, parse } from 'date-fns';
+import { format, subDays, startOfDay, addMinutes, isWeekend } from 'date-fns';
 
 export default function MaintenancePage() {
   const { user } = useAuth();

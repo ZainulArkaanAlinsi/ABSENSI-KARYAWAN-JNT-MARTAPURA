@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'FCM Token is required' }, { status: 400 });
     }
 
-    const message = {
+    const message: import('firebase-admin/messaging').Message = {
       notification: {
         title: title || 'Notifikasi JNE Martapura',
         body: body || 'Ada pesan baru untuk Anda.',
@@ -26,10 +26,10 @@ export async function POST(request: Request) {
       },
     };
 
-    const response = await adminMessaging.send(message as any);
+    const response = await adminMessaging.send(message);
     return NextResponse.json({ success: true, messageId: response });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error sending notification:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

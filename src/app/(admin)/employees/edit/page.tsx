@@ -112,7 +112,7 @@ export default function EmployeeEditPage() {
       // didn't touch.
       const patch: Partial<Employee> = {};
       (Object.keys(form) as (keyof Employee)[]).forEach((k) => {
-        if (form[k] !== original[k]) (patch as any)[k] = form[k];
+        if (form[k] !== original[k]) (patch as Record<string, unknown>)[k] = form[k];
       });
 
       if (Object.keys(patch).length === 0) {
@@ -124,9 +124,9 @@ export default function EmployeeEditPage() {
       await updateEmployee(uid, patch);
       toast.success('Perubahan disimpan');
       router.push(`/employees/detail?id=${uid}`);
-    } catch (e: any) {
+    } catch (e) {
       console.error('Save failed:', e);
-      toast.error(e?.message ?? 'Gagal menyimpan perubahan');
+      toast.error((e as Error)?.message ?? 'Gagal menyimpan perubahan');
     } finally {
       setSaving(false);
     }
@@ -271,7 +271,7 @@ export default function EmployeeEditPage() {
           <FormField label="Role Sistem" icon={ShieldCheck}>
             <select
               value={form.role ?? 'employee'}
-              onChange={(e) => setField('role', e.target.value as any)}
+              onChange={(e) => setField('role', e.target.value as Employee['role'])}
               className="form-input"
             >
               {ROLES.map((r) => (
@@ -302,7 +302,7 @@ export default function EmployeeEditPage() {
           <FormField label="Jenis Kontrak" icon={Briefcase}>
             <select
               value={form.contractType ?? 'permanent'}
-              onChange={(e) => setField('contractType', e.target.value as any)}
+              onChange={(e) => setField('contractType', e.target.value as Employee['contractType'])}
               className="form-input"
             >
               {CONTRACT_TYPES.map((c) => (

@@ -16,18 +16,30 @@ import {
   Pin,
   MapPin,
   AlignLeft,
-  ChevronDown,
 } from 'lucide-react';
 import { format, parseISO, startOfDay } from 'date-fns';
 import type { CalendarEvent } from '@/types';
 
+export type EventFormData = {
+  title: string;
+  description: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  category: string;
+  color: string;
+  departments: string[];
+  attendees: string[];
+  organizerId: string;
+};
+
 type EventModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: EventFormData) => void;
   initialData?: CalendarEvent | null;
   selectedDate?: string;
-  employees?: any[];
+  employees?: { id: string; name: string; department?: string }[];
 };
 
 const CATEGORY_OPTIONS = [
@@ -71,7 +83,10 @@ export default function EventModal({
   });
 
   useEffect(() => {
+    // Syncs the form to the event being edited (or the freshly picked date)
+    // each time the modal opens — an intentional prop→state reset.
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         title: initialData.title || '',
         description: initialData.description || '',

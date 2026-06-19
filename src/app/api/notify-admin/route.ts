@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const tokens: string[] = tokensSnap.docs.map((doc: { id: string }) => doc.id);
 
-    const messagePayload = {
+    const messagePayload: import('firebase-admin/messaging').MulticastMessage = {
       notification: { title, body },
       data: data || {},
       tokens,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const response = await adminMessaging.sendEachForMulticast(messagePayload as any);
+    const response = await adminMessaging.sendEachForMulticast(messagePayload);
 
     // Bersihkan token yang sudah tidak valid
     const invalidTokens = response.responses
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
       sentCount: response.successCount,
       failureCount: response.failureCount,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[notify-admin] Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

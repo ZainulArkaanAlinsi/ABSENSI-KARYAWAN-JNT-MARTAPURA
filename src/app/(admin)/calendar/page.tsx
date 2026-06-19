@@ -10,10 +10,10 @@ import { listen } from '@/lib/firestoreListener';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
 import EventListPanel from '@/components/calendar/EventListPanel';
-import EventModal from '@/components/calendar/EventModal';
+import EventModal, { type EventFormData } from '@/components/calendar/EventModal';
 import { getMonthWeeks } from '@/utils/calendarHelpers';
 import { scheduleMeetingNotifications } from '@/lib/firestore';
-import type { CalendarEvent } from '@/types';
+import type { CalendarEvent, Employee } from '@/types';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -27,7 +27,7 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const router = useRouter();
   const { confirm } = useConfirm();
 
@@ -42,6 +42,7 @@ export default function CalendarPage() {
   // sengaja tidak di-hardcode karena tanggalnya berubah tiap tahun —
   // admin tetap bisa menambah event manual via kalender.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingHolidays(true);
     const fixed: Record<string, string[]> = {
       [`${currentYear}-01-01`]: ['Tahun Baru Masehi'],
@@ -97,6 +98,7 @@ export default function CalendarPage() {
   }, [events, filterCategory, searchQuery]);
 
   // Dapatkan detail hari yang dipilih
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const selectedDayDetails = useMemo(() => {
     for (const week of monthWeeks) {
       const day = week.find((d) => d?.date === selectedDateStr);
@@ -149,10 +151,11 @@ export default function CalendarPage() {
     setSelectedDateStr(format(today, 'yyyy-MM-dd'));
   };
 
-  const handleSaveEvent = async (formData: any) => {
+  const handleSaveEvent = async (formData: EventFormData) => {
     try {
-      const eventData = {
+      const eventData: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'> = {
         ...formData,
+        category: formData.category as CalendarEvent['category'],
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
         organizerId: 'admin',
@@ -201,7 +204,7 @@ export default function CalendarPage() {
       try {
         await deleteEvent(eventId);
         toast.success('Acara berhasil dihapus');
-      } catch (error) {
+      } catch {
         toast.error('Gagal menghapus acara');
       }
     }

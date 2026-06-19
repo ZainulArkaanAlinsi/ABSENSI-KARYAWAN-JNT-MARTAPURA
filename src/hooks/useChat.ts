@@ -8,6 +8,7 @@ import {
   updateDoc,
   doc,
   setDoc,
+  type Timestamp,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from '@/lib/firebase';
@@ -22,10 +23,10 @@ export interface Message {
   receiverId: string;
   receiverRole?: string;
   chatId: string;
-  createdAt: any;
+  createdAt: Timestamp;
   status: 'sent' | 'delivered' | 'read';
-  readAt?: any;
-  deliveredAt?: any;
+  readAt?: Timestamp;
+  deliveredAt?: Timestamp;
   imageUrl?: string;
   isDeleted: boolean;
   isRead?: boolean;

@@ -114,11 +114,11 @@ export function getRuleByDept(name: string): DepartmentRule | undefined {
 export function timeValueToISO(t: TimeValue): string {
   if (typeof t === 'string') return t;
   if (typeof t === 'object') {
-    if ('toDate' in t && typeof (t as any).toDate === 'function') {
-      return (t as any).toDate().toISOString();
+    if ('toDate' in t && typeof (t as { toDate?: unknown }).toDate === 'function') {
+      return (t as { toDate: () => Date }).toDate().toISOString();
     }
     if ('seconds' in t) {
-      return new Date((t as any).seconds * 1000).toISOString();
+      return new Date((t as { seconds: number }).seconds * 1000).toISOString();
     }
   }
   return new Date().toISOString();

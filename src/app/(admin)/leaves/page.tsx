@@ -14,8 +14,6 @@ import {
 } from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import { safeFormatDate } from '@/utils/dateFormatters';
 import {
   CheckCircle,
@@ -24,7 +22,6 @@ import {
   Inbox,
   Loader2,
   UserCheck,
-  Search,
   Calendar,
   Trash2,
 } from 'lucide-react';
@@ -50,21 +47,19 @@ const LEAVE_TYPES: Record<string, string> = {
   urgent: 'Keperluan Keluarga',
 };
 
-const toDate = (val: any): Date => {
-  if (!val) return new Date();
-  if (val instanceof Date) return val;
-  try {
-    if (typeof val === 'object' && val !== null) {
-      if ('seconds' in val) return new Date(val.seconds * 1000);
-      if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
-    }
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? new Date() : d;
-  } catch (e) {
-    console.error('LeavesPage Date Parsing Error:', e);
-    return new Date();
-  }
-};
+interface EmployeeRow {
+  uid: string;
+  name?: string;
+  employeeId?: string;
+}
+
+interface LeaveBalance {
+  userId: string;
+  annualQuota: number;
+  usedAnnual: number;
+  usedSick: number;
+  usedPermission: number;
+}
 
 export default function LeavesPage() {
   const [allLeaves, setAllLeaves] = useState<LeaveRequest[]>([]);
@@ -81,10 +76,10 @@ export default function LeavesPage() {
   const itemsPerPage = 10;
   const reviewerName = user?.name || user?.email || 'Admin';
 
-  const [balances, setBalances] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  const [employees, setEmployees] = useState<EmployeeRow[]>([]);
   const [showBalanceModal, setShowBalanceModal] = useState(false);
-  const [selectedBalance, setSelectedBalance] = useState<any>(null);
+  const [selectedBalance, setSelectedBalance] = useState<EmployeeRow | null>(null);
   const [editBalance, setEditBalance] = useState({
     annualQuota: 12,
     usedAnnual: 0,
@@ -104,7 +99,7 @@ export default function LeavesPage() {
     });
 
     const unsubBalances = listen(collection(db, 'leave_balances'), (snap) => {
-      setBalances(snap.docs.map((d) => ({ userId: d.id, ...d.data() })));
+      setBalances(snap.docs.map((d) => ({ userId: d.id, ...d.data() })) as LeaveBalance[]);
     });
 
     return () => {
@@ -224,7 +219,7 @@ export default function LeavesPage() {
     }
   };
 
-  const openBalanceModal = (emp: any) => {
+  const openBalanceModal = (emp: EmployeeRow) => {
     const bal = balances.find((b) => b.userId === emp.uid) || {
       annualQuota: 12,
       usedAnnual: 0,
@@ -265,7 +260,7 @@ export default function LeavesPage() {
         });
         toast.success(`Saldo cuti ${selectedBalance.name} dibuat`);
         setShowBalanceModal(false);
-      } catch (err2) {
+      } catch {
         toast.error('Gagal memperbarui saldo.');
       }
     } finally {
@@ -536,7 +531,9 @@ export default function LeavesPage() {
                         <div className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 mb-4">
                           <div className="flex items-start gap-2">
                             <FileText size={12} className="text-slate-400 shrink-0 mt-0.5" />
-                            <p className="text-[12px] text-slate-600 italic">"{leave.reason}"</p>
+                            <p className="text-[12px] text-slate-600 italic">
+                              &quot;{leave.reason}&quot;
+                            </p>
                           </div>
                         </div>
                       )}

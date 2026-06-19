@@ -139,7 +139,7 @@ export function useSettingsManagement() {
   }, [settings]);
 
   // ── Update: immutable field-level update ──
-  const update = useCallback((section: keyof Settings, field: string, value: any) => {
+  const update = useCallback((section: keyof Settings, field: string, value: unknown) => {
     setSettings((prev) => {
       if (!prev) return prev;
       return {
@@ -148,7 +148,7 @@ export function useSettingsManagement() {
           ...prev[section],
           [field]: value,
         },
-      };
+      } as Settings;
     });
     // Clear any previous error on new edit
     setError(null);
@@ -174,10 +174,11 @@ export function useSettingsManagement() {
       saveTimeoutRef.current = setTimeout(() => setSaved(false), 3000);
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving settings:', error);
       setError(
-        error.message || 'Gagal menyimpan pengaturan. Periksa koneksi internet dan coba lagi.',
+        (error as Error).message ||
+          'Gagal menyimpan pengaturan. Periksa koneksi internet dan coba lagi.',
       );
       return false;
     } finally {

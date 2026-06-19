@@ -7,7 +7,7 @@ import { Bell, UserPlus, ShieldAlert, Mail } from 'lucide-react';
 
 interface NotificationsSettingsProps {
   settings: Settings['notifications'];
-  update: (section: 'notifications', field: string, value: any) => void;
+  update: (section: 'notifications', field: string, value: unknown) => void;
 }
 
 export default function NotificationsSettings({ settings, update }: NotificationsSettingsProps) {
@@ -66,8 +66,8 @@ export default function NotificationsSettings({ settings, update }: Notification
                 </div>
               </div>
               <ToggleSwitch
-                checked={Boolean((settings as any)[item.key])}
-                onChange={() => update('notifications', item.key, !(settings as any)[item.key])}
+                checked={Boolean((settings as Record<string, unknown>)[item.key])}
+                onChange={() => update('notifications', item.key, !(settings as Record<string, unknown>)[item.key])}
                 label=""
                 description={item.desc}
               />

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { FaceBadge } from '@/components/ui/Badge';
+import type { Employee } from '@/types';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
@@ -38,6 +39,8 @@ function AnimCount({ to }: { to: number }) {
       ctrl.stop();
       unsub();
     };
+    // count/rounded are stable framer-motion values; only `to` should retrigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [to]);
   return <span className="tabular-nums">{display}</span>;
 }
@@ -100,7 +103,15 @@ function getAvatarColor(name: string) {
 }
 
 // ── Grid card ──────────────────────────────────────────────────
-function EmployeeCard({ emp, idx, onDelete }: { emp: any; idx: number; onDelete: () => void }) {
+function EmployeeCard({
+  emp,
+  idx,
+  onDelete,
+}: {
+  emp: Employee;
+  idx: number;
+  onDelete: () => void;
+}) {
   const { confirm } = useConfirm();
   const avatarGradient = getAvatarColor(emp.name);
 
@@ -220,7 +231,7 @@ function EmployeeRow({
   selected,
   onSelectToggle,
 }: {
-  emp: any;
+  emp: Employee;
   idx: number;
   onDelete: () => void;
   selected: boolean;
@@ -374,6 +385,8 @@ export default function EmployeesPage() {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('search');
     if (q) setSearch(q);
+    // Read the initial ?search= once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -615,7 +628,7 @@ export default function EmployeesPage() {
             <motion.button
               key={opt.value}
               whileTap={{ scale: 0.94 }}
-              onClick={() => setFilterFace(opt.value as any)}
+              onClick={() => setFilterFace(opt.value as 'all' | 'registered' | 'unregistered')}
               className={`relative h-10 px-4 rounded-xl text-[12px] font-bold transition-all ${
                 filterFace === opt.value
                   ? 'text-white'
@@ -681,7 +694,7 @@ export default function EmployeesPage() {
             <span className="text-[11px] text-slate-400 font-semibold">Filter aktif:</span>
             {search && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-100 rounded-full text-[11px] font-semibold text-red-600">
-                Cari: "{search}"
+                Cari: &quot;{search}&quot;
                 <button onClick={() => setSearch('')}>
                   <X size={10} />
                 </button>

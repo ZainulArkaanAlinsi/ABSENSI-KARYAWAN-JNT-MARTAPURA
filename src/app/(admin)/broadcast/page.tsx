@@ -6,12 +6,8 @@ import {
   Send,
   Users,
   User,
-  Megaphone,
-  Bell,
   Search,
   CheckCircle2,
-  AlertCircle,
-  ShieldCheck,
   Smartphone,
   Globe,
   Zap,
@@ -33,12 +29,14 @@ import { toast } from 'sonner';
 export default function BroadcastPage() {
   const [target, setTarget] = useState<'all' | 'specific'>('all');
   const [selectedUser, setSelectedUser] = useState<string>('');
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<{ id: string; name?: string; email?: string }[]>([]);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [recentBroadcasts, setRecentBroadcasts] = useState<any[]>([]);
+  const [recentBroadcasts, setRecentBroadcasts] = useState<
+    { id: string; title?: string; createdAt?: { seconds: number } }[]
+  >([]);
 
   useEffect(() => {
     const fetchUsers = async () => {

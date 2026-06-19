@@ -6,14 +6,11 @@ import {
   MapPin,
   Target,
   Clock,
-  CheckCircle2,
   AlertCircle,
   Activity,
   ShieldCheck,
   UserX,
   History,
-  TrendingUp,
-  CalendarDays,
 } from 'lucide-react';
 
 import { DEPARTMENT_RULES } from '@/lib/departmentRules';
@@ -29,10 +26,10 @@ import { format } from 'date-fns';
 export default function HeadUnitClient() {
   const params = useParams();
   const slug = params?.slug as string;
-  const { employees, loading: empLoading, jamKerjaMap } = useEmployeeManagement();
+  const { employees, loading: empLoading } = useEmployeeManagement();
 
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [attLoading, setAttLoading] = useState(true);
+  const [, setAttLoading] = useState(true);
 
   const rule = DEPARTMENT_RULES.find((r) => r.id === slug);
   const unitEmployees = employees.filter((e) => e.department === slug);
@@ -47,6 +44,9 @@ export default function HeadUnitClient() {
       setAttLoading(false);
     });
     return () => unsub();
+    // Intentionally keyed on the unit's employee count, not the array identity,
+    // to avoid re-subscribing on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, unitEmployees.length]);
 
   if (!rule) {
@@ -55,7 +55,7 @@ export default function HeadUnitClient() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <AlertCircle size={48} className="text-[#E31E24] mb-4" />
           <h2 className="text-xl font-bold text-slate-900">Head Unit Tidak Ditemukan</h2>
-          <p className="text-slate-500">Slug "{slug}" tidak terdaftar dalam sistem.</p>
+          <p className="text-slate-500">Slug &quot;{slug}&quot; tidak terdaftar dalam sistem.</p>
         </div>
       </>
     );

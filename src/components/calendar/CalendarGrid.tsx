@@ -197,7 +197,30 @@ export default function CalendarGrid({
   );
 }
 
-function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }: any) {
+type DayDetails = CalendarDay & {
+  systemEvents: string[];
+  userEvents: CalendarEvent[];
+  uiCategory: string;
+  uiColorHint: { bg: string; text: string; accent: string };
+  heatColor: string;
+  presentCount: number;
+};
+
+type CalendarCellProps = {
+  day: CalendarDay;
+  details: DayDetails;
+  isSelected: boolean;
+  isTodayActive: boolean;
+  onSelectDate: (date: string) => void;
+};
+
+function CalendarCell({
+  day,
+  details,
+  isSelected,
+  isTodayActive,
+  onSelectDate,
+}: CalendarCellProps) {
   const { elementRef, play } = usePopAnimation<HTMLDivElement>();
 
   return (
@@ -239,7 +262,7 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
 
       {/* Enhanced Data Markers */}
       <div className="mt-1 flex flex-col gap-1 min-h-[16px] relative">
-        {details.userEvents.some((e: any) => e.category === 'meeting') && (
+        {details.userEvents.some((e) => e.category === 'meeting') && (
           <div className="absolute -top-7 -left-1 w-10 h-10 rounded-full border border-jne-red/20 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] pointer-events-none" />
         )}
       </div>
@@ -261,7 +284,7 @@ function CalendarCell({ day, details, isSelected, isTodayActive, onSelectDate }:
         )}
         {details.userEvents.length > 0 && (
           <div className="flex gap-0.5 flex-wrap">
-            {details.userEvents.map((evt: any, i: number) => (
+            {details.userEvents.map((evt, i) => (
               <div
                 key={i}
                 className="w-1 h-1 rounded-full"

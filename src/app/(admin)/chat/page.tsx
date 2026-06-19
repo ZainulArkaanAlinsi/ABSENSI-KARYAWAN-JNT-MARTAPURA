@@ -15,9 +15,11 @@ import {
   Phone,
   Video,
   MessageSquare,
+  type LucideIcon,
 } from 'lucide-react';
-import { useChat } from '@/hooks/useChat';
+import { useChat, type Message } from '@/hooks/useChat';
 import { useEmployeeManagement } from '@/hooks/useEmployeeManagement';
+import type { Employee } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -38,7 +40,6 @@ import { toast } from 'sonner';
 // ──────────────────────────────────────────────────────────
 
 const ACCENT = '#16A34A';
-const ACCENT_LT = '#F0FDF4';
 
 // ── AVATAR ──
 
@@ -68,7 +69,7 @@ const ContactItem = ({
   online,
   onClick,
 }: {
-  emp: any;
+  emp: Employee;
   isActive: boolean;
   lastTime?: string;
   online?: boolean;
@@ -111,7 +112,7 @@ const Bubble = ({
   peerName,
   onDelete,
 }: {
-  msg: any;
+  msg: Message;
   isMe: boolean;
   showAvatar: boolean;
   peerName: string;
@@ -137,6 +138,7 @@ const Bubble = ({
         }`}
       >
         {msg.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage image in a static export; next/image optimization is disabled
           <img src={msg.imageUrl} alt="attachment" className="rounded-xl mb-2 max-w-full h-auto" />
         )}
         {msg.text && <p className="text-[13px] leading-relaxed">{msg.text}</p>}
@@ -170,7 +172,15 @@ const Bubble = ({
 
 // ── EMPTY STATE ──
 
-const EmptyState = ({ icon: Icon, title, desc }: { icon: any; title: string; desc?: string }) => (
+const EmptyState = ({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: LucideIcon;
+  title: string;
+  desc?: string;
+}) => (
   <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
     <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-300">
       <Icon size={28} />
@@ -205,7 +215,7 @@ const IconBtn = ({
 
 export default function ChatPage() {
   const { employees, loading: loadingEmployees } = useEmployeeManagement();
-  const [selectedCourier, setSelectedCourier] = useState<any>(null);
+  const [selectedCourier, setSelectedCourier] = useState<Employee | null>(null);
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -308,6 +318,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (employees.length > 0 && !selectedCourier) setSelectedCourier(employees[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees]);
 
   useEffect(() => {
@@ -317,6 +328,7 @@ export default function ChatPage() {
       return () => clearTimeout(t);
     }
     setTyping(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputText]);
 
   const handleSend = async (e: React.FormEvent) => {
@@ -477,7 +489,7 @@ export default function ChatPage() {
                         try {
                           await deleteMessage(msg.id!);
                           toast.success('Pesan dihapus');
-                        } catch (e) {
+                        } catch {
                           toast.error('Gagal menghapus pesan');
                         }
                       }

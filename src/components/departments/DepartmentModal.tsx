@@ -1,15 +1,4 @@
-import {
-  X,
-  Plus,
-  Edit2,
-  Trash2,
-  Zap,
-  Loader2,
-  Calendar,
-  Layers,
-  Palette,
-  FileText,
-} from 'lucide-react';
+import { Plus, Edit2, Loader2, Layers, Palette, FileText } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { DEPARTMENT_COLORS } from '@/hooks/useDepartmentManagement';
 import type { DepartmentItem } from '@/types';

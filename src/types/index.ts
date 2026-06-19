@@ -424,6 +424,6 @@ export interface AuditLogEntry {
   actorEmail: string;
   actorName: string;
   targetUserId: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   timestamp: string;
 }

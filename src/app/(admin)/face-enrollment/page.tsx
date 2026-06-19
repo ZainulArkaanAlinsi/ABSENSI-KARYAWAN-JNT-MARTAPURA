@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getEmployees } from '@/lib/firestore';
+import type { Employee } from '@/types';
 import {
   Search,
   ScanFace,
@@ -16,7 +17,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function FaceEnrollmentPage() {
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{ msg: string; emp: string } | null>(null);
@@ -230,6 +231,7 @@ export default function FaceEnrollmentPage() {
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center overflow-hidden group-hover:bg-emerald-500 group-hover:text-white transition-all">
                   {emp.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage photo in a static export; next/image optimization is disabled
                     <img src={emp.photoUrl} alt={emp.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-[20px] font-black">{emp.name.charAt(0)}</span>

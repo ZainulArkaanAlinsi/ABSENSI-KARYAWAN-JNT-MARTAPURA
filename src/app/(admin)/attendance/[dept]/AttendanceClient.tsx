@@ -1,12 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import {
-  DEPARTMENT_RULES,
-  fmtMinutes,
-  calcEffectiveMinutes,
-  timeValueToISO,
-} from '@/lib/departmentRules';
+import { DEPARTMENT_RULES, fmtMinutes, calcEffectiveMinutes } from '@/lib/departmentRules';
 import { safeFormatTime } from '@/utils/dateFormatters';
 import { subscribeToTodayAttendance } from '@/lib/firestore';
 import { useEffect, useState } from 'react';
@@ -76,6 +71,8 @@ export default function AttendanceClient() {
 
   useEffect(() => {
     if (!rule) return;
+    // Re-arm the loading state whenever the dept/date changes before refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const unsub = subscribeToTodayAttendance(todayStr, (all) => {
       setRecords(all.filter((r) => r.department === rule.name));

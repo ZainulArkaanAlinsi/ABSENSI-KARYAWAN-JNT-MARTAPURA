@@ -12,7 +12,6 @@ import { id as idLocale } from 'date-fns/locale';
 import {
   CheckCircle,
   XCircle,
-  Clock,
   Inbox,
   Loader2,
   Search,
@@ -21,22 +20,41 @@ import {
   Calendar,
   FileText,
   Building2,
+  type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
-const toDate = (val: any): Date => {
+const toDate = (val: unknown): Date => {
   if (!val) return new Date();
   if (val instanceof Date) return val;
   if (typeof val === 'object' && val !== null) {
-    if ('seconds' in val) return new Date(val.seconds * 1000);
-    if ('toDate' in val && typeof val.toDate === 'function') return val.toDate();
+    const o = val as { seconds?: number; toDate?: () => Date };
+    if ('seconds' in val) return new Date((o.seconds as number) * 1000);
+    if ('toDate' in val && typeof o.toDate === 'function') return o.toDate();
   }
-  const d = new Date(val);
+  const d = new Date(val as string | number);
   return isNaN(d.getTime()) ? new Date() : d;
 };
+
+interface RequestItem {
+  id?: string;
+  source?: string;
+  type?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+  reason?: string;
+  notes?: string;
+  department?: string;
+  employeeName?: string;
+  employeeId?: string;
+  overtimeHours?: number;
+  [key: string]: unknown;
+}
 
 // ── Types & Constants ─────────────────────────────────────────
 
@@ -83,17 +101,18 @@ const TYPE_COLORS: Record<string, string> = {
   personal: 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400',
 };
 
-function getLabel(req: any): string {
+function getLabel(req: RequestItem | null): string {
   if (!req) return 'Permintaan';
-  if (req.source === 'leave') return TYPE_LABELS[req.type] ?? 'Izin';
+  if (req.source === 'leave') return TYPE_LABELS[req.type ?? ''] ?? 'Izin';
   return 'Lembur';
 }
 
-function getTypeCls(req: any): string {
+function getTypeCls(req: RequestItem): string {
   if (req.source === 'overtime')
     return 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400';
   return (
-    TYPE_COLORS[req.type] ?? 'bg-slate-100 text-slate-500 dark:bg-slate-500/15 dark:text-slate-400'
+    TYPE_COLORS[req.type ?? ''] ??
+    'bg-slate-100 text-slate-500 dark:bg-slate-500/15 dark:text-slate-400'
   );
 }
 
@@ -118,7 +137,7 @@ function Avatar({ name, isSOS }: { name?: string; isSOS: boolean }) {
   );
 }
 
-function TypeChip({ req }: { req: any }) {
+function TypeChip({ req }: { req: RequestItem }) {
   const label = req.type === 'SOS' ? 'SOS' : getLabel(req);
   const cls =
     req.type === 'SOS'
@@ -141,7 +160,7 @@ function RequestCard({
   onApprove,
   onReject,
 }: {
-  req: any;
+  req: RequestItem;
   i: number;
   onApprove: () => void;
   onReject: () => void;
@@ -260,7 +279,7 @@ function RequestCard({
               className="text-[11px] italic mt-2 line-clamp-1 opacity-70"
               style={{ color: 'var(--text-muted)' }}
             >
-              "{req.reason || req.notes}"
+              &quot;{req.reason || req.notes}&quot;
             </p>
           )}
         </div>
@@ -271,7 +290,7 @@ function RequestCard({
 
 // ── Empty State ───────────────────────────────────────────────
 function EmptyState({ tab }: { tab: string }) {
-  const map: Record<string, { icon: any; text: string; sub: string }> = {
+  const map: Record<string, { icon: LucideIcon; text: string; sub: string }> = {
     pending: {
       icon: Inbox,
       text: 'Tidak ada permintaan menunggu',
@@ -322,12 +341,12 @@ function EmptyState({ tab }: { tab: string }) {
 // ── Main Page ─────────────────────────────────────────────────
 export default function RequestCenterPage() {
   const { user } = useAuth();
-  const [allRequests, setAllRequests] = useState<any[]>([]);
+  const [allRequests, setAllRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [selectedReq, setSelectedReq] = useState<any>(null);
+  const [selectedReq, setSelectedReq] = useState<RequestItem | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [reason, setReason] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -335,10 +354,10 @@ export default function RequestCenterPage() {
   // ── Firestore listeners ──────────────────────────────────────
   useEffect(() => {
     setLoading(true);
-    let leavesData: any[] = [];
-    let overtimeData: any[] = [];
+    let leavesData: RequestItem[] = [];
+    let overtimeData: RequestItem[] = [];
 
-    const timeOf = (v: any) => new Date(v ?? 0).getTime();
+    const timeOf = (v: unknown) => new Date((v ?? 0) as string | number).getTime();
     const merge = () => {
       const combined = [...leavesData, ...overtimeData].sort(
         (a, b) => timeOf(b.createdAt) - timeOf(a.createdAt),
@@ -382,7 +401,7 @@ export default function RequestCenterPage() {
   const pendingCount = countFor('pending');
 
   // ── Actions ──────────────────────────────────────────────────
-  const openAction = (req: any, type: 'approve' | 'reject') => {
+  const openAction = (req: RequestItem, type: 'approve' | 'reject') => {
     setSelectedReq(req);
     setActionType(type);
     setReason('');
@@ -404,9 +423,9 @@ export default function RequestCenterPage() {
       // onOvertimeStatusUpdate) — jadi tidak perlu tulis notifikasi manual.
       const reviewer = user?.name ?? 'Admin';
       if (selectedReq.source === 'leave') {
-        await updateLeaveStatus(selectedReq.id, status, reviewer, reason || undefined);
+        await updateLeaveStatus(selectedReq.id!, status, reviewer, reason || undefined);
       } else {
-        await updateOvertimeStatus(selectedReq.id, status, reviewer, reason || undefined);
+        await updateOvertimeStatus(selectedReq.id!, status, reviewer, reason || undefined);
       }
       toast.success(`Permintaan berhasil ${status === 'approved' ? 'disetujui' : 'ditolak'}`);
     } catch (error) {

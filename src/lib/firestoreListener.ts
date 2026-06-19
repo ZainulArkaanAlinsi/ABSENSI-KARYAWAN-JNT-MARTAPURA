@@ -80,6 +80,10 @@ export function listen<T = DocumentData>(
 ): Unsubscribe;
 export function listen(
   reference: Query | DocumentReference,
+  // Implementation signature for the two overloads above; it must accept both
+  // QuerySnapshot and DocumentSnapshot, so `any` is required here (not exposed
+  // to callers — they only see the typed overloads).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onNext: (snapshot: any) => void,
   context?: string,
 ): Unsubscribe {
