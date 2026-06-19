@@ -22,10 +22,13 @@ service firebase.storage {
     }
 
     // ── Profile photos ────────────────────────────────────────
-    // Path: profile_photos/{userId}.jpg
-    match /profile_photos/{userId}.jpg {
+    // Path: profile_photos/{uid}.jpg — file dinamai persis `<uid>.jpg`
+    // (lihat user_mobile/lib/providers/app_provider.dart). Wildcard tak boleh
+    // digabung literal `.jpg` dalam satu segmen, jadi cocokkan nama file penuh
+    // lalu samakan dengan `<uid>.jpg`.
+    match /profile_photos/{fileName} {
       allow read: if isAuth();
-      allow write: if (isOwner(userId) || isAdmin())
+      allow write: if (isAdmin() || (isAuth() && fileName == request.auth.uid + '.jpg'))
         && request.resource.size < 5 * 1024 * 1024
         && isImage();
     }
