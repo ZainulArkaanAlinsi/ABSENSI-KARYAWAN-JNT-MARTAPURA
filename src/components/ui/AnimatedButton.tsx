@@ -1,76 +1,29 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { animate } from 'animejs';
+import React from 'react';
 
 interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   animationType?: 'pop' | 'lift' | 'tilt';
 }
 
+// Micro-interaksi pakai CSS transition (transform GPU-composited) — menggantikan
+// animasi JS animejs lama. Lebih hemat & FPS lebih halus tanpa dependency.
+const hoverClass: Record<NonNullable<AnimatedButtonProps['animationType']>, string> = {
+  pop: 'hover:scale-105',
+  lift: 'hover:-translate-y-[3px] hover:scale-[1.02]',
+  tilt: 'hover:scale-[1.02] hover:rotate-1',
+};
+
 export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   children,
   animationType = 'pop',
   className,
-  onClick,
   ...props
 }) => {
-  const btnRef = useRef<HTMLButtonElement>(null);
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!btnRef.current) return;
-
-    if (animationType === 'lift') {
-      animate(btnRef.current, {
-        translateY: -3,
-        scale: 1.02,
-        duration: 300,
-        easing: 'outQuad',
-      });
-    } else if (animationType === 'pop') {
-      animate(btnRef.current, {
-        scale: 1.05,
-        duration: 200,
-        easing: 'outQuad',
-      });
-    }
-
-    if (props.onMouseEnter) props.onMouseEnter(e);
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!btnRef.current) return;
-
-    animate(btnRef.current, {
-      translateY: 0,
-      scale: 1,
-      duration: 300,
-      easing: 'outQuad',
-    });
-
-    if (props.onMouseLeave) props.onMouseLeave(e);
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!btnRef.current) return;
-
-    // Click "juice" effect
-    animate(btnRef.current, {
-      scale: [1, 0.95, 1],
-      duration: 200,
-      easing: 'inOutQuad',
-    });
-
-    if (onClick) onClick(e);
-  };
-
   return (
     <button
-      ref={btnRef}
-      className={className}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
+      className={`transition-transform duration-200 ease-out will-change-transform active:scale-95 ${hoverClass[animationType]} ${className ?? ''}`}
       {...props}
     >
       {children}
