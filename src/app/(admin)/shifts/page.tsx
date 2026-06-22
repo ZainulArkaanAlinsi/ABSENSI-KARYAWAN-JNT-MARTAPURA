@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 
 interface ShiftTemplate {
   id: string;
@@ -58,7 +59,7 @@ export default function ShiftsPage() {
 
   useEffect(() => {
     // Load shift templates from Firestore
-    const unsubShifts = onSnapshot(
+    const unsubShifts = listen(
       collection(db, 'shifts'),
       async (snap) => {
         const templates: ShiftTemplate[] = snap.docs.map((d) => ({
@@ -84,7 +85,7 @@ export default function ShiftsPage() {
         setShifts(withCounts);
         setLoading(false);
       },
-      () => setLoading(false),
+      'shifts',
     );
 
     return () => unsubShifts();

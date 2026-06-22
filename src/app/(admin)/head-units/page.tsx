@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { listen } from '@/lib/firestoreListener';
 
 interface HeadUnit {
   id: string;
@@ -35,7 +36,7 @@ export default function HeadUnitsPage() {
       where('role', 'in', ['admin', 'moderator', 'supervisor', 'head_unit']),
     );
 
-    const unsub = onSnapshot(
+    const unsub = listen(
       q,
       (snap) => {
         const data: HeadUnit[] = snap.docs.map((d) => {
@@ -52,7 +53,7 @@ export default function HeadUnitsPage() {
         setHeadUnits(data);
         setLoading(false);
       },
-      () => setLoading(false),
+      'head-units',
     );
 
     return () => unsub();
