@@ -201,7 +201,12 @@
   .border-slate-50 {
     border-color: var(--border-default) !important;
   }
-  /* text-slate-800/700 → pakai text-primary */
+  /* text-slate-900/800/700 → pakai text-primary (theme-aware).
+     Hanya kena class literal; `dark:text-slate-900` (tombol inverted) tak
+     terpengaruh karena itu selector class berbeda. */
+  .text-slate-900 {
+    color: var(--text-primary) !important;
+  }
   .text-slate-800 {
     color: var(--text-primary) !important;
   }
