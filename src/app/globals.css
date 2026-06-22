@@ -190,8 +190,12 @@
   .bg-white {
     background-color: var(--surface-elevated) !important;
   }
-  /* bg-slate-50 → hover surface */
+  /* bg-slate-50 / bg-slate-100 → recessed surface (theme-aware).
+     Hanya class literal; `dark:bg-slate-100` (tombol inverted) tak terpengaruh. */
   .bg-slate-50 {
+    background-color: var(--surface-hover) !important;
+  }
+  .bg-slate-100 {
     background-color: var(--surface-hover) !important;
   }
   /* border-slate-100/50 → border default newsprint */
@@ -212,6 +216,11 @@
   }
   .text-slate-700 {
     color: var(--text-primary) !important;
+  }
+  /* text-slate-600 → muted (teks sekunder theme-aware; sebelumnya terlalu
+     gelap & kontras rendah di dark mode pada kartu bertema). */
+  .text-slate-600 {
+    color: var(--text-muted) !important;
   }
 }
 
