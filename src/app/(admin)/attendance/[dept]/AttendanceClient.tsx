@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { DEPARTMENT_RULES, fmtMinutes, calcEffectiveMinutes } from '@/lib/departmentRules';
 import { safeFormatTime } from '@/utils/dateFormatters';
-import { subscribeToTodayAttendance } from '@/lib/firestore';
+import { subscribeToTodayAttendance, updateAttendance, deleteAttendance } from '@/lib/firestore';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -17,8 +17,15 @@ import {
   Activity,
   ShieldCheck,
   Inbox,
+  Pencil,
+  Trash2,
+  X,
+  Save,
+  Loader2,
 } from 'lucide-react';
 import type { AttendanceRecord } from '@/types';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 // ─── Status chip ──────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; dot: string; bg: string; text: string }> = {
@@ -45,7 +52,7 @@ function StatusChip({ status }: { status: string }) {
 // ─── Skeleton rows ────────────────────────────────────────────
 const SkeletonRow = ({ i }: { i: number }) => (
   <tr>
-    <td colSpan={6} className="px-5 py-3.5">
+    <td colSpan={7} className="px-5 py-3.5">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -69,10 +76,72 @@ export default function AttendanceClient() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Edit / reset absensi (koreksi kalau karyawan iseng absen) ──
+  // List ini realtime (subscribeToTodayAttendance) → setelah update/delete,
+  // tabel auto-refresh, tak perlu update state manual.
+  const { confirm } = useConfirm();
+  const [editRec, setEditRec] = useState<AttendanceRecord | null>(null);
+  const [editStatus, setEditStatus] = useState('present');
+  const [editIn, setEditIn] = useState('');
+  const [editOut, setEditOut] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const toHHMM = (t: unknown): string =>
+    typeof t === 'string' && /^\d{2}:\d{2}/.test(t) ? t.slice(0, 5) : '';
+
+  const openEdit = (rec: AttendanceRecord) => {
+    setEditRec(rec);
+    setEditStatus(rec.status || 'present');
+    setEditIn(toHHMM(rec.checkIn?.time));
+    setEditOut(toHHMM(rec.checkOut?.time));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editRec) return;
+    setSaving(true);
+    const mk = (hhmm: string): Date | null =>
+      hhmm ? new Date(`${editRec.date || todayStr}T${hhmm}:00`) : null;
+    try {
+      await updateAttendance(editRec.id, {
+        status: editStatus,
+        checkInTime: mk(editIn),
+        checkOutTime: mk(editOut),
+      });
+      toast.success('Absensi diperbarui');
+      setEditRec(null);
+    } catch (e) {
+      console.error('Update attendance failed:', e);
+      toast.error('Gagal menyimpan. Coba lagi.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (rec: AttendanceRecord) => {
+    const ok = await confirm({
+      title: 'Hapus Catatan Absensi',
+      message: `Hapus absen ${rec.employeeName} hari ini? Karyawan bisa absen ulang dari awal.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setDeleting(rec.id);
+    try {
+      await deleteAttendance(rec.id);
+      toast.success('Catatan absensi dihapus');
+    } catch (e) {
+      console.error('Delete attendance failed:', e);
+      toast.error('Gagal menghapus. Coba lagi.');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   useEffect(() => {
     if (!rule) return;
     // Re-arm the loading state whenever the dept/date changes before refetch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const unsub = subscribeToTodayAttendance(todayStr, (all) => {
       setRecords(all.filter((r) => r.department === rule.name));
@@ -280,7 +349,7 @@ export default function AttendanceClient() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['Karyawan', 'Status', 'Masuk', 'Keluar', 'Selisih', 'Total Kerja'].map((h) => (
+                {['Karyawan', 'Status', 'Masuk', 'Keluar', 'Selisih', 'Total Kerja', 'Aksi'].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap"
@@ -295,7 +364,7 @@ export default function AttendanceClient() {
                 Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} i={i} />)
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="py-16 flex flex-col items-center gap-2">
                       <motion.div
                         animate={{ y: [0, -5, 0] }}
@@ -361,6 +430,29 @@ export default function AttendanceClient() {
                         <td className="px-5 py-4 font-mono text-[13px] font-bold text-slate-700">
                           {yieldDisplay}
                         </td>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEdit(rec)}
+                              title="Edit / koreksi absensi"
+                              className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(rec)}
+                              disabled={deleting === rec.id}
+                              title="Hapus (reset agar bisa absen ulang)"
+                              className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                            >
+                              {deleting === rec.id ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={13} />
+                              )}
+                            </button>
+                          </div>
+                        </td>
                       </motion.tr>
                     );
                   })}
@@ -370,6 +462,112 @@ export default function AttendanceClient() {
           </table>
         </div>
       </motion.div>
+
+      {/* ── EDIT / KOREKSI MODAL ── */}
+      <AnimatePresence>
+        {editRec && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !saving && setEditRec(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                  <h3 className="editorial-heading text-[16px] font-black text-slate-800">
+                    Koreksi Absensi
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {editRec.employeeName} · {rule.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => !saving && setEditRec(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-5 flex flex-col gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Status
+                  </label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all cursor-pointer"
+                  >
+                    <option value="present">Hadir</option>
+                    <option value="late">Telat</option>
+                    <option value="absent">Absen</option>
+                    <option value="leave">Izin</option>
+                    <option value="overtime">Lembur</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Jam Masuk
+                    </label>
+                    <input
+                      type="time"
+                      value={editIn}
+                      onChange={(e) => setEditIn(e.target.value)}
+                      className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Jam Keluar
+                    </label>
+                    <input
+                      type="time"
+                      value={editOut}
+                      onChange={(e) => setEditOut(e.target.value)}
+                      className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Kosongkan jam untuk menghapus check-in/out tsb. Untuk reset total agar
+                  karyawan absen ulang, pakai tombol Hapus (ikon tong sampah).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 px-5 py-4 border-t border-slate-100 bg-slate-50/50">
+                <button
+                  onClick={() => !saving && setEditRec(null)}
+                  className="flex-1 h-11 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                  className="flex-1 h-11 rounded-xl text-white text-[13px] font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  style={{ background: '#10B981' }}
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Simpan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
