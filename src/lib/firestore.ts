@@ -589,6 +589,36 @@ export async function deleteAttendance(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTIONS.ATTENDANCE, id));
 }
 
+/**
+ * Koreksi manual catatan absensi oleh admin (mis. karyawan iseng absen,
+ * minta diperbaiki). Mengubah status &/atau jam masuk/keluar.
+ *
+ * Kontrak data (lihat CLAUDE.md): tiap check ditulis di DUA tempat — nested
+ * `checkIn.time` (Timestamp, dibaca duluan oleh admin & mobile) + flat
+ * `checkInTime` (ISO string). Pakai dot-notation untuk nested supaya
+ * foto/lat/lng di dalamnya TIDAK ikut terhapus. Waktu WAJIB Timestamp/ISO —
+ * mobile parse via `DateTime.tryParse`, jadi "HH:mm" polos akan gagal.
+ * Kirim `null` untuk mengosongkan sebuah check (mis. batalkan jam keluar).
+ */
+export async function updateAttendance(
+  id: string,
+  changes: { status?: string; checkInTime?: Date | null; checkOutTime?: Date | null },
+): Promise<void> {
+  const patch: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  if (changes.status !== undefined) patch.status = changes.status;
+  if (changes.checkInTime !== undefined) {
+    const v = changes.checkInTime;
+    patch['checkIn.time'] = v ? Timestamp.fromDate(v) : null;
+    patch.checkInTime = v ? v.toISOString() : null;
+  }
+  if (changes.checkOutTime !== undefined) {
+    const v = changes.checkOutTime;
+    patch['checkOut.time'] = v ? Timestamp.fromDate(v) : null;
+    patch.checkOutTime = v ? v.toISOString() : null;
+  }
+  await updateDoc(doc(db, COLLECTIONS.ATTENDANCE, id), patch);
+}
+
 export function subscribeToTodayAttendance(
   date: string,
   callback: (records: AttendanceRecord[]) => void,

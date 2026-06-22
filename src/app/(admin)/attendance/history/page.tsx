@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
-import { getAttendanceByRange, deleteAttendance } from '@/lib/firestore';
+import { getAttendanceByRange, deleteAttendance, updateAttendance } from '@/lib/firestore';
 import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { safeFormatDate, safeFormatTime } from '@/utils/dateFormatters';
@@ -24,6 +24,9 @@ import {
   Camera,
   Trash2,
   Loader2,
+  Pencil,
+  X,
+  Save,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -120,6 +123,58 @@ export default function AttendanceHistoryPage() {
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState<string | null>(null);
   const { confirm } = useConfirm();
+
+  // ── Edit (koreksi manual absensi) ──
+  const [editRec, setEditRec] = useState<AttendanceRecord | null>(null);
+  const [editStatus, setEditStatus] = useState('present');
+  const [editIn, setEditIn] = useState('');
+  const [editOut, setEditOut] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // mapAttendance menormalkan time ke "HH:mm" string, tapi tipe-nya TimeValue
+  // (union). Guard typeof string supaya type-safe untuk prefill <input type=time>.
+  const toHHMM = (t: unknown): string =>
+    typeof t === 'string' && /^\d{2}:\d{2}/.test(t) ? t.slice(0, 5) : '';
+
+  const openEdit = (rec: AttendanceRecord) => {
+    setEditRec(rec);
+    setEditStatus(rec.status || 'present');
+    setEditIn(toHHMM(rec.checkIn?.time));
+    setEditOut(toHHMM(rec.checkOut?.time));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editRec) return;
+    setSaving(true);
+    const mk = (hhmm: string): Date | null =>
+      hhmm ? new Date(`${editRec.date}T${hhmm}:00`) : null;
+    try {
+      await updateAttendance(editRec.id, {
+        status: editStatus,
+        checkInTime: mk(editIn),
+        checkOutTime: mk(editOut),
+      });
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.id === editRec.id
+            ? ({
+                ...r,
+                status: editStatus as AttendanceRecord['status'],
+                checkIn: editIn ? { ...r.checkIn, time: editIn } : undefined,
+                checkOut: editOut ? { ...r.checkOut, time: editOut } : undefined,
+              } as AttendanceRecord)
+            : r,
+        ),
+      );
+      toast.success('Absensi diperbarui');
+      setEditRec(null);
+    } catch (e) {
+      console.error('Update attendance failed:', e);
+      toast.error('Gagal menyimpan. Coba lagi.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async (rec: AttendanceRecord) => {
     const ok = await confirm({
@@ -485,20 +540,29 @@ export default function AttendanceHistoryPage() {
                         <StatusChip status={rec.status} />
                       </td>
 
-                      {/* Aksi — Delete */}
+                      {/* Aksi — Edit & Delete */}
                       <td className="px-5 py-3.5">
-                        <button
-                          onClick={() => handleDelete(rec)}
-                          disabled={deleting === rec.id}
-                          title="Hapus catatan"
-                          className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
-                        >
-                          {deleting === rec.id ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : (
-                            <Trash2 size={13} />
-                          )}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEdit(rec)}
+                            title="Edit / koreksi absensi"
+                            className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(rec)}
+                            disabled={deleting === rec.id}
+                            title="Hapus catatan (reset agar bisa absen ulang)"
+                            className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                          >
+                            {deleting === rec.id ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={13} />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -563,6 +627,112 @@ export default function AttendanceHistoryPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* ── EDIT / KOREKSI MODAL ── */}
+      <AnimatePresence>
+        {editRec && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !saving && setEditRec(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                  <h3 className="editorial-heading text-[16px] font-black text-slate-800">
+                    Koreksi Absensi
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {editRec.employeeName} · {safeFormatDate(editRec.date, 'dd MMM yyyy')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => !saving && setEditRec(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-5 flex flex-col gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Status
+                  </label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all cursor-pointer"
+                  >
+                    <option value="present">Hadir</option>
+                    <option value="late">Telat</option>
+                    <option value="absent">Absen</option>
+                    <option value="leave">Izin</option>
+                    <option value="overtime">Lembur</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Jam Masuk
+                    </label>
+                    <input
+                      type="time"
+                      value={editIn}
+                      onChange={(e) => setEditIn(e.target.value)}
+                      className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Jam Keluar
+                    </label>
+                    <input
+                      type="time"
+                      value={editOut}
+                      onChange={(e) => setEditOut(e.target.value)}
+                      className="mt-1.5 w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-[13px] font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Kosongkan jam untuk menghapus check-in/out tsb. Untuk reset total agar
+                  karyawan absen ulang dari awal, pakai tombol Hapus (ikon tong sampah).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 px-5 py-4 border-t border-slate-100 bg-slate-50/50">
+                <button
+                  onClick={() => !saving && setEditRec(null)}
+                  className="flex-1 h-11 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                  className="flex-1 h-11 rounded-xl text-white text-[13px] font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  style={{ background: '#10B981' }}
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Simpan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
