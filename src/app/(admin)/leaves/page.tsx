@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -66,6 +66,8 @@ export default function LeavesPage() {
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  // Filter periode (history): 'all' = semua waktu, atau 'yyyy-MM'.
+  const [monthFilter, setMonthFilter] = useState('all');
   const [processing, setProcessing] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
@@ -109,17 +111,39 @@ export default function LeavesPage() {
     };
   }, []);
 
+  // Data ter-scope periode (history). startDate → 'yyyy-MM'.
+  const scoped = useMemo(
+    () =>
+      monthFilter === 'all'
+        ? allLeaves
+        : allLeaves.filter((l) => safeFormatDate(l.startDate, 'yyyy-MM') === monthFilter),
+    [allLeaves, monthFilter],
+  );
+
   useEffect(() => {
-    setLeaves(allLeaves.filter((l) => l.status === activeTab));
+    setLeaves(scoped.filter((l) => l.status === activeTab));
     setCurrentPage(1);
-  }, [activeTab, allLeaves]);
+  }, [activeTab, scoped]);
 
   const totalPages = Math.ceil(leaves.length / itemsPerPage);
   const paginatedLeaves = leaves.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
+  // Badge header: pending all-time (selalu actionable, tak ikut filter).
   const pendingCount = allLeaves.filter((l) => l.status === 'pending').length;
+
+  // ── Recap periode terpilih ──
+  const recap = useMemo(() => {
+    const approved = scoped.filter((l) => l.status === 'approved');
+    return {
+      total: scoped.length,
+      pending: scoped.filter((l) => l.status === 'pending').length,
+      approved: approved.length,
+      rejected: scoped.filter((l) => l.status === 'rejected').length,
+      approvedDays: approved.reduce((s, l) => s + (l.totalDays || 0), 0),
+    };
+  }, [scoped]);
 
   const handleApprove = async (leave: LeaveRequest) => {
     const isConfirmed = await confirm({
@@ -296,39 +320,64 @@ export default function LeavesPage() {
             Kelola pengajuan ketidakhadiran karyawan JNE Martapura
           </p>
         </div>
-        {pendingCount > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl shrink-0">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <p className="text-[12px] font-bold text-amber-700">
-              {pendingCount} menunggu persetujuan
-            </p>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Filter periode (history) */}
+          <div className="flex items-center gap-2 h-10 px-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <Calendar size={14} className="text-emerald-500 shrink-0" />
+            <input
+              type="month"
+              value={monthFilter === 'all' ? '' : monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value || 'all')}
+              className="bg-transparent border-none text-[12px] font-semibold text-slate-700 outline-none cursor-pointer w-28"
+            />
           </div>
-        )}
+          {monthFilter !== 'all' && (
+            <button
+              onClick={() => setMonthFilter('all')}
+              className="h-10 px-3 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-bold hover:bg-slate-200 transition-all"
+            >
+              Semua
+            </button>
+          )}
+          {pendingCount > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-[12px] font-bold text-amber-700">{pendingCount} menunggu</p>
+            </div>
+          )}
+        </div>
       </motion.div>
 
-      {/* ── SUMMARY STRIP ── */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* ── RECAP STRIP (ikut filter periode) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {
             label: 'Menunggu',
-            val: allLeaves.filter((l) => l.status === 'pending').length,
+            val: recap.pending,
             dot: 'bg-amber-400',
             text: 'text-amber-600',
             bg: 'bg-amber-50',
           },
           {
             label: 'Disetujui',
-            val: allLeaves.filter((l) => l.status === 'approved').length,
+            val: recap.approved,
             dot: 'bg-emerald-400',
             text: 'text-emerald-600',
             bg: 'bg-emerald-50',
           },
           {
             label: 'Ditolak',
-            val: allLeaves.filter((l) => l.status === 'rejected').length,
+            val: recap.rejected,
             dot: 'bg-red-400',
             text: 'text-red-500',
             bg: 'bg-red-50',
+          },
+          {
+            label: 'Total Hari Cuti',
+            val: recap.approvedDays,
+            dot: 'bg-sky-400',
+            text: 'text-sky-600',
+            bg: 'bg-sky-50',
           },
         ].map((s, i) => (
           <motion.div
@@ -389,7 +438,7 @@ export default function LeavesPage() {
       </motion.div>
 
       {/* ── LEAVE CARDS ── */}
-      {leaves.length === 0 ? (
+      {activeTab !== 'balances' && leaves.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
