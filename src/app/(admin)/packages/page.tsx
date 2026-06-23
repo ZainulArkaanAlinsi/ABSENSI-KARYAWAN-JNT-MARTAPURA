@@ -175,6 +175,17 @@ export default function PackagesPage() {
     [entries],
   );
 
+  // Recap bulanan dari data tren (total & rata-rata per hari aktif).
+  const monthRecap = useMemo(() => {
+    const totalMonth = trend.reduce((s, t) => s + t.value, 0);
+    const activeDays = trend.filter((t) => t.value > 0).length;
+    return {
+      totalMonth,
+      activeDays,
+      avg: activeDays ? Math.round(totalMonth / activeDays) : 0,
+    };
+  }, [trend]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -213,9 +224,37 @@ export default function PackagesPage() {
         className="bg-white rounded-2xl p-5 border border-slate-100"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
       >
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-          Tren Paket Harian · {monthPrefix}
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-2 mb-3">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Tren Paket Harian · {monthPrefix}
+          </p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-[16px] font-black tabular-nums leading-none text-slate-800">
+                {monthRecap.totalMonth}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                Total bulan
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[16px] font-black tabular-nums leading-none text-slate-800">
+                {monthRecap.avg}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                Rata-rata/hari
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[16px] font-black tabular-nums leading-none text-slate-800">
+                {monthRecap.activeDays}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                Hari aktif
+              </p>
+            </div>
+          </div>
+        </div>
         <MonthlyTrend data={trend} color="#E31E24" gradientId="pkgTrend" />
       </div>
 
