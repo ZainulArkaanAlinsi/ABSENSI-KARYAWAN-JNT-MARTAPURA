@@ -4,16 +4,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Send,
   Search,
-  MoreVertical,
   Paperclip,
-  Smile,
   Image as ImageIcon,
   Loader2,
   Trash2,
   Check,
   CheckCheck,
-  Phone,
-  Video,
   MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
@@ -192,25 +188,6 @@ const EmptyState = ({
   </div>
 );
 
-// ── ICON BUTTON ──
-
-const IconBtn = ({
-  onClick,
-  children,
-  className = '',
-}: {
-  onClick?: () => void;
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <button
-    onClick={onClick}
-    className={`w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ${className}`}
-  >
-    {children}
-  </button>
-);
-
 // ── MAIN PAGE ──
 
 export default function ChatPage() {
@@ -355,9 +332,6 @@ export default function ChatPage() {
         <div className="px-5 pt-5 pb-4 border-b border-slate-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[16px] font-bold text-slate-900">Pesan</h2>
-            <IconBtn>
-              <MoreVertical size={16} />
-            </IconBtn>
           </div>
           <div className="relative">
             <Search
@@ -435,20 +409,6 @@ export default function ChatPage() {
             <p className="text-desc text-slate-400">Pilih kontak untuk memulai</p>
           )}
 
-          <div className="flex items-center gap-1">
-            <IconBtn>
-              <Phone size={17} />
-            </IconBtn>
-            <IconBtn>
-              <Video size={17} />
-            </IconBtn>
-            <IconBtn>
-              <Search size={17} />
-            </IconBtn>
-            <IconBtn>
-              <MoreVertical size={17} />
-            </IconBtn>
-          </div>
         </div>
 
         {/* Messages */}
@@ -540,13 +500,6 @@ export default function ChatPage() {
                 onChange={(e) => e.target.files?.[0] && setSelectedImage(e.target.files[0])}
               />
             </label>
-            <button
-              type="button"
-              className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-amber-500 transition-all shrink-0"
-            >
-              <Smile size={18} />
-            </button>
-
             {/* Text input */}
             <input
               type="text"
