@@ -35,6 +35,9 @@ export default function OvertimePage() {
     activeTab,
     setActiveTab,
     overtimes,
+    monthFilter,
+    setMonthFilter,
+    recap,
     loading,
     selectedOvertime,
     showRejectModal,
@@ -85,36 +88,66 @@ export default function OvertimePage() {
             Kelola pengajuan kerja lembur karyawan JNE Martapura
           </p>
         </div>
-        {pendingCount > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl shrink-0">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <p className="text-[12px] font-bold text-amber-700">
-              {pendingCount} menunggu persetujuan
-            </p>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Filter periode (history) */}
+          <div className="flex items-center gap-2 h-10 px-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <Calendar size={14} className="text-emerald-500 shrink-0" />
+            <input
+              type="month"
+              value={monthFilter === 'all' ? '' : monthFilter}
+              onChange={(e) => {
+                setMonthFilter(e.target.value || 'all');
+                setCurrentPage(1);
+              }}
+              className="bg-transparent border-none text-[12px] font-semibold text-slate-700 outline-none cursor-pointer w-28"
+            />
           </div>
-        )}
+          {monthFilter !== 'all' && (
+            <button
+              onClick={() => {
+                setMonthFilter('all');
+                setCurrentPage(1);
+              }}
+              className="h-10 px-3 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-bold hover:bg-slate-200 transition-all"
+            >
+              Semua
+            </button>
+          )}
+          {pendingCount > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-[12px] font-bold text-amber-700">{pendingCount} menunggu</p>
+            </div>
+          )}
+        </div>
       </motion.div>
 
-      {/* ── SUMMARY STRIP ── */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* ── RECAP STRIP (ikut filter periode) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {
             label: 'Menunggu',
-            val: overtimes.filter((o) => o.status === 'pending').length,
+            val: recap.pending,
             dot: 'bg-amber-400',
             text: 'text-amber-600',
           },
           {
             label: 'Disetujui',
-            val: overtimes.filter((o) => o.status === 'approved').length,
+            val: recap.approved,
             dot: 'bg-emerald-400',
             text: 'text-emerald-600',
           },
           {
             label: 'Ditolak',
-            val: overtimes.filter((o) => o.status === 'rejected').length,
+            val: recap.rejected,
             dot: 'bg-red-400',
             text: 'text-red-500',
+          },
+          {
+            label: 'Total Jam (disetujui)',
+            val: `${(recap.approvedMinutes / 60).toFixed(1)} jam`,
+            dot: 'bg-sky-400',
+            text: 'text-sky-600',
           },
         ].map((s, i) => (
           <motion.div

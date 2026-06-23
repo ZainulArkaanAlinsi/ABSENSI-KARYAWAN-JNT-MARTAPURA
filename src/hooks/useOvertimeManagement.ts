@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { subscribeToOvertimes, updateOvertimeStatus, deleteOvertime } from '@/lib/firestore';
+import { safeFormatDate } from '@/utils/dateFormatters';
 import type { OvertimeRequest, OvertimeStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -19,21 +20,51 @@ export function useOvertimeManagement() {
   const { confirm } = useConfirm();
 
   const [activeTab, setActiveTab] = useState<OvertimeStatus | 'all'>('pending');
-  const [overtimes, setOvertimes] = useState<OvertimeRequest[]>([]);
+  const [allOvertimes, setAllOvertimes] = useState<OvertimeRequest[]>([]);
+  // Filter periode (history): 'all' atau 'yyyy-MM'.
+  const [monthFilter, setMonthFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [selectedOvertime, setSelectedOvertime] = useState<OvertimeRequest | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
 
+  // Subscribe SEMUA sekali → filter status & periode client-side (untuk recap).
   useEffect(() => {
     setLoading(true);
-    const unsub = subscribeToOvertimes(activeTab, (data) => {
-      setOvertimes(data);
+    const unsub = subscribeToOvertimes('all', (data) => {
+      setAllOvertimes(data);
       setLoading(false);
     });
     return unsub;
-  }, [activeTab]);
+  }, []);
+
+  const scoped = useMemo(
+    () =>
+      monthFilter === 'all'
+        ? allOvertimes
+        : allOvertimes.filter((o) => safeFormatDate(o.date, 'yyyy-MM') === monthFilter),
+    [allOvertimes, monthFilter],
+  );
+
+  const overtimes = useMemo(
+    () => (activeTab === 'all' ? scoped : scoped.filter((o) => o.status === activeTab)),
+    [scoped, activeTab],
+  );
+
+  const recap = useMemo(() => {
+    const approved = scoped.filter((o) => o.status === 'approved');
+    const approvedMinutes = approved.reduce(
+      (s, o) => s + (o.overtimeMinutes > 0 ? o.overtimeMinutes : (o.overtimeHours || 0) * 60),
+      0,
+    );
+    return {
+      pending: scoped.filter((o) => o.status === 'pending').length,
+      approved: approved.length,
+      rejected: scoped.filter((o) => o.status === 'rejected').length,
+      approvedMinutes,
+    };
+  }, [scoped]);
 
   const handleApprove = async (ot: OvertimeRequest) => {
     const ok = await confirm({
@@ -107,13 +138,16 @@ export function useOvertimeManagement() {
     setShowRejectModal(true);
   };
 
-  const pendingCount = overtimes.filter((o) => o.status === 'pending').length;
+  const pendingCount = allOvertimes.filter((o) => o.status === 'pending').length;
 
   return {
     user,
     activeTab,
     setActiveTab,
     overtimes,
+    monthFilter,
+    setMonthFilter,
+    recap,
     loading,
     selectedOvertime,
     showRejectModal,
