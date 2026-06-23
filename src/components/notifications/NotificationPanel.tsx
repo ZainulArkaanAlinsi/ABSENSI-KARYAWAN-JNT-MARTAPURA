@@ -11,6 +11,7 @@ import {
   X,
   CheckCheck,
   Zap,
+  Trash2,
 } from 'lucide-react';
 import type { NotificationType } from '@/types';
 import { useNotificationPanelLogic } from '@/hooks/useNotificationPanelLogic';
@@ -43,7 +44,8 @@ interface NotificationPanelProps {
 }
 
 export default function NotificationPanel({ onClose }: NotificationPanelProps) {
-  const { notifications, unreadCount, markAllAsRead, handleMarkRead } = useNotificationPanelLogic();
+  const { notifications, unreadCount, markAllAsRead, handleMarkRead, deleteNotification, clearAll } =
+    useNotificationPanelLogic();
 
   return (
     <motion.div
@@ -70,6 +72,15 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
               title="Tandai semua dibaca"
             >
               <CheckCheck size={18} />
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={clearAll}
+              className="p-2 text-(--text-muted) hover:text-[#E31E24] transition-colors"
+              title="Hapus semua notifikasi"
+            >
+              <Trash2 size={18} />
             </button>
           )}
           <button
@@ -128,9 +139,21 @@ export default function NotificationPanel({ onClose }: NotificationPanelProps) {
                       {notif.message}
                     </p>
                   </div>
-                  {!notif.isRead && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#E31E24] mt-2 shrink-0 animate-pulse" />
-                  )}
+                  <div className="flex flex-col items-center gap-2 shrink-0">
+                    {!notif.isRead && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#E31E24] mt-1 animate-pulse" />
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotification(notif.id);
+                      }}
+                      title="Hapus notifikasi"
+                      className="p-1.5 rounded-lg text-(--text-dim) opacity-0 group-hover:opacity-100 hover:text-[#E31E24] hover:bg-[#E31E24]/10 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               );
             })}

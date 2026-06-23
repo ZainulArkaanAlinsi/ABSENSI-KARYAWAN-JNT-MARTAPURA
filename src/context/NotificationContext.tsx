@@ -16,6 +16,8 @@ import {
   subscribeToNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  deleteNotification as deleteNotificationDoc,
+  clearAllNotifications,
 } from '@/lib/firestore';
 import type { AdminNotification } from '@/types';
 import { useAuth } from './AuthContext';
@@ -62,6 +64,8 @@ interface NotificationContextType {
   unreadChatCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  clearAll: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -149,6 +153,27 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  const deleteNotification = useCallback(async (id: string) => {
+    // Optimistic: buang dari list dulu (subscribeToNotifications juga akan sync).
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await deleteNotificationDoc(id);
+    } catch (error) {
+      console.error('Gagal menghapus notifikasi:', error);
+    }
+  }, []);
+
+  const clearAll = useCallback(async () => {
+    const snapshot = notifications;
+    setNotifications([]);
+    try {
+      await clearAllNotifications();
+    } catch (error) {
+      console.error('Gagal mengosongkan notifikasi:', error);
+      setNotifications(snapshot);
+    }
+  }, [notifications]);
+
   const value = useMemo(
     () => ({
       notifications,
@@ -157,6 +182,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadChatCount,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
+      clearAll,
       isLoading,
     }),
     [
@@ -166,6 +193,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadChatCount,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
+      clearAll,
       isLoading,
     ],
   );

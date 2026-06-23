@@ -665,6 +665,16 @@ export async function markAllNotificationsRead(): Promise<void> {
   await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { isRead: true })));
 }
 
+export async function deleteNotification(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTIONS.NOTIFICATIONS, id));
+}
+
+/** Hapus semua notifikasi (kosongkan kotak masuk). */
+export async function clearAllNotifications(): Promise<void> {
+  const snap = await getDocs(query(collection(db, COLLECTIONS.NOTIFICATIONS)));
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+}
+
 // ============================================================
 // Settings
 // ============================================================
