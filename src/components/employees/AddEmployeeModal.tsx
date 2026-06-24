@@ -393,64 +393,133 @@ export default function AddEmployeeModal({
                 <Clock size={14} /> Jam Kerja & Jadwal Operasional{' '}
                 <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-4">
-                {jamKerjas.map((shift) => {
-                  const isSelected = form.jamKerjaId === shift.id;
-                  return (
-                    <button
-                      key={shift.id}
-                      type="button"
-                      onClick={() => handleChange('jamKerjaId', shift.id)}
-                      className={`p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                        isSelected
-                          ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5'
-                          : 'hover:scale-[1.01]'
-                      }`}
-                      style={
-                        !isSelected
-                          ? {
-                              borderColor: 'var(--border-card)',
-                              background: 'var(--surface-card)',
-                              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                            }
-                          : undefined
-                      }
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
-                          style={!isSelected ? { background: 'var(--surface-hover)' } : undefined}
-                        >
-                          <Clock size={16} />
-                        </div>
-                        <span
-                          className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
-                            shift.name.toLowerCase().includes('pagi')
-                              ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                              : shift.name.toLowerCase().includes('sore')
-                                ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                                : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                          }`}
-                        >
-                          {shift.name.split(' ')[0]}
-                        </span>
-                      </div>
-                      <p
-                        className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
-                        style={!isSelected ? { color: 'var(--text-primary)' } : undefined}
-                      >
-                        {shift.name}
-                      </p>
-                      <p
-                        className="text-[10px] font-bold mt-1 uppercase tracking-tighter"
-                        style={{ color: 'var(--text-dim)' }}
-                      >
-                        {shift.checkInTime} — {shift.checkOutTime}
-                      </p>
-                    </button>
-                  );
-                })}
+
+              {/* Toggle: pilih template ATAU set jam custom langsung */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleChange('useCustomShift', false)}
+                  className={`flex-1 h-9 rounded-xl text-[11px] font-bold transition-all ${!form.useCustomShift ? 'bg-cyan-600 text-white' : ''}`}
+                  style={
+                    form.useCustomShift
+                      ? { background: 'var(--surface-hover)', color: 'var(--text-muted)' }
+                      : undefined
+                  }
+                >
+                  Pilih Template
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange('useCustomShift', true)}
+                  className={`flex-1 h-9 rounded-xl text-[11px] font-bold transition-all ${form.useCustomShift ? 'bg-cyan-600 text-white' : ''}`}
+                  style={
+                    !form.useCustomShift
+                      ? { background: 'var(--surface-hover)', color: 'var(--text-muted)' }
+                      : undefined
+                  }
+                >
+                  Custom Jam
+                </button>
               </div>
+
+              {form.useCustomShift ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label
+                      className="text-[10px] font-black uppercase tracking-widest ml-1"
+                      style={{ color: 'var(--text-dim)' }}
+                    >
+                      Jam Masuk
+                    </label>
+                    <input
+                      type="time"
+                      className={inputCls}
+                      style={fieldStyle}
+                      value={form.customCheckIn}
+                      onChange={(e) => handleChange('customCheckIn', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      className="text-[10px] font-black uppercase tracking-widest ml-1"
+                      style={{ color: 'var(--text-dim)' }}
+                    >
+                      Jam Keluar
+                    </label>
+                    <input
+                      type="time"
+                      className={inputCls}
+                      style={fieldStyle}
+                      value={form.customCheckOut}
+                      onChange={(e) => handleChange('customCheckOut', e.target.value)}
+                    />
+                  </div>
+                </div>
+              ) : jamKerjas.length === 0 ? (
+                <p className="text-[11px] ml-1" style={{ color: 'var(--text-dim)' }}>
+                  Belum ada template shift. Pakai <b>Custom Jam</b> di atas, atau buat dulu di menu
+                  Jam Kerja.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-4">
+                  {jamKerjas.map((shift) => {
+                    const isSelected = form.jamKerjaId === shift.id;
+                    return (
+                      <button
+                        key={shift.id}
+                        type="button"
+                        onClick={() => handleChange('jamKerjaId', shift.id)}
+                        className={`p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                          isSelected
+                            ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5'
+                            : 'hover:scale-[1.01]'
+                        }`}
+                        style={
+                          !isSelected
+                            ? {
+                                borderColor: 'var(--border-card)',
+                                background: 'var(--surface-card)',
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                              }
+                            : undefined
+                        }
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+                            style={!isSelected ? { background: 'var(--surface-hover)' } : undefined}
+                          >
+                            <Clock size={16} />
+                          </div>
+                          <span
+                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
+                              shift.name.toLowerCase().includes('pagi')
+                                ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                : shift.name.toLowerCase().includes('sore')
+                                  ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                            }`}
+                          >
+                            {shift.name.split(' ')[0]}
+                          </span>
+                        </div>
+                        <p
+                          className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
+                          style={!isSelected ? { color: 'var(--text-primary)' } : undefined}
+                        >
+                          {shift.name}
+                        </p>
+                        <p
+                          className="text-[10px] font-bold mt-1 uppercase tracking-tighter"
+                          style={{ color: 'var(--text-dim)' }}
+                        >
+                          {shift.checkInTime} — {shift.checkOutTime}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* --- FOOTER --- */}

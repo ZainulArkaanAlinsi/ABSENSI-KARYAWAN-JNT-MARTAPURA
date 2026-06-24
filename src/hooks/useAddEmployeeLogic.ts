@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { registerEmployee, getNextEmployeeId } from '@/lib/firestore';
+import { registerEmployee, getNextEmployeeId, addJamKerja } from '@/lib/firestore';
 import { toast } from 'sonner';
-import type { Department, UserRole } from '@/types';
+import type { Department, UserRole, WorkDay } from '@/types';
 
 export function useAddEmployeeLogic(onClose: () => void) {
   const [loading, setLoading] = useState(false);
@@ -18,6 +18,11 @@ export function useAddEmployeeLogic(onClose: () => void) {
     department: '' as Department,
     position: '',
     jamKerjaId: '',
+    // Jam kerja custom langsung (tanpa harus bikin template shift dulu).
+    // Kalau aktif, shift baru dibuat saat submit & jamKerjaId-nya dipakai.
+    useCustomShift: false,
+    customCheckIn: '08:00',
+    customCheckOut: '17:00',
     contractType: 'permanent' as 'permanent' | 'contract' | 'intern',
     joinDate: new Date().toISOString().split('T')[0],
     firstLogin: true,
@@ -68,8 +73,11 @@ export function useAddEmployeeLogic(onClose: () => void) {
     e.preventDefault();
 
     // Strict Validation: Remove password from mandatory manual check as it is auto-filled
-    if (!form.name || !form.email || !form.employeeId || !form.department || !form.jamKerjaId) {
-      toast.error('Semua field bertanda * wajib diisi!');
+    const jamKerjaValid = form.useCustomShift
+      ? !!form.customCheckIn && !!form.customCheckOut
+      : !!form.jamKerjaId;
+    if (!form.name || !form.email || !form.employeeId || !form.department || !jamKerjaValid) {
+      toast.error('Semua field bertanda * wajib diisi (termasuk jam kerja)!');
       return;
     }
 
@@ -80,8 +88,32 @@ export function useAddEmployeeLogic(onClose: () => void) {
 
     setLoading(true);
     try {
-      // Kita panggil registerEmployee yang baru (Auth + Firestore)
-      const { password, ...employeeData } = form;
+      // Jam kerja custom → buat shift baru dulu, pakai id-nya sebagai jamKerjaId
+      // (mobile baca shifts/{jamKerjaId} untuk jam masuk/keluar).
+      let resolvedJamKerjaId = form.jamKerjaId;
+      if (form.useCustomShift) {
+        resolvedJamKerjaId = await addJamKerja({
+          name: `${form.name} (${form.customCheckIn}–${form.customCheckOut})`,
+          checkInTime: form.customCheckIn,
+          checkOutTime: form.customCheckOut,
+          toleranceMinutes: 15,
+          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as WorkDay[],
+          color: '#E31E24',
+          isActive: true,
+        });
+      }
+
+      // Kita panggil registerEmployee yang baru (Auth + Firestore).
+      // Buang field helper custom shift (bukan field Employee).
+      /* eslint-disable @typescript-eslint/no-unused-vars */
+      const {
+        password,
+        useCustomShift: _ucs,
+        customCheckIn: _cci,
+        customCheckOut: _cco,
+        ...employeeData
+      } = form;
+      /* eslint-enable @typescript-eslint/no-unused-vars */
 
       // Determine role based on department
       const valLower = form.department.toLowerCase();
@@ -103,6 +135,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
       await registerEmployee(
         {
           ...employeeData,
+          jamKerjaId: resolvedJamKerjaId,
           role: dynamicRole,
           isOnline: false,
           faceRegistered: false,
@@ -126,6 +159,9 @@ export function useAddEmployeeLogic(onClose: () => void) {
           department: '' as Department,
           position: '',
           jamKerjaId: '',
+          useCustomShift: false,
+          customCheckIn: '08:00',
+          customCheckOut: '17:00',
           contractType: 'permanent',
           joinDate: new Date().toISOString().split('T')[0],
           firstLogin: true,
