@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Trophy, Clock, Truck, Receipt } from 'lucide-react';
+import { Trophy, Clock, Truck, Receipt, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getEmployees } from '@/lib/firestore';
@@ -121,22 +123,49 @@ export default function LeaderboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const topSales = useMemo(() => sumBy(sales), [sales, nameOf]);
 
+  const handleExportCsv = () => {
+    const all = [
+      ...punctual.map((r, i) => ['Paling Rajin', i + 1, r.name, r.dept, r.value, r.sub ?? '']),
+      ...topCouriers.map((r, i) => ['Top Kurir', i + 1, r.name, r.dept, r.value, 'paket']),
+      ...topSales.map((r, i) => ['Top Sales', i + 1, r.name, r.dept, r.value, 'rupiah']),
+    ];
+    if (all.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Leaderboard_${monthPrefix}`,
+      ['Kategori', 'Peringkat', 'Nama', 'Departemen', 'Nilai', 'Keterangan'],
+      all,
+    );
+    toast.success('Papan peringkat diekspor');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Trophy size={18} style={{ color: '#E31E24' }} />
-          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
-            Apresiasi
-          </span>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Trophy size={18} style={{ color: '#E31E24' }} />
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+              Apresiasi
+            </span>
+          </div>
+          <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
+            Papan <span style={{ color: '#E31E24' }}>Peringkat</span>
+          </h1>
+          <p className="text-[12px] font-medium text-slate-400 mt-0.5 capitalize">
+            Kinerja terbaik bulan {monthLabel}.
+          </p>
         </div>
-        <h1 className="editorial-heading text-[28px]" style={{ color: 'var(--text-primary)' }}>
-          Papan <span style={{ color: '#E31E24' }}>Peringkat</span>
-        </h1>
-        <p className="text-[12px] font-medium text-slate-400 mt-0.5 capitalize">
-          Kinerja terbaik bulan {monthLabel}.
-        </p>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition-all shrink-0"
+        >
+          <Download size={15} />
+          Export CSV
+        </button>
       </div>
 
       {loading ? (

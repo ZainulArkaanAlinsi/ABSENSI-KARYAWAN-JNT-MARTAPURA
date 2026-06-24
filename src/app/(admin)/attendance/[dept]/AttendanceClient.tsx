@@ -22,10 +22,12 @@ import {
   X,
   Save,
   Loader2,
+  Download,
 } from 'lucide-react';
 import type { AttendanceRecord } from '@/types';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 
 // ─── Status chip ──────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; dot: string; bg: string; text: string }> = {
@@ -179,6 +181,36 @@ export default function AttendanceClient() {
   const totalLeave = records.filter((r) => r.status === 'leave').length;
   const totalAbsent = records.filter((r) => r.status === 'absent').length;
 
+  const handleExportLog = () => {
+    if (records.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Absensi_${rule.name.replace(/[\s/]+/g, '-')}_${todayStr}`,
+      ['Karyawan', 'Employee ID', 'Status', 'Masuk', 'Keluar', 'Telat', 'Total Kerja'],
+      records.map((rec) => {
+        let lateDisplay = '';
+        let yieldDisplay = '';
+        if (rec.checkIn && rec.checkOut) {
+          const calc = calcEffectiveMinutes(rec.checkIn.time, rec.checkOut.time, rule);
+          if (calc.lateMinutes > 0) lateDisplay = fmtMinutes(calc.lateMinutes);
+          yieldDisplay = fmtMinutes(calc.effectiveMinutes);
+        }
+        return [
+          rec.employeeName ?? '',
+          rec.employeeId ?? '',
+          STATUS_CFG[rec.status]?.label ?? rec.status,
+          safeFormatTime(rec.checkIn?.time, 'HH:mm:ss'),
+          safeFormatTime(rec.checkOut?.time, 'HH:mm:ss'),
+          lateDisplay,
+          yieldDisplay,
+        ];
+      }),
+    );
+    toast.success(`${records.length} log absensi diekspor`);
+  };
+
   return (
     <div className="flex flex-col gap-5 pb-6">
       {/* ── HEADER ── */}
@@ -214,9 +246,11 @@ export default function AttendanceClient() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
+            onClick={handleExportLog}
             className="flex items-center gap-2 h-9 px-4 bg-white border border-slate-200 rounded-xl text-[12px] font-semibold text-slate-600 hover:border-emerald-300 hover:text-emerald-600 transition-all"
             style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
           >
+            <Download size={14} />
             Ekspor Log
           </motion.button>
         </div>

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Package, Search, Check, Loader2 } from 'lucide-react';
+import { Package, Search, Check, Loader2, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 import {
   collection,
   query,
@@ -175,6 +177,25 @@ export default function PackagesPage() {
     [entries],
   );
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Paket_${date}`,
+      ['Tanggal', 'Nama Kurir', 'Departemen', 'Jumlah Paket', 'Target', 'Pencapaian %'],
+      filtered.map((c) => {
+        const entry = entries[c.uid] ?? { count: 0 };
+        const rule = getRuleByDept(c.department as string);
+        const target = rule?.dailyTarget ?? null;
+        const pct = target ? Math.round(((entry.count || 0) / target) * 100) : '';
+        return [date, c.name, c.department ?? '', entry.count ?? 0, target ?? '', pct];
+      }),
+    );
+    toast.success(`${filtered.length} data paket diekspor`);
+  };
+
   // Recap bulanan dari data tren (total & rata-rata per hari aktif).
   const monthRecap = useMemo(() => {
     const totalMonth = trend.reduce((s, t) => s + t.value, 0);
@@ -276,6 +297,13 @@ export default function PackagesPage() {
             className="w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
           />
         </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition-all shrink-0"
+        >
+          <Download size={15} />
+          Export CSV
+        </button>
       </div>
 
       {/* List */}

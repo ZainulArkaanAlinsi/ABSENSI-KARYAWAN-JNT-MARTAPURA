@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { BarChart3, Search, Check, Loader2 } from 'lucide-react';
+import { BarChart3, Search, Check, Loader2, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 import {
   collection,
   query,
@@ -168,6 +170,22 @@ export default function SalesPage() {
     [entries],
   );
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Penjualan_${date}`,
+      ['Tanggal', 'Nama Sales', 'Departemen', 'Nilai Penjualan (Rp)'],
+      filtered.map((o) => {
+        const entry = entries[o.uid] ?? { amount: 0 };
+        return [date, o.name, o.department ?? '', entry.amount ?? 0];
+      }),
+    );
+    toast.success(`${filtered.length} data penjualan diekspor`);
+  };
+
   // Recap bulanan dari data tren (total & rata-rata per hari aktif).
   const monthRecap = useMemo(() => {
     const totalMonth = trend.reduce((s, t) => s + t.value, 0);
@@ -268,6 +286,13 @@ export default function SalesPage() {
             className="w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
           />
         </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition-all shrink-0"
+        >
+          <Download size={15} />
+          Export CSV
+        </button>
       </div>
 
       {loading ? (

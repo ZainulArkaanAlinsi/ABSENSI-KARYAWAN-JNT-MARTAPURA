@@ -23,8 +23,10 @@ import {
   FileText,
   Building2,
   Trash2,
+  Download,
   type LucideIcon,
 } from 'lucide-react';
+import { exportToCsv } from '@/utils/exportCsv';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
@@ -415,6 +417,34 @@ export default function RequestCenterPage() {
 
   const pendingCount = countFor('pending');
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Permintaan_${activeTab}`,
+      ['Nama', 'Employee ID', 'Departemen', 'Jenis', 'Tipe', 'Periode', 'Status', 'Alasan'],
+      filtered.map((r) => {
+        const period =
+          r.source === 'leave'
+            ? `${r.startDate ?? ''}${r.endDate ? ' s/d ' + r.endDate : ''}`
+            : `${r.date ?? ''}${r.overtimeHours ? ' (' + r.overtimeHours + ' jam)' : ''}`;
+        return [
+          r.employeeName ?? '',
+          r.employeeId ?? '',
+          r.department ?? '',
+          r.source === 'leave' ? 'Cuti/Izin' : 'Lembur',
+          getLabel(r),
+          period,
+          r.status ?? '',
+          r.reason || r.notes || '',
+        ];
+      }),
+    );
+    toast.success(`${filtered.length} permintaan diekspor`);
+  };
+
   // ── Actions ──────────────────────────────────────────────────
   const openAction = (req: RequestItem, type: 'approve' | 'reject') => {
     setSelectedReq(req);
@@ -501,23 +531,32 @@ export default function RequestCenterPage() {
           </h1>
         </div>
 
-        {pendingCount > 0 && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="flex items-center gap-2.5 px-4 py-2 rounded-2xl border
-                       bg-amber-50 dark:bg-amber-500/10
-                       border-amber-200 dark:border-amber-500/20"
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-bold hover:bg-emerald-100 transition-all dark:bg-emerald-500/10 dark:border-emerald-500/25 dark:text-emerald-400"
           >
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-            </span>
-            <span className="text-[13px] font-bold text-amber-600 dark:text-amber-400">
-              {pendingCount} menunggu
-            </span>
-          </motion.div>
-        )}
+            <Download size={14} className="shrink-0" />
+            Export CSV
+          </button>
+          {pendingCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="flex items-center gap-2.5 px-4 py-2 rounded-2xl border
+                         bg-amber-50 dark:bg-amber-500/10
+                         border-amber-200 dark:border-amber-500/20"
+            >
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+              </span>
+              <span className="text-[13px] font-bold text-amber-600 dark:text-amber-400">
+                {pendingCount} menunggu
+              </span>
+            </motion.div>
+          )}
+        </div>
       </motion.div>
 
       {/* ── STAT TABS ── */}

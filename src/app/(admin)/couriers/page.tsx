@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Truck, Target, Search, Clock } from 'lucide-react';
+import { Truck, Target, Search, Clock, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getEmployees } from '@/lib/firestore';
@@ -86,6 +88,26 @@ export default function CouriersPage() {
     (r) => r.todayStatus !== 'belum' && r.todayStatus !== 'absent',
   ).length;
 
+  const handleExportCsv = () => {
+    if (rows.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Kurir_${monthPrefix}`,
+      ['Nama', 'Departemen', 'Target', 'Status Hari Ini', 'Hadir (bln)', 'Telat (bln)'],
+      rows.map(({ c, target, todayStatus, present, late }) => [
+        c.name,
+        c.department ?? '',
+        target,
+        (STATUS_META[todayStatus] ?? STATUS_META.belum).label,
+        present,
+        late,
+      ]),
+    );
+    toast.success(`${rows.length} data kurir diekspor`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -120,15 +142,24 @@ export default function CouriersPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari kurir / departemen…"
-          className="w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-        />
+      {/* Search + Export */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Cari kurir / departemen…"
+            className="w-full pl-9 pr-3 py-2.5 text-[13px] rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+          />
+        </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition-all shrink-0"
+        >
+          <Download size={15} />
+          Export CSV
+        </button>
       </div>
 
       {/* List */}

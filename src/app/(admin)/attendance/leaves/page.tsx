@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 
 // ─── Status Badge ─────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
@@ -208,6 +209,39 @@ export default function LeaveRequestsPage() {
     [requests],
   );
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Izin_Cuti_${filter}`,
+      [
+        'Nama',
+        'Employee ID',
+        'Departemen',
+        'Tipe',
+        'Mulai',
+        'Selesai',
+        'Total Hari',
+        'Status',
+        'Alasan',
+      ],
+      filtered.map((r) => [
+        r.employeeName ?? '',
+        r.employeeId ?? '',
+        r.department ?? '',
+        r.type ?? '',
+        r.startDate ? format(toDate(r.startDate), 'yyyy-MM-dd') : '',
+        r.endDate ? format(toDate(r.endDate), 'yyyy-MM-dd') : '',
+        r.totalDays ?? '',
+        r.status ?? '',
+        r.reason ?? '',
+      ]),
+    );
+    toast.success(`${filtered.length} pengajuan diekspor`);
+  };
+
   return (
     <div className="flex flex-col gap-5 pb-6">
       {/* ── HEADER ── */}
@@ -236,6 +270,7 @@ export default function LeaveRequestsPage() {
         <div className="flex items-center gap-2.5">
           <motion.button
             whileTap={{ scale: 0.96 }}
+            onClick={handleExportCsv}
             className="inline-flex items-center gap-2 h-9 px-4 bg-white border border-slate-200 rounded-xl text-[12px] font-semibold text-slate-600 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
           >
             <Download size={14} /> Export

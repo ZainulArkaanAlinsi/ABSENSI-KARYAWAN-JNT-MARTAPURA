@@ -11,8 +11,10 @@ import {
   ShieldCheck,
   TriangleAlert,
   Trash2,
+  Download,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
+import { exportToCsv } from '@/utils/exportCsv';
 import { id as localeId } from 'date-fns/locale';
 import { db } from '@/lib/firebase';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -143,6 +145,26 @@ export default function LoginIssuesPage() {
     };
   }, [issues]);
 
+  const handleExportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      'Kendala_Login',
+      ['Tanggal', 'Nama', 'Email/ID', 'WhatsApp', 'Status', 'Deskripsi'],
+      filtered.map((i) => [
+        i.createdAt ? format(toDate(i.createdAt), 'yyyy-MM-dd HH:mm') : '',
+        i.name ?? '',
+        i.emailOrEmployeeId ?? '',
+        i.phone ?? '',
+        STATUS_META[i.status]?.label ?? i.status,
+        i.description ?? '',
+      ]),
+    );
+    toast.success(`${filtered.length} laporan diekspor`);
+  };
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
@@ -233,6 +255,14 @@ export default function LoginIssuesPage() {
             <FilterPill active={filter === 'resolved'} onClick={() => setFilter('resolved')}>
               Selesai
             </FilterPill>
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700 transition-all hover:bg-emerald-100 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-400"
+            >
+              <Download size={13} />
+              Export
+            </button>
           </div>
         </div>
       </section>

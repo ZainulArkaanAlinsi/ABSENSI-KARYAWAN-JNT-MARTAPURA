@@ -12,7 +12,10 @@ import {
   Calendar,
   Trash2,
   Timer,
+  Download,
 } from 'lucide-react';
+import { exportToCsv } from '@/utils/exportCsv';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import { Pagination } from '@/components/ui/Pagination';
@@ -60,6 +63,39 @@ export default function OvertimePage() {
     currentPage * ITEMS_PER_PAGE,
   );
 
+  const handleExportCsv = () => {
+    if (overtimes.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Lembur_${monthFilter === 'all' ? 'semua' : monthFilter}`,
+      [
+        'Tanggal Lembur',
+        'Nama',
+        'Employee ID',
+        'Durasi',
+        'Total Menit',
+        'Status',
+        'Alasan',
+        'Disetujui Oleh',
+        'Alasan Tolak',
+      ],
+      overtimes.map((ot: OvertimeRequest) => [
+        ot.date ? safeFormatDate(ot.date, 'yyyy-MM-dd') : '',
+        ot.employeeName,
+        ot.employeeId,
+        formatDuration(ot.overtimeMinutes, ot.overtimeHours),
+        ot.overtimeMinutes ?? '',
+        ot.status,
+        ot.reason ?? '',
+        ot.reviewedBy ?? '',
+        ot.rejectionReason || ot.adminReason || '',
+      ]),
+    );
+    toast.success(`${overtimes.length} data lembur diekspor`);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-3">
@@ -89,6 +125,13 @@ export default function OvertimePage() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-bold hover:bg-emerald-100 transition-all"
+          >
+            <Download size={14} className="shrink-0" />
+            Export CSV
+          </button>
           {/* Filter periode (history) */}
           <div className="flex items-center gap-2 h-10 px-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
             <Calendar size={14} className="text-emerald-500 shrink-0" />

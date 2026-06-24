@@ -24,6 +24,7 @@ import {
   UserCheck,
   Calendar,
   Trash2,
+  Download,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
@@ -31,6 +32,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 
 const TABS = [
   { key: 'pending', label: 'Menunggu' },
@@ -144,6 +146,41 @@ export default function LeavesPage() {
       approvedDays: approved.reduce((s, l) => s + (l.totalDays || 0), 0),
     };
   }, [scoped]);
+
+  const handleExportCsv = () => {
+    if (scoped.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      `Cuti_${monthFilter === 'all' ? 'semua' : monthFilter}`,
+      [
+        'Tanggal Pengajuan',
+        'Nama',
+        'Employee ID',
+        'Tipe',
+        'Mulai',
+        'Selesai',
+        'Total Hari',
+        'Status',
+        'Alasan',
+        'Disetujui Oleh',
+      ],
+      scoped.map((l) => [
+        safeFormatDate(l.createdAt, 'yyyy-MM-dd'),
+        l.employeeName,
+        l.employeeId,
+        LEAVE_TYPES[l.type] ?? l.type,
+        safeFormatDate(l.startDate, 'yyyy-MM-dd'),
+        safeFormatDate(l.endDate, 'yyyy-MM-dd'),
+        l.totalDays ?? '',
+        l.status,
+        l.reason ?? '',
+        l.reviewedBy ?? '',
+      ]),
+    );
+    toast.success(`${scoped.length} data cuti diekspor`);
+  };
 
   const handleApprove = async (leave: LeaveRequest) => {
     const isConfirmed = await confirm({
@@ -321,6 +358,13 @@ export default function LeavesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-bold hover:bg-emerald-100 transition-all"
+          >
+            <Download size={14} className="shrink-0" />
+            Export CSV
+          </button>
           {/* Filter periode (history) */}
           <div className="flex items-center gap-2 h-10 px-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
             <Calendar size={14} className="text-emerald-500 shrink-0" />

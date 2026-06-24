@@ -23,9 +23,11 @@ import {
   List,
   Wifi,
   X,
+  Download,
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
+import { exportToCsv } from '@/utils/exportCsv';
 
 // ── Animated counter ──────────────────────────────────────────
 function AnimCount({ to }: { to: number }) {
@@ -460,6 +462,43 @@ export default function EmployeesPage() {
 
   const hasFilter = !!(search || filterDept !== 'all' || filterFace !== 'all');
 
+  const handleExportCsv = () => {
+    if (filteredEmployees.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      'Data_Karyawan',
+      [
+        'Nama',
+        'Employee ID',
+        'Departemen',
+        'Posisi',
+        'Email Kerja',
+        'Email Pribadi',
+        'Telepon',
+        'Tipe Kontrak',
+        'Tanggal Bergabung',
+        'Wajah Terdaftar',
+        'Status',
+      ],
+      filteredEmployees.map((e) => [
+        e.name,
+        e.employeeId,
+        e.department ?? '',
+        e.position ?? '',
+        e.email ?? '',
+        e.personalEmail ?? '',
+        e.phone ?? '',
+        e.contractType ?? '',
+        e.joinDate ?? '',
+        e.faceRegistered ? 'Ya' : 'Tidak',
+        e.isActive === false ? 'Nonaktif' : 'Aktif',
+      ]),
+    );
+    toast.success(`${filteredEmployees.length} data karyawan diekspor`);
+  };
+
   const FACE_OPTS = [
     { value: 'all', label: 'Semua' },
     { value: 'registered', label: 'Verified' },
@@ -517,6 +556,16 @@ export default function EmployeesPage() {
               </motion.button>
             ))}
           </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleExportCsv}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-all shrink-0"
+          >
+            <Download size={15} />
+            <span className="hidden sm:inline">Export CSV</span>
+          </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.02, boxShadow: '0 6px 20px rgba(227,30,36,0.30)' }}

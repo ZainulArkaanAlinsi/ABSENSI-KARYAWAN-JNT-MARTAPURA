@@ -19,7 +19,9 @@ import {
   XCircle,
   CheckCircle2,
   Trash2,
+  Download,
 } from 'lucide-react';
+import { exportToCsv } from '@/utils/exportCsv';
 
 const toDate = (val: unknown): Date => {
   if (!val) return new Date();
@@ -90,6 +92,28 @@ export default function EditRequestsPage() {
   const approved = requests.filter((r) => r.status === 'approved').length;
   const rejected = requests.filter((r) => r.status === 'rejected').length;
 
+  const statusLabel = (s: string) =>
+    s === 'pending' ? 'Menunggu' : s === 'approved' ? 'Disetujui' : 'Ditolak';
+
+  const handleExportCsv = () => {
+    if (requests.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportToCsv(
+      'Request_Edit_Absensi',
+      ['Tanggal', 'Nama', 'User ID', 'Status', 'Alasan'],
+      requests.map((r) => [
+        r.createdAt ? format(toDate(r.createdAt), 'yyyy-MM-dd HH:mm') : '',
+        r.userName ?? '',
+        r.userId ?? '',
+        statusLabel(r.status),
+        r.reason ?? '',
+      ]),
+    );
+    toast.success(`${requests.length} request diekspor`);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
@@ -118,6 +142,13 @@ export default function EditRequestsPage() {
             Permintaan koreksi data kehadiran dari karyawan
           </p>
         </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-bold hover:bg-emerald-100 transition-all shrink-0"
+        >
+          <Download size={14} className="shrink-0" />
+          Export CSV
+        </button>
       </motion.div>
 
       {/* ── SUMMARY ── */}
