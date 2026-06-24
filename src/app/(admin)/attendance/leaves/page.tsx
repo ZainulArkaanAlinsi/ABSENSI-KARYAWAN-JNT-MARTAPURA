@@ -3,7 +3,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, doc, updateDoc, where, addDoc } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  where,
+  addDoc,
+  deleteDoc,
+} from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { LeaveRequest } from '@/types';
 import { format } from 'date-fns';
@@ -21,6 +30,7 @@ import {
   Download,
   Filter,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
@@ -152,6 +162,27 @@ export default function LeaveRequestsPage() {
     } catch (e) {
       console.error(e);
       toast.error('Terjadi kesalahan saat memproses permintaan.');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDelete = async (req: LeaveRequest) => {
+    const ok = await confirm({
+      title: 'Hapus Pengajuan',
+      message: `Hapus pengajuan ${req.employeeName ?? 'karyawan'}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setProcessing(req.id);
+    try {
+      await deleteDoc(doc(db, 'leaves', req.id));
+      toast.success('Pengajuan dihapus');
+    } catch (e) {
+      console.error('Delete leave failed:', e);
+      toast.error('Gagal menghapus.');
     } finally {
       setProcessing(null);
     }
@@ -421,16 +452,36 @@ export default function LeaveRequestsPage() {
                         )}
                         Setujui
                       </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => handleDelete(req)}
+                        disabled={!!processing}
+                        title="Hapus pengajuan"
+                        className="w-11 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center disabled:opacity-50"
+                      >
+                        <Trash2 size={15} />
+                      </motion.button>
                     </div>
                   ) : (
-                    <div className="w-full h-10 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center gap-2">
-                      <ShieldCheck
-                        size={14}
-                        className={req.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}
-                      />
-                      <span className="text-[11px] font-semibold text-slate-500">
-                        {req.status === 'approved' ? 'Sudah disetujui' : 'Sudah ditolak'}
-                      </span>
+                    <div className="flex gap-2.5">
+                      <div className="flex-1 h-10 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center gap-2">
+                        <ShieldCheck
+                          size={14}
+                          className={req.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}
+                        />
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          {req.status === 'approved' ? 'Sudah disetujui' : 'Sudah ditolak'}
+                        </span>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => handleDelete(req)}
+                        disabled={!!processing}
+                        title="Hapus pengajuan"
+                        className="w-11 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center disabled:opacity-50"
+                      >
+                        <Trash2 size={15} />
+                      </motion.button>
                     </div>
                   )}
                 </div>

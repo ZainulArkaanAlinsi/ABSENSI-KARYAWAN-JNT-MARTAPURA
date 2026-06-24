@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
 import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
 import {
   AlertCircle,
@@ -10,10 +10,13 @@ import {
   ShieldAlert,
   ShieldCheck,
   TriangleAlert,
+  Trash2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { db } from '@/lib/firebase';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 
 type LoginIssueStatus = 'pending' | 'in_progress' | 'resolved';
 
@@ -69,6 +72,29 @@ export default function LoginIssuesPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | LoginIssueStatus>('all');
+  const { confirm } = useConfirm();
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (issue: LoginIssueDoc) => {
+    const ok = await confirm({
+      title: 'Hapus Laporan',
+      message: `Hapus laporan masalah login dari ${issue.name ?? 'pengguna'}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setDeleting(issue.id);
+    try {
+      await deleteDoc(doc(db, 'login_issues', issue.id));
+      toast.success('Laporan dihapus');
+    } catch (e) {
+      console.error('Delete login_issue failed:', e);
+      toast.error('Gagal menghapus.');
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'login_issues'), orderBy('createdAt', 'desc'));
@@ -314,6 +340,14 @@ export default function LoginIssuesPage() {
                             })
                           : 'baru saja'}
                       </p>
+                      <button
+                        onClick={() => handleDelete(issue)}
+                        disabled={deleting === issue.id}
+                        className="mt-3 flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-400 transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 dark:border-white/10"
+                      >
+                        <Trash2 size={13} />
+                        Hapus Laporan
+                      </button>
                     </div>
                   </div>
                 </article>

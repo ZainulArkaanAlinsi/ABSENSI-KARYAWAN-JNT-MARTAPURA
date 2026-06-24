@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
 import { handleListenerError, isBenignListenerError } from '@/lib/firestoreListener';
 import {
   AlertCircle,
@@ -11,10 +11,13 @@ import {
   Search,
   ShieldCheck,
   TriangleAlert,
+  Trash2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { db } from '@/lib/firebase';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 import type { AttendanceStatus } from '@/types';
 
 type EditRequestStatus = 'pending' | 'approved' | 'rejected';
@@ -84,6 +87,29 @@ export default function EditRequestsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | EditRequestStatus>('all');
+  const { confirm } = useConfirm();
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (req: EditRequestDoc) => {
+    const ok = await confirm({
+      title: 'Hapus Request',
+      message: `Hapus request edit absensi dari ${req.userName ?? 'karyawan'}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setDeleting(req.id);
+    try {
+      await deleteDoc(doc(db, 'edit_requests', req.id));
+      toast.success('Request dihapus');
+    } catch (e) {
+      console.error('Delete edit_request failed:', e);
+      toast.error('Gagal menghapus.');
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'edit_requests'), orderBy('createdAt', 'desc'));
@@ -337,6 +363,18 @@ export default function EditRequestsPage() {
                             })
                           : 'baru saja'}
                       </p>
+                      <button
+                        onClick={() => handleDelete(request)}
+                        disabled={deleting === request.id}
+                        className="mt-3 flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-400 transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 dark:border-white/10"
+                      >
+                        {deleting === request.id ? (
+                          <RefreshCw size={13} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={13} />
+                        )}
+                        Hapus
+                      </button>
                     </div>
                   </div>
                 </article>
