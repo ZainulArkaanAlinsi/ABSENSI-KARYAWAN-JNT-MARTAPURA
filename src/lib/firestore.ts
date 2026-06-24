@@ -89,6 +89,7 @@ function mapEmployee(id: string, data: DocumentData): Employee {
     deviceModel: data.deviceModel,
     registeredDeviceId: data.registeredDeviceId,
     photoUrl: data.photoUrl,
+    facePhotoUrl: data.facePhotoUrl,
     joinDate: toDate(data.joinDate),
     contractType: data.contractType || 'permanent',
     isActive: data.isActive ?? true,

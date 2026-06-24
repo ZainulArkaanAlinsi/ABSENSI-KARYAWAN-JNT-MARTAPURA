@@ -81,6 +81,8 @@ export interface Employee {
   deviceModel?: string;
   registeredDeviceId?: string;
   photoUrl?: string;
+  /** Foto wajah hasil enrollment (di-upload mobile saat daftar wajah). */
+  facePhotoUrl?: string;
   joinDate: string; // ISO date string
   contractType: 'permanent' | 'contract' | 'intern';
   isActive: boolean;

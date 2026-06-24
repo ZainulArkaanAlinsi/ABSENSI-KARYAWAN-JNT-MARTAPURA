@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getEmployees } from '@/lib/firestore';
+import { getEmployees, updateEmployee } from '@/lib/firestore';
 import type { Employee } from '@/types';
 import {
   Search,
@@ -13,8 +13,12 @@ import {
   Inbox,
   Smartphone,
   X,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useConfirm } from '@/context/ConfirmContext';
+// Halaman ini sudah punya state lokal bernama `toast`, jadi alias sonner-nya.
+import { toast as toast2 } from 'sonner';
 
 export default function FaceEnrollmentPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -22,6 +26,36 @@ export default function FaceEnrollmentPage() {
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{ msg: string; emp: string } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [selected, setSelected] = useState<Employee | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+  const { confirm } = useConfirm();
+
+  const handleReset = async (emp: Employee) => {
+    const ok = await confirm({
+      title: 'Reset Data Wajah',
+      message: `Hapus data wajah ${emp.name}? Karyawan harus daftar ulang wajah lewat aplikasi.`,
+      variant: 'danger',
+      confirmLabel: 'Reset',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setResetting(emp.id);
+    try {
+      await updateEmployee(emp.id, { faceRegistered: false, facePhotoUrl: '' });
+      setEmployees((p) =>
+        p.map((e) =>
+          e.id === emp.id ? { ...e, faceRegistered: false, facePhotoUrl: '' } : e,
+        ),
+      );
+      toast2.success('Data wajah direset');
+      setSelected(null);
+    } catch (e) {
+      console.error('Reset face failed:', e);
+      toast2.error('Gagal reset. Coba lagi.');
+    } finally {
+      setResetting(null);
+    }
+  };
 
   function showToast(emp: string) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -250,7 +284,9 @@ export default function FaceEnrollmentPage() {
 
                 {/* Action button */}
                 <button
-                  onClick={() => showToast(emp.name)}
+                  onClick={() =>
+                    emp.faceRegistered ? setSelected(emp) : showToast(emp.name)
+                  }
                   className={`w-full h-9 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 transition-all ${
                     emp.faceRegistered
                       ? 'bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100'
@@ -266,6 +302,77 @@ export default function FaceEnrollmentPage() {
           </AnimatePresence>
         </div>
       )}
+
+      {/* ── MODAL: LIHAT/RESET DATA WAJAH ── */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !resetting && setSelected(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                  <h3 className="editorial-heading text-[15px] font-black text-slate-800">
+                    Data Wajah
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {selected.name} · {selected.department || 'Staff'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-all"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-5 flex flex-col items-center gap-4">
+                {selected.facePhotoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage photo in a static export; next/image optimization is disabled
+                  <img
+                    src={selected.facePhotoUrl}
+                    alt={`Wajah ${selected.name}`}
+                    className="w-48 h-48 rounded-2xl object-cover border border-slate-200"
+                  />
+                ) : (
+                  <div className="w-48 h-48 rounded-2xl bg-slate-100 flex flex-col items-center justify-center gap-2 text-slate-400 text-center px-5">
+                    <ScanFace size={40} />
+                    <p className="text-[11px] font-semibold leading-relaxed">
+                      Foto wajah belum tersimpan. Minta karyawan daftar ulang wajah dari aplikasi
+                      (versi terbaru).
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => handleReset(selected)}
+                  disabled={resetting === selected.id}
+                  className="w-full h-11 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-all disabled:opacity-50"
+                >
+                  {resetting === selected.id ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                  Reset / Hapus Data Wajah
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
