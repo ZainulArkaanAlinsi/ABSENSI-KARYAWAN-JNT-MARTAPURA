@@ -9,6 +9,9 @@ export function useAddEmployeeLogic(onClose: () => void) {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    // Email pribadi/Gmail asli karyawan — tujuan kirim kredensial + link
+    // download APK (onEmployeeCreated pakai personalEmail || email).
+    personalEmail: '',
     password: 'JNE123!', // Auto-provisioned default password for new employees
     phone: '',
     employeeId: '',
@@ -116,6 +119,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
         setForm({
           name: '',
           email: '',
+          personalEmail: '',
           password: 'JNE123!',
           phone: '',
           employeeId: '',

@@ -213,6 +213,32 @@ export default function AddEmployeeModal({
                     className="text-[10px] font-black uppercase tracking-widest ml-1"
                     style={{ color: 'var(--text-dim)' }}
                   >
+                    Email Pribadi (Gmail)
+                  </label>
+                  <div className="relative group">
+                    <Mail
+                      size={16}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-600 transition-colors"
+                    />
+                    <input
+                      type="email"
+                      placeholder="budi@gmail.com"
+                      className={inputCls}
+                      style={fieldStyle}
+                      value={form.personalEmail}
+                      onChange={(e) => handleChange('personalEmail', e.target.value.trim())}
+                    />
+                  </div>
+                  <p className="text-[10px] ml-1" style={{ color: 'var(--text-dim)' }}>
+                    Kredensial login & link download APK dikirim ke email ini.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    className="text-[10px] font-black uppercase tracking-widest ml-1"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
                     Nomor Telepon (WhatsApp)
                   </label>
                   <div className="relative group">

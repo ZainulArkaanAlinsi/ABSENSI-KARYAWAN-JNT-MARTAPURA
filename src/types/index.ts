@@ -68,6 +68,8 @@ export interface Employee {
   uid: string;
   name: string;
   email: string;
+  /** Email pribadi/Gmail asli karyawan — tujuan kirim kredensial + link APK. */
+  personalEmail?: string;
   phone?: string;
   department: Department;
   position: string;

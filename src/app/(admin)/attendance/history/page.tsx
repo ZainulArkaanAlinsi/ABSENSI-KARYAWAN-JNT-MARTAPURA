@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
-import { getAttendanceByRange, deleteAttendance, updateAttendance } from '@/lib/firestore';
+import {
+  getAttendanceByRange,
+  deleteAttendance,
+  updateAttendance,
+  clearAttendancePhoto,
+} from '@/lib/firestore';
 import type { AttendanceRecord } from '@/types';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { safeFormatDate, safeFormatTime } from '@/utils/dateFormatters';
@@ -171,6 +176,27 @@ export default function AttendanceHistoryPage() {
     } catch (e) {
       console.error('Update attendance failed:', e);
       toast.error('Gagal menyimpan. Coba lagi.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeletePhoto = async (which: 'checkIn' | 'checkOut') => {
+    if (!editRec) return;
+    setSaving(true);
+    try {
+      await clearAttendancePhoto(editRec.id, which);
+      const clear = (r: AttendanceRecord): AttendanceRecord =>
+        ({
+          ...r,
+          [which]: r[which] ? { ...r[which], photoUrl: undefined } : r[which],
+        }) as AttendanceRecord;
+      setRecords((prev) => prev.map((r) => (r.id === editRec.id ? clear(r) : r)));
+      setEditRec((cur) => (cur ? clear(cur) : cur));
+      toast.success('Foto dihapus');
+    } catch (e) {
+      console.error('Delete photo failed:', e);
+      toast.error('Gagal menghapus foto.');
     } finally {
       setSaving(false);
     }
@@ -705,6 +731,54 @@ export default function AttendanceHistoryPage() {
                     />
                   </div>
                 </div>
+
+                {(editRec.checkIn?.photoUrl || editRec.checkOut?.photoUrl) && (
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Foto Absensi (Wajah)
+                    </label>
+                    <div className="mt-1.5 flex gap-3">
+                      {editRec.checkIn?.photoUrl && (
+                        <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage photo in a static export */}
+                          <img
+                            src={editRec.checkIn.photoUrl}
+                            alt="Foto masuk"
+                            className="w-20 h-20 rounded-xl object-cover border border-slate-200"
+                          />
+                          <button
+                            onClick={() => handleDeletePhoto('checkIn')}
+                            disabled={saving}
+                            title="Hapus foto masuk"
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow disabled:opacity-50"
+                          >
+                            <X size={13} />
+                          </button>
+                          <p className="text-[9px] text-center text-slate-400 mt-1">Masuk</p>
+                        </div>
+                      )}
+                      {editRec.checkOut?.photoUrl && (
+                        <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- remote Firebase Storage photo in a static export */}
+                          <img
+                            src={editRec.checkOut.photoUrl}
+                            alt="Foto keluar"
+                            className="w-20 h-20 rounded-xl object-cover border border-slate-200"
+                          />
+                          <button
+                            onClick={() => handleDeletePhoto('checkOut')}
+                            disabled={saving}
+                            title="Hapus foto keluar"
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow disabled:opacity-50"
+                          >
+                            <X size={13} />
+                          </button>
+                          <p className="text-[9px] text-center text-slate-400 mt-1">Keluar</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Kosongkan jam untuk menghapus check-in/out tsb. Untuk reset total agar

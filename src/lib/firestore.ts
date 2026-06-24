@@ -670,6 +670,19 @@ export async function deleteNotification(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTIONS.NOTIFICATIONS, id));
 }
 
+/** Hapus foto absensi (check-in/out) — kosongkan URL nested + flat. */
+export async function clearAttendancePhoto(
+  id: string,
+  which: 'checkIn' | 'checkOut',
+): Promise<void> {
+  const flat = which === 'checkIn' ? 'checkInPhotoUrl' : 'checkOutPhotoUrl';
+  await updateDoc(doc(db, COLLECTIONS.ATTENDANCE, id), {
+    [`${which}.photoUrl`]: null,
+    [flat]: null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 /** Hapus semua notifikasi (kosongkan kotak masuk). */
 export async function clearAllNotifications(): Promise<void> {
   const snap = await getDocs(query(collection(db, COLLECTIONS.NOTIFICATIONS)));
