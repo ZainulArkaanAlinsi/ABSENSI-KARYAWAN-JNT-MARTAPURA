@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { EditRequest } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 import {
   Check,
   X,
@@ -16,6 +18,7 @@ import {
   Loader2,
   XCircle,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 
 const toDate = (val: unknown): Date => {
@@ -34,6 +37,31 @@ export default function EditRequestsPage() {
   const [requests, setRequests] = useState<EditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const { confirm } = useConfirm();
+
+  const handleDelete = async (req: EditRequest) => {
+    const ok = await confirm({
+      title: 'Hapus Request',
+      message: `Hapus request edit absensi dari ${req.userName ?? 'karyawan'}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    setProcessing(req.id);
+    const prev = requests;
+    setRequests((p) => p.filter((r) => r.id !== req.id));
+    try {
+      await deleteDoc(doc(db, 'edit_requests', req.id));
+      toast.success('Request dihapus');
+    } catch (e) {
+      console.error('Delete edit_request failed:', e);
+      setRequests(prev);
+      toast.error('Gagal menghapus. Coba lagi.');
+    } finally {
+      setProcessing(null);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'edit_requests'), orderBy('createdAt', 'desc'));
@@ -272,12 +300,20 @@ export default function EditRequestsPage() {
                         )}
                         Setuju
                       </motion.button>
+                      <button
+                        onClick={() => handleDelete(req)}
+                        disabled={!!processing}
+                        title="Hapus request"
+                        className="flex items-center justify-center gap-2 h-10 px-4 bg-white border border-slate-200 text-slate-400 rounded-xl text-[12px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                      >
+                        <Trash2 size={14} /> Hapus
+                      </button>
                     </div>
                   )}
 
-                  {/* Non-pending badge */}
+                  {/* Non-pending badge + hapus */}
                   {req.status !== 'pending' && (
-                    <div className="flex lg:flex-col items-center justify-center lg:min-w-[120px]">
+                    <div className="flex lg:flex-col items-center justify-center gap-3 lg:min-w-[120px]">
                       <div
                         className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
                           req.status === 'approved' ? 'bg-emerald-100' : 'bg-red-100'
@@ -289,6 +325,14 @@ export default function EditRequestsPage() {
                           <X size={22} className="text-red-500" />
                         )}
                       </div>
+                      <button
+                        onClick={() => handleDelete(req)}
+                        disabled={!!processing}
+                        title="Hapus request"
+                        className="flex items-center justify-center gap-1.5 h-9 px-3 bg-white border border-slate-200 text-slate-400 rounded-xl text-[11px] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50"
+                      >
+                        <Trash2 size={13} /> Hapus
+                      </button>
                     </div>
                   )}
                 </div>

@@ -7,6 +7,8 @@ import {
   updateLeaveStatus,
   updateOvertimeStatus,
 } from '@/lib/firestore';
+import { db } from '@/lib/firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import {
@@ -20,11 +22,13 @@ import {
   Calendar,
   FileText,
   Building2,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
+import { useConfirm } from '@/context/ConfirmContext';
 import { toast } from 'sonner';
 
 const toDate = (val: unknown): Date => {
@@ -159,11 +163,13 @@ function RequestCard({
   i,
   onApprove,
   onReject,
+  onDelete,
 }: {
   req: RequestItem;
   i: number;
   onApprove: () => void;
   onReject: () => void;
+  onDelete: () => void;
 }) {
   const isSOS = req.type === 'SOS';
   const isPending = req.status === 'pending';
@@ -250,6 +256,14 @@ function RequestCard({
                   {req.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                 </div>
               )}
+              <button
+                onClick={onDelete}
+                title="Hapus permintaan"
+                className="h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                style={{ background: 'var(--surface-hover)', color: 'var(--text-muted)' }}
+              >
+                <Trash2 size={13} />
+              </button>
             </div>
           </div>
 
@@ -341,6 +355,7 @@ function EmptyState({ tab }: { tab: string }) {
 // ── Main Page ─────────────────────────────────────────────────
 export default function RequestCenterPage() {
   const { user } = useAuth();
+  const { confirm } = useConfirm();
   const [allRequests, setAllRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('pending');
@@ -435,6 +450,27 @@ export default function RequestCenterPage() {
     } finally {
       setProcessing(false);
       setReason('');
+    }
+  };
+
+  const handleDelete = async (req: RequestItem) => {
+    const ok = await confirm({
+      title: 'Hapus Permintaan',
+      message: `Hapus permintaan ${getLabel(req)} dari ${req.employeeName ?? 'karyawan'}? Tindakan ini permanen.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok || !req.id) return;
+    const prev = [...allRequests];
+    setAllRequests((p) => p.filter((r) => r.id !== req.id));
+    try {
+      await deleteDoc(doc(db, req.source === 'leave' ? 'leaves' : 'overtime', req.id));
+      toast.success('Permintaan dihapus');
+    } catch (e) {
+      console.error('Delete request failed:', e);
+      setAllRequests(prev);
+      toast.error('Gagal menghapus. Coba lagi.');
     }
   };
 
@@ -582,6 +618,7 @@ export default function RequestCenterPage() {
                   i={i}
                   onApprove={() => openAction(req, 'approve')}
                   onReject={() => openAction(req, 'reject')}
+                  onDelete={() => handleDelete(req)}
                 />
               ))
             ) : (
