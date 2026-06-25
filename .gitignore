@@ -37,6 +37,9 @@ yarn-error.log*
 serviceAccountKey.json
 *serviceAccount*.json
 
+# backup data Firestore (berisi data pribadi — jangan di-commit)
+backup_*.json
+
 # vercel
 .vercel
 

@@ -53,14 +53,33 @@ const PROTECTED = new Set([
   'fcm_tokens',
 ]);
 
-function loadServiceAccount() {
+// Inisialisasi firebase-admin dengan urutan kredensial:
+//   1) serviceAccountKey.json (kalau ada)
+//   2) Application Default Credentials / ADC (gcloud auth application-default
+//      login) → tak perlu file key. projectId di-set eksplisit supaya selalu
+//      menunjuk database yang benar, apa pun default project gcloud.
+const TARGET_PROJECT = process.env.CLEANUP_PROJECT_ID || 'admin-absensi-jne-mtp';
+
+function initAdmin() {
   try {
-    return JSON.parse(readFileSync(new URL('../serviceAccountKey.json', import.meta.url)));
+    const sa = JSON.parse(readFileSync(new URL('../serviceAccountKey.json', import.meta.url)));
+    admin.initializeApp({ credential: admin.credential.cert(sa) });
+    return { projectId: sa.project_id, via: 'serviceAccountKey.json' };
   } catch {
+    // Tidak ada key → coba ADC.
+  }
+  try {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: TARGET_PROJECT,
+    });
+    return { projectId: TARGET_PROJECT, via: 'Application Default Credentials (gcloud)' };
+  } catch (e) {
     console.error(
-      '\n✖ serviceAccountKey.json tidak ditemukan di folder admin/.\n' +
-        '  Ambil dari Firebase Console → Project Settings → Service accounts →\n' +
-        '  Generate new private key, simpan sebagai admin/serviceAccountKey.json.\n',
+      '\n✖ Tidak ada kredensial. Sediakan salah satu:\n' +
+        '  • admin/serviceAccountKey.json (Firebase Console → Service accounts), atau\n' +
+        '  • jalankan: gcloud auth application-default login\n' +
+        `  Detail: ${e?.message ?? e}\n`,
     );
     process.exit(1);
   }
@@ -76,12 +95,12 @@ async function main() {
     process.exit(1);
   }
 
-  const serviceAccount = loadServiceAccount();
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  const { projectId, via } = initAdmin();
   const db = admin.firestore();
 
-  console.log(`\nProject : ${serviceAccount.project_id}`);
-  console.log(`Mode    : ${apply ? '⚠️  HAPUS SUNGGUHAN (--yes)' : 'DRY-RUN (tinjau saja)'}`);
+  console.log(`\nProject   : ${projectId}`);
+  console.log(`Kredensial: ${via}`);
+  console.log(`Mode      : ${apply ? '⚠️  HAPUS SUNGGUHAN (--yes)' : 'DRY-RUN (tinjau saja)'}`);
   console.log(`Pertahankan: ${[...PROTECTED].join(', ')}\n`);
 
   let grandTotal = 0;
