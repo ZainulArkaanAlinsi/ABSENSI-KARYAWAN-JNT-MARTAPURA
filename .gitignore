@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# kunci service account Firebase (RAHASIA — jangan pernah di-commit)
+serviceAccountKey.json
+*serviceAccount*.json
+
 # vercel
 .vercel
 
