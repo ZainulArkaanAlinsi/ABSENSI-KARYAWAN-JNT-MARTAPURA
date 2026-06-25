@@ -673,6 +673,7 @@ export default function Dashboard() {
                   fill="url(#gPresent)"
                   dot={false}
                   activeDot={{ r: 4, fill: '#059669' }}
+                  isAnimationActive={false}
                 />
                 <Area
                   type="monotone"
@@ -682,6 +683,7 @@ export default function Dashboard() {
                   fill="url(#gLate)"
                   dot={false}
                   activeDot={{ r: 4, fill: '#D97706' }}
+                  isAnimationActive={false}
                 />
                 <Area
                   type="monotone"
@@ -692,6 +694,7 @@ export default function Dashboard() {
                   dot={false}
                   strokeDasharray="4 3"
                   activeDot={{ r: 4, fill: '#E31E24' }}
+                  isAnimationActive={false}
                 />
               </AreaChart>
             </ResponsiveContainer>

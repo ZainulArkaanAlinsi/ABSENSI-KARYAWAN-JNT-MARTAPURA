@@ -175,7 +175,11 @@ export function useDashboardStats() {
             });
             unsubs.push(unsubPendingLeaves);
 
-            // NEW: Real-time online status tracking via heartbeats
+            // Real-time online status via heartbeats. Heartbeats di-tulis tiap
+            // ~30s per karyawan online, jadi snapshot ini nembak sangat sering.
+            // Tapi yang dipakai dashboard cuma JUMLAH online — yang jarang berubah.
+            // Guard: kalau count sama, kembalikan `prev` apa adanya supaya React
+            // bail-out (TIDAK re-render dashboard/chart). Ini kunci anti-lag.
             const heartbeatQuery = query(collection(db, 'user_heartbeats'));
             const unsubHeartbeat = listen(heartbeatQuery, (heartbeatSnap) => {
               const now = new Date();
@@ -189,7 +193,11 @@ export function useDashboardStats() {
                 return now.getTime() - lastHeartbeat.getTime() < onlineThreshold;
               }).length;
 
-              setData((prev) => (prev ? { ...prev, onlineNowCount: onlineCount } : null));
+              setData((prev) => {
+                if (!prev) return prev;
+                if (prev.onlineNowCount === onlineCount) return prev; // no-op → no re-render
+                return { ...prev, onlineNowCount: onlineCount };
+              });
             });
             unsubs.push(unsubHeartbeat);
 

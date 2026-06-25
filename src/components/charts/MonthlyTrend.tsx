@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import {
   AreaChart,
   Area,
@@ -19,7 +20,7 @@ export interface TrendPoint {
  * Grafik tren harian dalam satu bulan (area chart). Dipakai di halaman
  * Input Paket & Input Penjualan.
  */
-export default function MonthlyTrend({
+function MonthlyTrend({
   data,
   color = '#E31E24',
   gradientId = 'trendFill',
@@ -72,9 +73,13 @@ export default function MonthlyTrend({
           stroke={color}
           strokeWidth={2.5}
           fill={`url(#${gradientId})`}
-          animationDuration={900}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>
   );
 }
+
+// Memo: cegah replay chart + re-render saat parent (halaman Paket/Sales)
+// re-render karena ketik angka, padahal `data` tren tidak berubah.
+export default memo(MonthlyTrend);
