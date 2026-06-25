@@ -5,7 +5,7 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import { useCalendarManagement } from '@/hooks/useCalendarManagement';
 import { getEmployees } from '@/lib/firestore';
 import { db } from '@/lib/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CalendarGrid from '@/components/calendar/CalendarGrid';
@@ -35,15 +35,15 @@ export default function CalendarPage() {
   const [holidaysMap, setHolidaysMap] = useState<Record<string, string[]>>({});
   const [loadingHolidays, setLoadingHolidays] = useState(false);
 
-  // Libur nasional tanggal-tetap. API publik (libur.deno.dev) sebelumnya
-  // dipakai, tapi sekarang mengembalikan 403 dan admin di-build sebagai
-  // static export (output: 'export') sehingga proxy server-side tidak
-  // memungkinkan. Hari libur yang ikut kalender Hijriah/Imlek/Saka
-  // sengaja tidak di-hardcode karena tanggalnya berubah tiap tahun —
-  // admin tetap bisa menambah event manual via kalender.
+  // Libur nasional Indonesia. Data asli dari Nager.Date (date.nager.at, CORS *,
+  // jalan di static export) untuk tahun yang sedang dilihat — mencakup libur
+  // Gregorian + Kristen yang dihitung (Wafat Isa, Paskah, Kenaikan). Kalau API
+  // gagal, fallback ke 5 tanggal-tetap yang pasti benar. Catatan: libur Hijriah
+  // (Idul Fitri/Adha, Maulid) & Saka/Imlek belum tersedia dari API gratis yang
+  // andal → admin tambah manual sebagai acara, atau di-hardcode bila tanggal
+  // resmi sudah dikonfirmasi (hindari tanggal salah karena dipakai isWorkday).
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoadingHolidays(true);
+    let alive = true;
     const fixed: Record<string, string[]> = {
       [`${currentYear}-01-01`]: ['Tahun Baru Masehi'],
       [`${currentYear}-05-01`]: ['Hari Buruh Internasional'],
@@ -51,36 +51,69 @@ export default function CalendarPage() {
       [`${currentYear}-08-17`]: ['Hari Kemerdekaan Republik Indonesia'],
       [`${currentYear}-12-25`]: ['Hari Raya Natal'],
     };
+    // Tampilkan fallback dulu supaya kalender tak terblokir menunggu jaringan.
     setHolidaysMap(fixed);
     setLoadingHolidays(false);
+    (async () => {
+      try {
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/ID`);
+        if (!res.ok) throw new Error(String(res.status));
+        const arr: { date: string; localName?: string; name?: string }[] = await res.json();
+        const map: Record<string, string[]> = {};
+        for (const h of arr) {
+          if (!h.date) continue;
+          const label = h.localName || h.name || 'Libur Nasional';
+          (map[h.date] ??= []).push(label);
+        }
+        // Pastikan 5 tanggal-tetap selalu ada walau API tak mengembalikannya.
+        for (const [d, names] of Object.entries(fixed)) {
+          if (!map[d]) map[d] = names;
+        }
+        if (alive && Object.keys(map).length > 0) setHolidaysMap(map);
+      } catch {
+        // Diam — fallback sudah terpasang.
+      }
+    })();
+    return () => {
+      alive = false;
+    };
   }, [currentYear]);
 
   // State for attendance heatmap
   const [attendanceHeatmap, setAttendanceHeatmap] = useState<Record<string, number>>({});
   const [totalEmployeesCount, setTotalEmployeesCount] = useState(0);
 
-  // Fetch employees and attendance for heatmap
+  // Daftar karyawan (sekali) untuk penyebut rasio heatmap.
   useEffect(() => {
     getEmployees().then((list) => {
       setEmployees(list);
       setTotalEmployeesCount(list.length);
     });
+  }, []);
 
-    const attQuery = query(collection(db, 'attendance'));
+  // Heatmap presensi: di-bound ke tahun yang sedang dilihat (akurat + tak
+  // memuat seluruh koleksi absensi). Hitung HANYA kehadiran nyata
+  // (hadir/telat/lembur) — jangan ikutkan 'leave'/'absent' biar rasio benar.
+  useEffect(() => {
+    const lo = `${currentYear}-01-01`;
+    const hi = `${currentYear}-12-31`;
+    const attQuery = query(
+      collection(db, 'attendance'),
+      where('date', '>=', lo),
+      where('date', '<=', hi),
+    );
     const unsub = listen(attQuery, (snap) => {
       const map: Record<string, number> = {};
       snap.docs.forEach((doc) => {
         const data = doc.data();
-        const date = data.date; // Fixed: was 'attendanceDate', should be 'date'
-        if (date) {
-          map[date] = (map[date] || 0) + 1;
-        }
+        if (!['present', 'late', 'overtime'].includes(data.status)) return;
+        const date = data.date;
+        if (date) map[date] = (map[date] || 0) + 1;
       });
       setAttendanceHeatmap(map);
     });
-
     return () => unsub();
-  }, []);
+  }, [currentYear]);
 
   // Generate weeks for active month
   const monthWeeks = useMemo(() => {
@@ -98,7 +131,6 @@ export default function CalendarPage() {
   }, [events, filterCategory, searchQuery]);
 
   // Dapatkan detail hari yang dipilih
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const selectedDayDetails = useMemo(() => {
     for (const week of monthWeeks) {
       const day = week.find((d) => d?.date === selectedDateStr);

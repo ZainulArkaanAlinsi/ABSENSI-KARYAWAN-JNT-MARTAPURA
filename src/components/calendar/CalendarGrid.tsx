@@ -56,21 +56,20 @@ export default function CalendarGrid({
       (event) => event.startDate && event.startDate.split('T')[0] === day.date,
     );
     const sysEvents = holidaysMap[day.date] || [];
+    // "Tanggal merah" = libur nasional ATAU hari Minggu (konvensi kalender ID).
+    const isSunday = parseISO(day.date).getDay() === 0;
+    const isRedDate = sysEvents.length > 0 || isSunday;
     const uiCategory = sysEvents.length > 0 ? 'holiday' : 'normal';
-    const uiColorHint =
-      sysEvents.length > 0
-        ? { bg: 'var(--accent-info)', text: '#FFFFFF', accent: 'var(--accent-info)' }
-        : { bg: 'transparent', text: 'var(--text-primary)', accent: 'var(--border-color)' };
 
-    // Heatmap Logic
+    // Heatmap presensi (rasio kehadiran nyata / total karyawan). Warna lembut,
+    // konsisten: hijau = ramai, kuning = sedang, merah-muda = sepi.
     const presentCount = attendanceHeatmap[day.date] || 0;
-    const attendanceRate = presentCount / totalEmployees;
+    const attendanceRate = totalEmployees > 0 ? presentCount / totalEmployees : 0;
     let heatColor = 'transparent';
-
     if (presentCount > 0) {
-      if (attendanceRate >= 0.8) heatColor = 'rgba(16, 185, 129, 0.15)';
-      else if (attendanceRate <= 0.4) heatColor = 'rgba(244, 63, 94, 0.15)';
-      else heatColor = 'rgba(234, 179, 8, 0.15)';
+      if (attendanceRate >= 0.8) heatColor = 'rgba(16, 185, 129, 0.12)';
+      else if (attendanceRate <= 0.4) heatColor = 'rgba(244, 63, 94, 0.10)';
+      else heatColor = 'rgba(245, 158, 11, 0.10)';
     }
 
     return {
@@ -78,7 +77,8 @@ export default function CalendarGrid({
       systemEvents: sysEvents,
       userEvents: userEvts,
       uiCategory,
-      uiColorHint,
+      isSunday,
+      isRedDate,
       heatColor,
       presentCount,
     };
@@ -134,7 +134,13 @@ export default function CalendarGrid({
         <div className="grid grid-cols-7 border-b border-(--border-color) bg-(--bg-main)/30">
           {daysOfWeek.map((day) => (
             <div key={day} className="py-4 text-center">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-secondary) opacity-60">
+              <span
+                className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                  day === 'Sunday'
+                    ? 'text-rose-500 opacity-90'
+                    : 'text-(--text-secondary) opacity-60'
+                }`}
+              >
                 {day.substring(0, 3)}
               </span>
             </div>
@@ -149,7 +155,7 @@ export default function CalendarGrid({
                 return (
                   <div
                     key={`empty-${wIdx}-${dIdx}`}
-                    className="calendar-day-cell bg-black/10 border-r border-b border-white/5 opacity-50"
+                    className="calendar-day-cell border-r border-b border-(--border-color) bg-(--bg-main)/40 opacity-40"
                   />
                 );
               }
@@ -172,23 +178,27 @@ export default function CalendarGrid({
           )}
         </div>
 
-        {/* Legenda - diperbesar */}
-        <div className="p-3 border-t border-white/5 bg-white/2">
-          <div className="flex flex-wrap gap-4 items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Info size={14} /> Heatmap Presensi:
+        {/* Legenda */}
+        <div className="p-3 border-t border-(--border-color) bg-(--bg-main)/30">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-(--text-secondary) flex items-center gap-1.5">
+              <Info size={13} /> Kehadiran:
             </span>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-emerald-500/30" />
-              <span className="text-xs text-slate-400">Padat (&gt;80%)</span>
+              <div className="w-3 h-3 rounded-sm bg-emerald-500/40" />
+              <span className="text-[11px] text-(--text-secondary)">Ramai (≥80%)</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-yellow-500/30" />
-              <span className="text-xs text-slate-400">Normal</span>
+              <div className="w-3 h-3 rounded-sm bg-amber-500/40" />
+              <span className="text-[11px] text-(--text-secondary)">Sedang</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-rose-500/30" />
-              <span className="text-xs text-slate-400">Sepi (&lt;40%)</span>
+              <div className="w-3 h-3 rounded-sm bg-rose-500/40" />
+              <span className="text-[11px] text-(--text-secondary)">Sepi (≤40%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="text-[11px] text-(--text-secondary)">Tanggal merah / libur</span>
             </div>
           </div>
         </div>
@@ -201,7 +211,8 @@ type DayDetails = CalendarDay & {
   systemEvents: string[];
   userEvents: CalendarEvent[];
   uiCategory: string;
-  uiColorHint: { bg: string; text: string; accent: string };
+  isSunday: boolean;
+  isRedDate: boolean;
   heatColor: string;
   presentCount: number;
 };
@@ -223,6 +234,20 @@ function CalendarCell({
 }: CalendarCellProps) {
   const { elementRef, play } = usePopAnimation<HTMLDivElement>();
 
+  // Warna angka tanggal: biru untuk hari ini/terpilih (interaktif), merah lembut
+  // untuk tanggal merah (libur/Minggu), netral untuk hari biasa.
+  let dateBadgeCls: string;
+  if (isTodayActive) {
+    dateBadgeCls = 'bg-(--accent-info) text-white shadow-md shadow-(--accent-info)/25';
+  } else if (isSelected) {
+    dateBadgeCls = 'bg-(--accent-info) text-white scale-105 shadow-md shadow-(--accent-info)/20';
+  } else if (details.isRedDate) {
+    dateBadgeCls = 'text-rose-600 dark:text-rose-400 group-hover:bg-rose-500/10';
+  } else {
+    dateBadgeCls =
+      'text-(--text-primary) opacity-50 group-hover:opacity-100 group-hover:bg-(--bg-main)';
+  }
+
   return (
     <div
       ref={elementRef}
@@ -230,76 +255,58 @@ function CalendarCell({
         onSelectDate(day.date);
         play();
       }}
-      className={`calendar-day-cell relative min-h-[90px] p-3 border-r border-b border-(--border-color) cursor-pointer transition-all duration-500 group
-        ${isSelected ? 'z-10 bg-(--accent-info)/5 ring-1 ring-inset ring-(--accent-info)/30 shadow-2xl shadow-(--accent-info)/10' : ''}
+      className={`calendar-day-cell relative min-h-[90px] p-2.5 border-r border-b border-(--border-color) cursor-pointer transition-colors duration-200 group
+        ${isSelected ? 'z-10 ring-1 ring-inset ring-(--accent-info)/40' : ''}
       `}
       style={{
-        backgroundColor: isSelected ? undefined : details.heatColor,
+        backgroundColor: isSelected ? 'color-mix(in srgb, var(--accent-info) 7%, transparent)' : details.heatColor,
       }}
     >
       <div className="flex justify-between items-start">
         <div
-          className={`
-            w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all
-            ${isTodayActive ? 'bg-(--accent-info) text-white shadow-xl shadow-(--accent-info)/30 rotate-3' : ''}
-            ${!isTodayActive && details.uiCategory !== 'normal' ? 'bg-(--accent-info)/10 text-(--accent-info) ring-1 ring-(--accent-info)/20' : ''}
-            ${!isTodayActive && details.uiCategory === 'normal' ? 'text-(--text-primary) opacity-40 group-hover:opacity-100 group-hover:bg-(--bg-main) group-hover:scale-110' : ''}
-            ${isSelected && !isTodayActive ? 'bg-(--accent-info) text-white scale-110 rotate-6 shadow-xl shadow-(--accent-info)/20' : ''}
-          `}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all ${dateBadgeCls}`}
         >
           {day.date.split('-')[2]}
         </div>
 
         {details.systemEvents.length > 0 && (
-          <div className="absolute top-1 right-1">
-            <div
-              className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]"
-              style={{ backgroundColor: details.uiColorHint.bg }}
-            />
-          </div>
+          <span className="mt-1 mr-0.5 w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
         )}
       </div>
 
-      {/* Enhanced Data Markers */}
-      <div className="mt-1 flex flex-col gap-1 min-h-[16px] relative">
-        {details.userEvents.some((e) => e.category === 'meeting') && (
-          <div className="absolute -top-7 -left-1 w-10 h-10 rounded-full border border-jne-red/20 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] pointer-events-none" />
-        )}
-      </div>
-
-      <div className="space-y-1 mt-1">
+      <div className="space-y-1 mt-1.5">
         {details.systemEvents.slice(0, 2).map((evt: string, i: number) => (
           <div
             key={i}
-            className="text-[11px] leading-tight text-white/90 font-medium truncate bg-white/5 px-1.5 py-1 rounded border-l-2"
-            style={{ borderColor: details.uiColorHint.bg }}
+            className="text-[10px] leading-tight font-semibold truncate px-1.5 py-0.5 rounded border-l-2 border-rose-400 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+            title={evt}
           >
             {evt}
           </div>
         ))}
         {details.systemEvents.length > 2 && (
-          <div className="text-[10px] text-slate-500 font-bold">
-            +{details.systemEvents.length - 2}
+          <div className="text-[10px] text-(--text-secondary) font-bold">
+            +{details.systemEvents.length - 2} lainnya
           </div>
         )}
         {details.userEvents.length > 0 && (
-          <div className="flex gap-0.5 flex-wrap">
-            {details.userEvents.map((evt, i) => (
-              <div
+          <div className="flex gap-1 flex-wrap items-center pt-0.5">
+            {details.userEvents.slice(0, 6).map((evt, i) => (
+              <span
                 key={i}
-                className="w-1 h-1 rounded-full"
-                style={{ backgroundColor: evt.color || '#8B5CF6' }}
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: evt.color || 'var(--accent-info)' }}
+                title={evt.title}
               />
             ))}
+            {details.userEvents.length > 6 && (
+              <span className="text-[9px] text-(--text-secondary) font-bold">
+                +{details.userEvents.length - 6}
+              </span>
+            )}
           </div>
         )}
       </div>
-
-      {isSelected && <div className="absolute inset-0 bg-jne-red/20 pointer-events-none" />}
-
-      {isTodayActive && (
-        <div className="absolute bottom-1 right-1 w-1 h-1 rounded-full bg-jne-red animate-ping" />
-      )}
     </div>
   );
 }

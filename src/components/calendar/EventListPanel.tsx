@@ -94,13 +94,13 @@ export default function EventListPanel({
                     key={`sys-${idx}`}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-(--bg-main) border border-(--border-color) rounded-xl p-4 border-l-4"
-                    style={{ borderLeftColor: 'var(--accent-info)' }}
+                    className="bg-rose-500/5 border border-rose-500/15 rounded-xl p-4 border-l-4"
+                    style={{ borderLeftColor: '#F43F5E' }}
                   >
                     <h4 className="font-black text-(--text-primary) text-[11px] uppercase tracking-widest italic">
                       {evt}
                     </h4>
-                    <p className="text-[9px] text-(--accent-info) mt-1 uppercase tracking-widest font-black opacity-70">
+                    <p className="text-[9px] text-rose-500 mt-1 uppercase tracking-widest font-black opacity-80">
                       Libur Nasional
                     </p>
                   </motion.div>
