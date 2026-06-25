@@ -186,6 +186,7 @@ export default function AnalyticsPage() {
                 strokeWidth={2.5}
                 fill="url(#gradPresent)"
                 dot={{ fill: '#10B981', r: 3, strokeWidth: 0 }}
+                isAnimationActive={false}
               />
               <Area
                 type="monotone"
@@ -194,6 +195,7 @@ export default function AnalyticsPage() {
                 strokeWidth={2}
                 fill="url(#gradLate)"
                 dot={{ fill: '#F59E0B', r: 3, strokeWidth: 0 }}
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -237,6 +239,7 @@ export default function AnalyticsPage() {
                     dataKey="attendance"
                     paddingAngle={3}
                     strokeWidth={0}
+                    isAnimationActive={false}
                   >
                     {data.departmentDistribution.map((_, idx) => (
                       <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
@@ -299,9 +302,9 @@ export default function AnalyticsPage() {
             />
             <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
             <Tooltip content={<ChartTooltip />} />
-            <Bar dataKey="present" fill="#10B981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="late" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="absent" fill="#EF4444" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="present" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="late" fill="#F59E0B" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="absent" fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </motion.div>

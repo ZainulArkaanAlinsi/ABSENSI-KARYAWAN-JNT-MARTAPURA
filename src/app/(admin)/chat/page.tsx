@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Send,
   Search,
@@ -225,8 +225,15 @@ export default function ChatPage() {
   const PRESENCE_STALE_MS = 75000; // 2.5x heartbeat 30 dtk
   const [onlineSet, setOnlineSet] = useState<Set<string>>(new Set());
   const [lastSeenMap, setLastSeenMap] = useState<Record<string, number>>({});
+  // Ref keanggotaan online terakhir → bandingkan tanpa memicu render.
+  const onlineRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    const sameSet = (a: Set<string>, b: Set<string>) => {
+      if (a.size !== b.size) return false;
+      for (const v of a) if (!b.has(v)) return false;
+      return true;
+    };
     const unsub = listen(collection(db, 'user_presence'), (snap) => {
       const now = Date.now();
       const online = new Set<string>();
@@ -237,6 +244,12 @@ export default function ChatPage() {
         seen[d.id] = ls;
         if (data.isOnline === true && now - ls < PRESENCE_STALE_MS) online.add(d.id);
       });
+      // Guard: heartbeat memperbarui lastSeen tiap ~30s, tapi UI cuma peduli
+      // SIAPA yang online. Kalau keanggotaan sama, jangan setState (cegah
+      // re-render seluruh halaman chat tiap tick). lastSeen offline tetap akurat
+      // karena ikut di-commit saat keanggotaan berubah (mis. seseorang offline).
+      if (sameSet(onlineRef.current, online)) return;
+      onlineRef.current = online;
       setOnlineSet(online);
       setLastSeenMap(seen);
     });
