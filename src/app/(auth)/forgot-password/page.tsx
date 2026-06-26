@@ -1,14 +1,47 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowLeft, Mail, Shield } from 'lucide-react';
+import { ArrowLeft, Mail, Shield, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 const logoJne = '/logo-jne.svg';
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const target = email.trim();
+    if (!target) return;
+    setLoading(true);
+    setError(null);
+    try {
+      // Benar-benar kirim email reset lewat Firebase Auth (dulu hanya mockup
+      // yang menampilkan "terkirim" tanpa melakukan apa pun).
+      await sendPasswordResetEmail(auth, target);
+      setSubmitted(true);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code === 'auth/user-not-found') {
+        // Demi keamanan: jangan bocorkan apakah email terdaftar.
+        setSubmitted(true);
+      } else if (code === 'auth/invalid-email') {
+        setError('Format email tidak valid.');
+      } else if (code === 'auth/too-many-requests') {
+        setError('Terlalu banyak percobaan. Coba lagi beberapa menit lagi.');
+      } else {
+        setError('Gagal mengirim link reset. Periksa koneksi internet & coba lagi.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#1A1F2E] flex items-center justify-center relative overflow-hidden">
@@ -31,16 +64,10 @@ export default function ForgotPasswordPage() {
               href="/login"
               className="inline-flex items-center gap-2 text-xs text-[#9BA4B4] hover:text-white transition-colors"
             >
-              <ArrowLeft size={14} /> Back to Login
+              <ArrowLeft size={14} /> Kembali ke Login
             </Link>
             <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md p-1.5">
-              <Image
-                src={logoJne}
-                alt="JNE Logo"
-                width={28}
-                height={28}
-                className="object-contain"
-              />
+              <Image src={logoJne} alt="JNE Logo" width={28} height={28} className="object-contain" />
             </div>
           </div>
 
@@ -50,23 +77,17 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-white text-2xl font-bold">Secure Reset</h3>
+              <h3 className="text-white text-2xl font-bold">Reset Kata Sandi</h3>
               <p className="text-[#9BA4B4] text-sm">
-                Enter your administrative email to receive a secure recovery link.
+                Masukkan email admin Anda untuk menerima link reset kata sandi.
               </p>
             </div>
 
             {!submitted ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSubmitted(true);
-                }}
-                className="space-y-6"
-              >
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[#9BA4B4] text-xs font-semibold uppercase tracking-wider ml-2">
-                    Email Address
+                    Alamat Email
                   </label>
                   <div className="relative">
                     <Mail
@@ -76,17 +97,30 @@ export default function ForgotPasswordPage() {
                     <input
                       type="email"
                       required
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (error) setError(null);
+                      }}
                       className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm placeholder:text-[#9BA4B4]/50 focus:outline-none focus:border-[#E04B3A]/50 transition-all"
-                      placeholder="admin@jne.mtp"
+                      placeholder="admin@jnemtp.com"
                     />
                   </div>
                 </div>
 
+                {error && (
+                  <p className="text-[#F87171] text-xs font-semibold bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-[#E04B3A] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+                  disabled={loading}
+                  className="w-full bg-[#E04B3A] text-white font-bold py-3.5 rounded-xl shadow-lg transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
-                  Send Recovery Link
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  {loading ? 'Mengirim...' : 'Kirim Link Reset'}
                 </button>
               </form>
             ) : (
@@ -95,16 +129,23 @@ export default function ForgotPasswordPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 text-center"
               >
-                <p className="text-emerald-500 text-sm font-bold">Recovery link sent!</p>
+                <p className="text-emerald-500 text-sm font-bold">Link reset terkirim!</p>
                 <p className="text-white/60 text-xs mt-2">
-                  Check your inbox for further authorization instructions.
+                  Jika email terdaftar, link reset sudah dikirim ke kotak masuk. Cek folder spam
+                  bila tidak muncul.
                 </p>
+                <Link
+                  href="/login"
+                  className="inline-block mt-4 text-[#E04B3A] text-xs font-bold hover:underline"
+                >
+                  Kembali ke Login
+                </Link>
               </motion.div>
             )}
           </div>
 
           <div className="mt-8 text-center text-[#9BA4B4] text-[10px] uppercase tracking-[0.2em] opacity-40">
-            JNE MTP SECURITY PROTOCOL v4.2
+            JNE MTP SECURITY PROTOCOL
           </div>
         </div>
       </motion.div>

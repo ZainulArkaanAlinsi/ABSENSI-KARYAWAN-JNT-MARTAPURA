@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2, ArrowRight, Package, MapPin, Users, TrendingUp } 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useLoginLogic } from '@/hooks/useLoginLogic';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useRef } from 'react';
 
 // ── animated stat pill ───────────────────────────────────────────────────────
@@ -471,6 +472,16 @@ export default function LoginPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Lupa kata sandi */}
+            <div className="flex justify-end -mt-1">
+              <Link
+                href="/forgot-password"
+                className="text-[11px] font-bold text-slate-400 hover:text-orange-500 transition-colors"
+              >
+                Lupa kata sandi?
+              </Link>
+            </div>
 
             {/* Submit */}
             <div className="pt-1">
