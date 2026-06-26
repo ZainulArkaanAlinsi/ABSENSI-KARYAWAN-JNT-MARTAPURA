@@ -419,9 +419,18 @@ export default function AttendanceClient() {
                     let lateDisplay = '—';
                     let yieldDisplay = '—';
                     if (rec.checkIn && rec.checkOut) {
+                      // Utamakan nilai tersimpan dari mobile (akurat per-shift
+                      // karyawan); fallback hitung via aturan departemen kalau
+                      // record lama belum punya field-nya.
                       const calc = calcEffectiveMinutes(rec.checkIn.time, rec.checkOut.time, rule);
-                      if (calc.lateMinutes > 0) lateDisplay = fmtMinutes(calc.lateMinutes);
-                      yieldDisplay = fmtMinutes(calc.effectiveMinutes);
+                      const lateMin =
+                        typeof rec.lateMinutes === 'number' ? rec.lateMinutes : calc.lateMinutes;
+                      const workMin =
+                        typeof rec.totalWorkMinutes === 'number'
+                          ? rec.totalWorkMinutes
+                          : calc.effectiveMinutes;
+                      if (lateMin > 0) lateDisplay = fmtMinutes(lateMin);
+                      yieldDisplay = fmtMinutes(workMin);
                     }
                     return (
                       <motion.tr

@@ -12,6 +12,7 @@ import {
   Globe,
   Zap,
   Clock,
+  Trash2,
 } from 'lucide-react';
 import {
   collection,
@@ -21,10 +22,13 @@ import {
   query,
   orderBy,
   limit,
+  deleteDoc,
+  doc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GlassCard, InteractiveButton } from '@/components/ui/Interactive';
 import { toast } from 'sonner';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function BroadcastPage() {
   const [target, setTarget] = useState<'all' | 'specific'>('all');
@@ -37,6 +41,28 @@ export default function BroadcastPage() {
   const [recentBroadcasts, setRecentBroadcasts] = useState<
     { id: string; title?: string; createdAt?: { seconds: number } }[]
   >([]);
+  const { confirm } = useConfirm();
+
+  const handleDeleteBroadcast = async (id: string) => {
+    const ok = await confirm({
+      title: 'Hapus Broadcast',
+      message: 'Hapus broadcast ini dari riwayat? Tindakan ini permanen.',
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    const prev = recentBroadcasts;
+    setRecentBroadcasts((p) => p.filter((b) => b.id !== id));
+    try {
+      await deleteDoc(doc(db, 'broadcasts', id));
+      toast.success('Broadcast dihapus');
+    } catch (e) {
+      console.error('Delete broadcast failed:', e);
+      setRecentBroadcasts(prev);
+      toast.error('Gagal menghapus broadcast.');
+    }
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -361,19 +387,28 @@ export default function BroadcastPage() {
                 </h3>
               </div>
               <div className="space-y-4">
-                {recentBroadcasts.map((b, i) => (
+                {recentBroadcasts.map((b) => (
                   <div
-                    key={i}
-                    className="p-5 rounded-2xl bg-black/20 border border-white/5 hover:bg-black/40 transition-all"
+                    key={b.id}
+                    className="group p-5 rounded-2xl bg-black/20 border border-white/5 hover:bg-black/40 transition-all flex items-start justify-between gap-3"
                   >
-                    <p className="text-[11px] font-black text-white uppercase italic truncate">
-                      {b.title}
-                    </p>
-                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                      {b.createdAt
-                        ? new Date(b.createdAt.seconds * 1000).toLocaleDateString()
-                        : 'Just now'}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black text-white uppercase italic truncate">
+                        {b.title}
+                      </p>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                        {b.createdAt
+                          ? new Date(b.createdAt.seconds * 1000).toLocaleDateString()
+                          : 'Just now'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteBroadcast(b.id)}
+                      title="Hapus broadcast"
+                      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-red-500/15 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 ))}
                 {recentBroadcasts.length === 0 && (
