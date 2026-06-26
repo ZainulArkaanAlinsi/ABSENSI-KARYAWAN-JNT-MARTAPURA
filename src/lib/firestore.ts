@@ -21,7 +21,12 @@ import { listen } from './firestoreListener';
 export { db, auth };
 import { fortressRetry } from './fortress';
 import { initializeApp, getApps, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  type UserCredential,
+} from 'firebase/auth';
 import type {
   Employee,
   JamKerja,
@@ -322,11 +327,31 @@ export async function registerEmployee(
       initializeApp(firebaseConfig, 'SecondaryAuth');
     const secondaryAuth = getAuth(secondaryApp);
 
-    // 3. Buat User di Firebase Auth
-    const userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, password);
+    // 3. Buat User di Firebase Auth. Kalau email-nya SUDAH terdaftar (mis. akun
+    //    lama yang profil Firestore-nya sudah dihapus), JANGAN tolak — pakai
+    //    ulang akun itu: sign-in dgn password yang admin masukkan lalu tulis
+    //    ulang profilnya (ID = uid akun lama). Karyawan tetap kebuat.
+    let userCred: UserCredential;
+    try {
+      userCred = await createUserWithEmailAndPassword(secondaryAuth, finalEmail, password);
+    } catch (createErr) {
+      const code = (createErr as { code?: string }).code;
+      if (code !== 'auth/email-already-in-use') throw createErr;
+      try {
+        userCred = await signInWithEmailAndPassword(secondaryAuth, finalEmail, password);
+      } catch (signInErr) {
+        const sCode = (signInErr as { code?: string }).code;
+        if (sCode === 'auth/wrong-password' || sCode === 'auth/invalid-credential') {
+          throw new Error(
+            'Email ini sudah punya akun dengan password berbeda. Masukkan password akun tersebut yang benar untuk memakainya kembali, atau gunakan email lain.',
+          );
+        }
+        throw signInErr;
+      }
+    }
     const uid = userCred.user.uid;
 
-    // 4. Buat Profil di Firestore dengan ID = UID
+    // 4. Buat/Perbarui Profil di Firestore dengan ID = UID
     const userRef = doc(db, COLLECTIONS.USERS, uid);
     await setDoc(userRef, {
       ...employeeData,
@@ -347,12 +372,6 @@ export async function registerEmployee(
     return uid;
   } catch (error) {
     console.error('Error registering employee:', error);
-
-    if ((error as { code?: string }).code === 'auth/email-already-in-use') {
-      throw new Error(
-        'Email ini sudah terdaftar di sistem. Silakan gunakan email lain atau hubungi IT Support.',
-      );
-    }
     throw error;
   } finally {
     if (secondaryApp) {
