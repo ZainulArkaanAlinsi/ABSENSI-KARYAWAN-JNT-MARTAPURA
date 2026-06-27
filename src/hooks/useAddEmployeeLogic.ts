@@ -20,10 +20,13 @@ export function useAddEmployeeLogic(onClose: () => void) {
     jamKerjaId: '',
     // Jam kerja custom langsung (tanpa harus bikin template shift dulu).
     // Kalau aktif, shift baru dibuat saat submit & jamKerjaId-nya dipakai.
+    // Default kosong — admin wajib isi jam masuk/keluar sendiri.
     useCustomShift: false,
-    customCheckIn: '08:00',
-    customCheckOut: '17:00',
+    customCheckIn: '',
+    customCheckOut: '',
     contractType: 'permanent' as 'permanent' | 'contract' | 'intern',
+    // Durasi kontrak/magang (bulan). Diisi hanya saat contract/intern.
+    contractMonths: '',
     joinDate: new Date().toISOString().split('T')[0],
     firstLogin: true,
     allowRemoteAttendance: false,
@@ -81,6 +84,15 @@ export function useAddEmployeeLogic(onClose: () => void) {
       return;
     }
 
+    // Kontrak & magang wajib punya durasi (bulan).
+    if (form.contractType === 'contract' || form.contractType === 'intern') {
+      const m = parseInt(form.contractMonths, 10);
+      if (!Number.isFinite(m) || m <= 0) {
+        toast.error('Isi durasi (bulan) untuk karyawan kontrak/magang.');
+        return;
+      }
+    }
+
     if (form.password.length < 6) {
       toast.error('Password sistem tidak valid. Gunakan minimal 6 karakter.');
       return;
@@ -111,9 +123,20 @@ export function useAddEmployeeLogic(onClose: () => void) {
         useCustomShift: _ucs,
         customCheckIn: _cci,
         customCheckOut: _cco,
+        contractMonths: _cm,
         ...employeeData
       } = form;
       /* eslint-enable @typescript-eslint/no-unused-vars */
+
+      // Durasi kontrak/magang → number, hanya untuk contract/intern.
+      // Permanent = null supaya tidak menyimpan field nyasar.
+      const parsedMonths = parseInt(form.contractMonths, 10);
+      const contractMonths =
+        (form.contractType === 'contract' || form.contractType === 'intern') &&
+        Number.isFinite(parsedMonths) &&
+        parsedMonths > 0
+          ? parsedMonths
+          : null;
 
       // Determine role based on department
       const valLower = form.department.toLowerCase();
@@ -137,6 +160,7 @@ export function useAddEmployeeLogic(onClose: () => void) {
           ...employeeData,
           jamKerjaId: resolvedJamKerjaId,
           role: dynamicRole,
+          ...(contractMonths != null ? { contractMonths } : {}),
           isOnline: false,
           faceRegistered: false,
           isActive: true,
@@ -160,9 +184,10 @@ export function useAddEmployeeLogic(onClose: () => void) {
           position: '',
           jamKerjaId: '',
           useCustomShift: false,
-          customCheckIn: '08:00',
-          customCheckOut: '17:00',
+          customCheckIn: '',
+          customCheckOut: '',
           contractType: 'permanent',
+          contractMonths: '',
           joinDate: new Date().toISOString().split('T')[0],
           firstLogin: true,
           allowRemoteAttendance: false,

@@ -406,7 +406,7 @@ export default function AddEmployeeModal({
                       : undefined
                   }
                 >
-                  Pilih Template
+                  Pakai Template
                 </button>
                 <button
                   type="button"
@@ -418,7 +418,7 @@ export default function AddEmployeeModal({
                       : undefined
                   }
                 >
-                  Custom Jam
+                  Atur Manual
                 </button>
               </div>
 
@@ -555,6 +555,44 @@ export default function AddEmployeeModal({
                     </button>
                   ))}
                 </div>
+
+                {/* Durasi kontrak/magang — hanya untuk kontrak & magang. */}
+                <AnimatePresence>
+                  {(form.contractType === 'contract' || form.contractType === 'intern') && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2 mt-3">
+                        <input
+                          type="number"
+                          min={1}
+                          max={60}
+                          placeholder="6"
+                          className="w-20 h-11 rounded-xl border text-center text-sm font-black outline-none focus:border-cyan-600/50 focus:ring-4 focus:ring-cyan-600/5 transition-all"
+                          style={fieldStyle}
+                          value={form.contractMonths}
+                          onChange={(e) =>
+                            handleChange(
+                              'contractMonths',
+                              e.target.value.replace(/[^0-9]/g, ''),
+                            )
+                          }
+                          required
+                        />
+                        <span
+                          className="text-[10px] font-black uppercase tracking-widest"
+                          style={{ color: 'var(--text-dim)' }}
+                        >
+                          Bulan Durasi{' '}
+                          {form.contractType === 'intern' ? 'Magang' : 'Kontrak'}
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex gap-4">

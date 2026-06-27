@@ -13,14 +13,26 @@
  * 7. onOvertimeStatusUpdate → FCM + userNotification when admin approves/rejects overtime
  * 8. scheduledOvertimeCalc → Daily overtime calculation at 23:00 Asia/Jakarta
  *
- * SMTP config (set sebelum deploy):
- *   firebase functions:config:set smtp.user="bot@jne-mtp.com" smtp.password="APP_PASSWORD" smtp.from_name="JNE Martapura HR" apk.url="https://..."
- * App Password: aktifkan 2FA Gmail, lalu generate App Password di
+ * SMTP credentials (Secret Manager — set sekali sebelum deploy):
+ *   firebase functions:secrets:set SMTP_USER       (alamat Gmail pengirim)
+ *   firebase functions:secrets:set SMTP_PASSWORD   (App Password 16 digit)
+ * Opsional override via env (functions/.env): SMTP_FROM_NAME, APK_URL.
+ * App Password: aktifkan 2FA Gmail, lalu generate di
  * https://myaccount.google.com/apppasswords
  */
 
 import * as functions from 'firebase-functions/v1';
+import { defineSecret } from 'firebase-functions/params';
 const functionsRegion = functions.region('asia-southeast2');
+
+// SMTP credentials lewat Secret Manager (gantikan functions.config() yang
+// deprecated & dimatikan Maret 2027). Set sekali via:
+//   firebase functions:secrets:set SMTP_USER
+//   firebase functions:secrets:set SMTP_PASSWORD
+// Lalu di-bind ke onEmployeeCreated via .runWith({ secrets: [...] }) — saat
+// runtime nilainya muncul sebagai process.env.SMTP_USER / SMTP_PASSWORD.
+const smtpUser = defineSecret('SMTP_USER');
+const smtpPassword = defineSecret('SMTP_PASSWORD');
 
 import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
@@ -35,11 +47,11 @@ const messaging = admin.messaging();
 let _smtpTransporter: nodemailer.Transporter | null = null;
 function getSmtpTransporter(): nodemailer.Transporter | null {
   if (_smtpTransporter) return _smtpTransporter;
-  // SMTP dari functions.config() (smtp.user + smtp.password). Kalau belum
-  // diset, email onboarding di-skip — admin tetap bisa membagikan kredensial
-  // manual dari halaman detail karyawan (lihat tempPasswordPlain).
-  const user = functions.config().smtp?.user;
-  const pass = functions.config().smtp?.password;
+  // SMTP dari Secret Manager (di-inject sebagai env var saat runtime). Kalau
+  // belum diset, email onboarding di-skip — admin tetap bisa membagikan
+  // kredensial manual dari halaman detail karyawan (lihat tempPasswordPlain).
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
   if (!user || !pass) {
     console.warn('[smtp] kredensial belum diset — email onboarding di-skip');
     return null;
@@ -61,19 +73,58 @@ async function sendOnboardingEmail(opts: {
   employeeName: string;
   loginEmail: string;
   tempPassword: string;
+  contractType?: string;
+  contractMonths?: number;
+  joinDate?: string;
 }): Promise<boolean> {
   const transporter = getSmtpTransporter();
   if (!transporter) return false;
-  const cfg = functions.config();
-  const fromName = cfg.smtp?.from_name || 'JNE Martapura HR';
-  const fromAddr = cfg.smtp.user;
+  const fromName = process.env.SMTP_FROM_NAME || 'JNE Martapura HR';
+  const fromAddr = process.env.SMTP_USER;
   const apkUrl =
-    cfg.apk?.url ||
+    process.env.APK_URL ||
     'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
+  // Logo JNE (putih) di-host di Firebase Hosting admin. Ditaruh di atas band
+  // merah supaya kontras (logo-nya putih, kalau di latar putih tak kelihatan).
+  const logoUrl = 'https://admin-absensi-jne-mtp.web.app/jne-email-logo.png';
+
+  // ── Kartu status kepegawaian (hanya untuk kontrak/magang) ──
+  let contractBlock = '';
+  if (
+    (opts.contractType === 'contract' || opts.contractType === 'intern') &&
+    opts.contractMonths &&
+    opts.contractMonths > 0
+  ) {
+    const label = opts.contractType === 'intern' ? 'Magang' : 'Kontrak';
+    let endText = '';
+    if (opts.joinDate) {
+      const start = new Date(opts.joinDate);
+      if (!isNaN(start.getTime())) {
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + opts.contractMonths);
+        endText = end.toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+      }
+    }
+    contractBlock = `
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+        <p style="font-size:11px;font-weight:700;color:#c2410c;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 6px">Status Kepegawaian</p>
+        <p style="margin:0;font-size:14px;color:#0f172a"><strong>${label}</strong> · ${opts.contractMonths} bulan${
+          endText ? ` <span style="color:#64748b">(berakhir ${endText})</span>` : ''
+        }</p>
+      </div>`;
+  }
 
   const html = `
   <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;padding:24px;">
-    <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,.06)">
+    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.06)">
+      <div style="background:#E31E24;padding:28px 32px;text-align:center">
+        <img src="${logoUrl}" alt="JNE" width="180" style="display:inline-block;max-width:180px;height:auto" />
+      </div>
+      <div style="padding:32px">
       <h1 style="color:#E31E24;margin:0 0 8px;font-size:22px;letter-spacing:-0.5px">Selamat Datang di JNE Martapura</h1>
       <p style="color:#475569;font-size:14px;margin:0 0 24px">Halo <strong>${opts.employeeName}</strong>, akun Anda di sistem absensi JNE sudah aktif.</p>
 
@@ -82,6 +133,8 @@ async function sendOnboardingEmail(opts: {
         <p style="margin:0;font-size:14px;color:#0f172a"><strong>Email:</strong> ${opts.loginEmail}</p>
         <p style="margin:6px 0 0;font-size:14px;color:#0f172a"><strong>Password Sementara:</strong> <code style="background:#fef3c7;padding:3px 8px;border-radius:4px;font-family:monospace;font-size:14px">${opts.tempPassword}</code></p>
       </div>
+
+      ${contractBlock}
 
       <p style="color:#475569;font-size:13px;line-height:1.6;margin:0 0 20px">
         Saat login pertama, Anda akan diminta mengganti password. Setelah itu, lakukan registrasi wajah sebelum bisa melakukan absensi.
@@ -104,6 +157,7 @@ async function sendOnboardingEmail(opts: {
 
       <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0">
       <p style="color:#94a3b8;font-size:11px;margin:0">Email ini dikirim otomatis. Jika ada masalah, hubungi admin HR JNE Martapura.</p>
+      </div>
     </div>
   </div>`;
 
@@ -192,9 +246,9 @@ async function sendPushToUser(
 // ============================================================
 // 1. onEmployeeCreated — Create Auth account + notify admin when employee is added
 // ============================================================
-export const onEmployeeCreated = functionsRegion.firestore
-
-  .document('users/{userId}')
+export const onEmployeeCreated = functionsRegion
+  .runWith({ secrets: [smtpUser, smtpPassword] })
+  .firestore.document('users/{userId}')
   .onCreate(
     async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
       const data = snap.data();
@@ -239,6 +293,9 @@ export const onEmployeeCreated = functionsRegion.firestore
             employeeName: data.name,
             loginEmail: data.email,
             tempPassword,
+            contractType: data.contractType,
+            contractMonths: data.contractMonths,
+            joinDate: data.joinDate,
           });
           await snap.ref.update({ onboardingEmailSent: emailOk });
         }

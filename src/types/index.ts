@@ -87,6 +87,9 @@ export interface Employee {
   facePhotoUrl?: string;
   joinDate: string; // ISO date string
   contractType: 'permanent' | 'contract' | 'intern';
+  /** Durasi kontrak/magang dalam bulan. Hanya relevan saat contractType
+   *  'contract' | 'intern' — dipakai mobile untuk hitung tanggal berakhir. */
+  contractMonths?: number;
   isActive: boolean;
   firstLogin: boolean;
   allowRemoteAttendance: boolean;

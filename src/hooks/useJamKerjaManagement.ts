@@ -25,12 +25,14 @@ export const JAM_KERJA_COLORS = [
   '#DB2777', // Pink
 ];
 
+// Default sengaja kosong — admin mengisi jam masuk/keluar & hari kerja sendiri
+// tiap kali bikin skema baru (tidak ada lagi prefill 08:00–17:00 / Sen–Jum).
 export const defaultForm = {
   name: '',
-  checkInTime: '08:00',
-  checkOutTime: '17:00',
+  checkInTime: '',
+  checkOutTime: '',
   toleranceMinutes: 15,
-  workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as WorkDay[],
+  workingDays: [] as WorkDay[],
   color: '#E31E24',
   isActive: true,
 };
@@ -83,6 +85,14 @@ export function useJamKerjaManagement() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.checkInTime || !form.checkOutTime) {
+      toast.error('Isi jam masuk dan jam pulang terlebih dahulu');
+      return;
+    }
+    if (form.workingDays.length === 0) {
+      toast.error('Pilih minimal satu hari kerja');
+      return;
+    }
     setSaving(true);
     try {
       if (editingJamKerja) {
