@@ -362,6 +362,10 @@ export async function registerEmployee(
       firstLogin: true, // legacy flag (admin panel reads this)
       passwordChanged: false, // mobile app reads this — must be false on create
       // so the auto-bridge first-login path triggers
+      // Simpan password sementara supaya Cloud Function onEmployeeCreated bisa
+      // kirim ke email pribadi karyawan + admin bisa bagikan manual. Dibaca
+      // hanya admin & pemilik (rules), auto-hapus saat ganti password.
+      tempPasswordPlain: password,
       allowRemoteAttendance:
         employeeData.allowRemoteAttendance ??
         (employeeData.role === 'kurir' || employeeData.role === 'driver'),

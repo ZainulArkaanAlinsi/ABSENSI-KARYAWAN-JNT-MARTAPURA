@@ -206,53 +206,55 @@ export const onEmployeeCreated = functionsRegion.firestore
         return;
       }
 
-      // Idempotency: if uid already set, skip auth creation
-      if (data.uid) {
-        console.log(`onEmployeeCreated: user ${context.params.userId} already has uid, skipping`);
-        return;
-      }
-
       try {
-        // Password sementara: 12 byte random base64-url (16 char) — entropy
-        // ~96 bit. Math.random sebelumnya hanya ~40 bit dan tidak crypto-safe.
-        const tempPassword = crypto.randomBytes(12).toString('base64url');
+        // Dua jalur pembuatan karyawan:
+        //  (A) Panel "Tambah Karyawan" (registerEmployee) → akun Auth SUDAH
+        //      dibuat client-side & doc punya `uid` + `tempPasswordPlain` (password
+        //      yang diketik admin). Jangan bikin Auth lagi — cukup kirim email.
+        //  (B) Doc dibuat tanpa uid → buat akun Auth + password acak di sini.
+        let tempPassword: string | undefined;
 
-        const userRecord = await admin.auth().createUser({
-          uid: context.params.userId,
-          email: data.email,
-          password: tempPassword,
-          displayName: data.name,
-        });
+        if (data.uid) {
+          tempPassword = data.tempPasswordPlain; // dari registerEmployee
+        } else {
+          // Password sementara crypto-safe (~96 bit).
+          tempPassword = crypto.randomBytes(12).toString('base64url');
+          const userRecord = await admin.auth().createUser({
+            uid: context.params.userId,
+            email: data.email,
+            password: tempPassword,
+            displayName: data.name,
+          });
+          await snap.ref.update({ uid: userRecord.uid, tempPasswordPlain: tempPassword });
+        }
 
-        // Update Firestore with uid + simpan temp password supaya admin tetap
-        // bisa membagikan kredensial manual kalau email gagal / SMTP belum diset.
-        // Hanya admin & pemilik yang bisa baca (Firestore rules), dan field ini
-        // dihapus otomatis saat user mengganti password (onUserProfileUpdated).
-        await snap.ref.update({
-          uid: userRecord.uid,
-          tempPasswordPlain: tempPassword,
-        });
-
-        // Kirim email onboarding ke email pribadi (kalau ada) atau ke email
-        // login. Email pribadi dipakai supaya karyawan tetap bisa baca
-        // kredensial walaupun belum punya akses email JNE-nya.
+        // Kirim email onboarding (kredensial + link APK + cara install) ke email
+        // PRIBADI karyawan (kalau diisi) — jalur utama distribusi. Butuh SMTP
+        // di-set; kalau belum, sendOnboardingEmail return false (admin bagikan manual).
         const emailTo = data.personalEmail || data.email;
-        const emailOk = await sendOnboardingEmail({
-          to: emailTo,
-          employeeName: data.name,
-          loginEmail: data.email,
-          tempPassword,
-        });
-        await snap.ref.update({ onboardingEmailSent: emailOk });
+        let emailOk = false;
+        if (tempPassword) {
+          emailOk = await sendOnboardingEmail({
+            to: emailTo,
+            employeeName: data.name,
+            loginEmail: data.email,
+            tempPassword,
+          });
+          await snap.ref.update({ onboardingEmailSent: emailOk });
+        }
 
-        // Add admin notification — pesan menyesuaikan apakah email berhasil
+        // Notifikasi admin (kedua jalur).
         try {
           await db.collection('adminNotifications').add({
             type: 'new_employee',
             title: 'Karyawan Baru Ditambahkan',
             message: emailOk
-              ? `${data.name} (${data.email}) telah ditambahkan. Email kredensial sudah dikirim ke ${emailTo}.`
-              : `${data.name} (${data.email}) telah ditambahkan. Email gagal terkirim — share kredensial manual.`,
+              ? `${data.name} (${data.email}) ditambahkan. Email kredensial dikirim ke ${emailTo}.`
+              : `${data.name} (${data.email}) ditambahkan. ${
+                  tempPassword
+                    ? 'Email belum terkirim (cek SMTP) — bagikan kredensial manual.'
+                    : 'Bagikan kredensial manual.'
+                }`,
             employeeName: data.name,
             employeeId: data.employeeId || null,
             isRead: false,
@@ -262,9 +264,9 @@ export const onEmployeeCreated = functionsRegion.firestore
           console.error('Failed to write adminNotification:', notifError);
         }
 
-        console.log(`Employee created: ${data.name} (${data.email}) emailSent=${emailOk}`);
+        console.log(`Employee onboarded: ${data.name} (${data.email}) emailSent=${emailOk}`);
       } catch (error) {
-        console.error('Error creating employee auth account:', error);
+        console.error('Error in onEmployeeCreated:', error);
       }
     },
   );
