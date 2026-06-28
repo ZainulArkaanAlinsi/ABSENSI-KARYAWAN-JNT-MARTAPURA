@@ -24,7 +24,7 @@ export default function SettingsPage() {
 
   if (loading || !settings) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-3">
+      <div className="flex flex-col items-center justify-center gap-3 py-32">
         <PageLoader />
       </div>
     );
@@ -51,14 +51,14 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col lg:flex-row"
+        className="flex flex-col overflow-hidden bg-white border rounded-2xl border-slate-100 lg:flex-row"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', minHeight: 600 }}
       >
         <SettingsSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           tabs={TABS}
-          className="lg:w-72 border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/60"
+          className="border-b lg:w-72 lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/60"
         />
         <div className="flex-1 overflow-y-auto">
           <SettingsPanel
