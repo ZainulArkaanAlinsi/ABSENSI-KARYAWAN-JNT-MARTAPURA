@@ -12,6 +12,7 @@ import {
   orderBy,
   limit,
   serverTimestamp,
+  runTransaction,
   Timestamp,
   QueryConstraint,
   DocumentData,
@@ -141,6 +142,9 @@ function mapLeave(id: string, data: DocumentData): LeaveRequest {
     reviewedAt: toDate(data.reviewedAt),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
+    balanceApplied: data.balanceApplied ?? false,
+    balanceDays: data.balanceDays,
+    balanceField: data.balanceField,
   };
 }
 
@@ -493,6 +497,138 @@ export async function updateLeaveStatus(
 
 export async function deleteLeave(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTIONS.LEAVES, id));
+}
+
+// ============================================================
+// Saldo Cuti (leave_balances) — pemotongan otomatis saat approve
+// ============================================================
+// Map tipe pengajuan → field "terpakai" di leave_balances/{userId}.
+// Hanya `annual` (Cuti Tahunan) yang dibatasi kuota; sakit & izin tak dibatasi
+// tapi tetap dilacak supaya laporan "Terpakai (Cuti/Sakit)" akurat.
+function usedFieldForLeaveType(type: string): 'usedAnnual' | 'usedSick' | 'usedPermission' {
+  if (type === 'annual') return 'usedAnnual';
+  if (type === 'sick') return 'usedSick';
+  return 'usedPermission'; // permission | personal | urgent
+}
+
+export interface LeaveApproveResult {
+  ok: boolean;
+  error?: string;
+  remaining?: number;
+}
+
+/**
+ * Setujui pengajuan cuti + potong saldo secara ATOMIK (Firestore transaction).
+ *
+ * - Tipe `annual`: kalau sisa kuota < hari diminta → approve DITOLAK (ok:false,
+ *   error berisi sisa). Karyawan harus punya saldo cukup. INI yang bikin
+ *   "22 hari, ambil 3 → jadi 19".
+ * - Tipe lain (sakit/izin): tidak dibatasi, hanya dicatat pemakaiannya.
+ * - `balanceApplied` flag mencegah pemotongan dobel (mis. double-click / Cloud
+ *   Function ikut jalan).
+ */
+export async function approveLeave(
+  leave: { id: string; userId: string; type: string; totalDays?: number },
+  reviewedBy: string,
+): Promise<LeaveApproveResult> {
+  const days = Math.max(1, Math.round(leave.totalDays ?? 1));
+  const field = usedFieldForLeaveType(leave.type);
+  const leaveRef = doc(db, COLLECTIONS.LEAVES, leave.id);
+  const balRef = doc(db, 'leave_balances', leave.userId);
+
+  return await runTransaction(db, async (tx) => {
+    const leaveSnap = await tx.get(leaveRef);
+    if (!leaveSnap.exists()) return { ok: false, error: 'Pengajuan tidak ditemukan.' };
+    const lData = leaveSnap.data();
+
+    // Sudah pernah dipotong → cukup pastikan status approved, jangan potong lagi.
+    if (lData.balanceApplied) {
+      tx.update(leaveRef, {
+        status: 'approved',
+        reviewedBy,
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return { ok: true };
+    }
+
+    const balSnap = await tx.get(balRef);
+    const bal = balSnap.exists()
+      ? (balSnap.data() as Record<string, number>)
+      : { annualQuota: 12, usedAnnual: 0, usedSick: 0, usedPermission: 0 };
+    const annualQuota = bal.annualQuota ?? 12;
+    const used = bal[field] ?? 0;
+
+    if (leave.type === 'annual') {
+      const remaining = annualQuota - used;
+      if (days > remaining) {
+        return {
+          ok: false,
+          remaining,
+          error:
+            remaining <= 0
+              ? 'Saldo cuti tahunan karyawan ini sudah habis — tidak bisa disetujui.'
+              : `Saldo cuti tidak cukup. Sisa ${remaining} hari, diminta ${days} hari.`,
+        };
+      }
+    }
+
+    tx.set(
+      balRef,
+      {
+        annualQuota,
+        usedAnnual: bal.usedAnnual ?? 0,
+        usedSick: bal.usedSick ?? 0,
+        usedPermission: bal.usedPermission ?? 0,
+        [field]: used + days,
+        updatedAt: serverTimestamp(),
+        updatedBy: reviewedBy,
+      },
+      { merge: true },
+    );
+
+    tx.update(leaveRef, {
+      status: 'approved',
+      reviewedBy,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      balanceApplied: true,
+      balanceDays: days,
+      balanceField: field,
+    });
+
+    return {
+      ok: true,
+      remaining: leave.type === 'annual' ? annualQuota - used - days : undefined,
+    };
+  });
+}
+
+/**
+ * Kembalikan saldo saat pengajuan yang SUDAH dipotong dihapus/dibatalkan,
+ * supaya hari yang sempat terpakai tidak nyangkut. Aman dipanggil untuk semua
+ * pengajuan — kalau `balanceApplied` belum pernah true, langsung no-op.
+ */
+export async function refundLeaveBalance(leave: {
+  userId?: string;
+  balanceApplied?: boolean;
+  balanceDays?: number;
+  balanceField?: string;
+  type?: string;
+  totalDays?: number;
+}): Promise<void> {
+  if (!leave.balanceApplied || !leave.userId) return;
+  const field =
+    (leave.balanceField as 'usedAnnual' | 'usedSick' | 'usedPermission' | undefined) ??
+    usedFieldForLeaveType(leave.type ?? '');
+  const days = Math.max(1, Math.round(leave.balanceDays ?? leave.totalDays ?? 1));
+  const balRef = doc(db, 'leave_balances', leave.userId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(balRef);
+    if (!snap.exists()) return;
+    const cur = (snap.data()[field] as number) ?? 0;
+    tx.update(balRef, { [field]: Math.max(0, cur - days), updatedAt: serverTimestamp() });
+  });
 }
 
 export function subscribeToLeaves(

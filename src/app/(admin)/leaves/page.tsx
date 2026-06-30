@@ -33,6 +33,8 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { exportToCsv } from '@/utils/exportCsv';
+import { exportLeavePdf } from '@/utils/exportLeavePdf';
+import { approveLeave, refundLeaveBalance } from '@/lib/firestore';
 
 const TABS = [
   { key: 'pending', label: 'Menunggu' },
@@ -147,11 +149,56 @@ export default function LeavesPage() {
     };
   }, [scoped]);
 
+  const periodLabel = monthFilter === 'all' ? 'Semua Periode' : safeFormatDate(`${monthFilter}-01`, 'MMMM yyyy');
+
   const handleExportCsv = () => {
     if (scoped.length === 0) {
       toast.error('Tidak ada data untuk diekspor.');
       return;
     }
+    // Kelompokkan per tipe (cuti dulu, lalu sakit, lalu izin) supaya rapih di
+    // Excel — bukan campur aduk. Dalam tiap grup diurut tanggal mulai.
+    const order = ['annual', 'sick', 'permission', 'personal', 'urgent'];
+    const oi = (t: string) => (order.indexOf(t) === -1 ? 99 : order.indexOf(t));
+    const grouped = [...scoped].sort(
+      (a, b) =>
+        oi(a.type) - oi(b.type) ||
+        safeFormatDate(a.startDate, 'yyyy-MM-dd').localeCompare(
+          safeFormatDate(b.startDate, 'yyyy-MM-dd'),
+        ),
+    );
+
+    const approved = scoped.filter((l) => l.status === 'approved');
+    const sumDays = (ls: LeaveRequest[]) => ls.reduce((s, l) => s + (l.totalDays || 0), 0);
+    const cutiDays = sumDays(approved.filter((l) => l.type === 'annual'));
+    const sakitDays = sumDays(approved.filter((l) => l.type === 'sick'));
+    const izinDays = sumDays(approved.filter((l) => !['annual', 'sick'].includes(l.type)));
+
+    const dataRows = grouped.map((l) => [
+      safeFormatDate(l.createdAt, 'yyyy-MM-dd'),
+      l.employeeName,
+      l.employeeId,
+      LEAVE_TYPES[l.type] ?? l.type,
+      safeFormatDate(l.startDate, 'yyyy-MM-dd'),
+      safeFormatDate(l.endDate, 'yyyy-MM-dd'),
+      l.totalDays ?? '',
+      l.status,
+      l.reason ?? '',
+      l.reviewedBy ?? '',
+    ]);
+
+    // Blok rekap di bawah data — total digabung dari semua karyawan, dengan
+    // kolom Cuti & Sakit dipisah.
+    const summaryRows = [
+      [],
+      ['REKAP TERPAKAI (HANYA DISETUJUI)'],
+      ['Terpakai Cuti (hari)', cutiDays],
+      ['Terpakai Sakit (hari)', sakitDays],
+      ['Terpakai Izin (hari)', izinDays],
+      ['Total Hari Disetujui', cutiDays + sakitDays + izinDays],
+      ['Total Pengajuan', scoped.length],
+    ];
+
     exportToCsv(
       `Cuti_${monthFilter === 'all' ? 'semua' : monthFilter}`,
       [
@@ -166,20 +213,18 @@ export default function LeavesPage() {
         'Alasan',
         'Disetujui Oleh',
       ],
-      scoped.map((l) => [
-        safeFormatDate(l.createdAt, 'yyyy-MM-dd'),
-        l.employeeName,
-        l.employeeId,
-        LEAVE_TYPES[l.type] ?? l.type,
-        safeFormatDate(l.startDate, 'yyyy-MM-dd'),
-        safeFormatDate(l.endDate, 'yyyy-MM-dd'),
-        l.totalDays ?? '',
-        l.status,
-        l.reason ?? '',
-        l.reviewedBy ?? '',
-      ]),
+      [...dataRows, ...summaryRows],
     );
     toast.success(`${scoped.length} data cuti diekspor`);
+  };
+
+  const handleExportPdf = () => {
+    if (scoped.length === 0) {
+      toast.error('Tidak ada data untuk diekspor.');
+      return;
+    }
+    exportLeavePdf({ periodLabel, leaves: scoped });
+    toast.success('Menyiapkan PDF — pilih "Simpan sebagai PDF" di dialog cetak.');
   };
 
   const handleApprove = async (leave: LeaveRequest) => {
@@ -195,12 +240,15 @@ export default function LeavesPage() {
 
     setProcessing(leave.id);
     try {
-      await updateDoc(doc(db, 'leaves', leave.id), {
-        status: 'approved',
-        reviewedAt: serverTimestamp(),
-        reviewedBy: reviewerName,
-        updatedAt: serverTimestamp(),
-      });
+      // Potong saldo cuti secara atomik. Cuti tahunan diblok kalau saldo habis.
+      const res = await approveLeave(
+        { id: leave.id, userId: leave.userId, type: leave.type, totalDays: leave.totalDays },
+        reviewerName,
+      );
+      if (!res.ok) {
+        toast.error(res.error || 'Tidak bisa menyetujui pengajuan ini.');
+        return;
+      }
       // Notify user via userNotifications collection
       await addDoc(collection(db, 'userNotifications'), {
         userId: leave.userId,
@@ -211,7 +259,11 @@ export default function LeavesPage() {
         isRead: false,
         createdAt: serverTimestamp(),
       });
-      toast.success('Pengajuan cuti disetujui');
+      toast.success(
+        leave.type === 'annual' && res.remaining != null
+          ? `Cuti disetujui. Sisa saldo karyawan: ${res.remaining} hari.`
+          : 'Pengajuan disetujui',
+      );
     } catch (err) {
       console.error('Approve failed:', err);
       toast.error('Gagal menyetujui pengajuan.');
@@ -270,6 +322,8 @@ export default function LeavesPage() {
 
     setProcessing(leave.id);
     try {
+      // Kembalikan saldo kalau pengajuan ini sudah sempat memotong saldo.
+      await refundLeaveBalance(leave);
       await deleteDoc(doc(db, 'leaves', leave.id));
       toast.success('Pengajuan izin dihapus');
     } catch (err) {
@@ -364,6 +418,13 @@ export default function LeavesPage() {
           >
             <Download size={14} className="shrink-0" />
             Export CSV
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[12px] font-bold hover:bg-red-100 transition-all"
+          >
+            <FileText size={14} className="shrink-0" />
+            Export PDF
           </button>
           {/* Filter periode (history) */}
           <div className="flex items-center gap-2 h-10 px-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">

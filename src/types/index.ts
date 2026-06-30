@@ -182,6 +182,11 @@ export interface LeaveRequest {
   reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
+  // Jejak pemotongan saldo cuti — diisi saat approve (lihat approveLeave).
+  // Dipakai untuk mengembalikan saldo kalau pengajuan dihapus.
+  balanceApplied?: boolean;
+  balanceDays?: number;
+  balanceField?: string;
 }
 
 // ============================================================

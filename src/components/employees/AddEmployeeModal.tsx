@@ -13,10 +13,14 @@ import {
   ArrowRight,
   ShieldCheck,
   Satellite,
+  Trash2,
 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import type { JamKerja, DepartmentItem } from '@/types';
 import { useAddEmployeeLogic } from '@/hooks/useAddEmployeeLogic';
+import { deleteJamKerja } from '@/lib/firestore';
+import { useConfirm } from '@/context/ConfirmContext';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddEmployeeModalProps {
@@ -41,6 +45,30 @@ export default function AddEmployeeModal({
   departmentItems,
 }: AddEmployeeModalProps) {
   const { loading, success, form, handleChange, handleSubmit } = useAddEmployeeLogic(onClose);
+  const { confirm } = useConfirm();
+
+  // Hapus template skema jam kerja langsung dari modal (tanpa harus ke menu Jam
+  // Kerja). Daftar `jamKerjas` realtime dari parent jadi auto-refresh setelah
+  // delete. stopPropagation supaya klik trash tidak ikut memilih kartu.
+  const handleDeleteShift = async (e: React.MouseEvent, shift: JamKerja) => {
+    e.stopPropagation();
+    const ok = await confirm({
+      title: 'Hapus Template Jam Kerja',
+      message: `Hapus skema "${shift.name}"? Template ini akan hilang dari daftar.`,
+      variant: 'danger',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+    });
+    if (!ok) return;
+    try {
+      await deleteJamKerja(shift.id);
+      if (form.jamKerjaId === shift.id) handleChange('jamKerjaId', '');
+      toast.success('Template jam kerja dihapus');
+    } catch (err) {
+      console.error('Gagal hapus jam kerja:', err);
+      toast.error('Gagal menghapus template. Coba lagi.');
+    }
+  };
 
   const fieldStyle = {
     background: 'var(--surface-card)',
@@ -406,7 +434,7 @@ export default function AddEmployeeModal({
                       : undefined
                   }
                 >
-                  Pakai Template
+                  Pilih dari Skema
                 </button>
                 <button
                   type="button"
@@ -418,7 +446,7 @@ export default function AddEmployeeModal({
                       : undefined
                   }
                 >
-                  Atur Manual
+                  Atur Jam Sendiri
                 </button>
               </div>
 
@@ -457,65 +485,80 @@ export default function AddEmployeeModal({
                 </div>
               ) : jamKerjas.length === 0 ? (
                 <p className="text-[11px] ml-1" style={{ color: 'var(--text-dim)' }}>
-                  Belum ada template shift. Pakai <b>Custom Jam</b> di atas, atau buat dulu di menu
-                  Jam Kerja.
+                  Belum ada template skema. Pilih <b>Atur Jam Sendiri</b> di atas, atau buat skema
+                  dulu di menu Jam Kerja.
                 </p>
               ) : (
                 <div className="grid grid-cols-3 gap-4">
                   {jamKerjas.map((shift) => {
                     const isSelected = form.jamKerjaId === shift.id;
                     return (
-                      <button
-                        key={shift.id}
-                        type="button"
-                        onClick={() => handleChange('jamKerjaId', shift.id)}
-                        className={`p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                          isSelected
-                            ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5'
-                            : 'hover:scale-[1.01]'
-                        }`}
-                        style={
-                          !isSelected
-                            ? {
-                                borderColor: 'var(--border-card)',
-                                background: 'var(--surface-card)',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                      <div key={shift.id} className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => handleChange('jamKerjaId', shift.id)}
+                          className={`w-full p-5 rounded-3xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                            isSelected
+                              ? 'border-cyan-600 bg-cyan-600/5 shadow-md shadow-cyan-600/5'
+                              : 'hover:scale-[1.01]'
+                          }`}
+                          style={
+                            !isSelected
+                              ? {
+                                  borderColor: 'var(--border-card)',
+                                  background: 'var(--surface-card)',
+                                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                                }
+                              : undefined
+                          }
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
+                              style={
+                                !isSelected ? { background: 'var(--surface-hover)' } : undefined
                               }
-                            : undefined
-                        }
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}
-                            style={!isSelected ? { background: 'var(--surface-hover)' } : undefined}
-                          >
-                            <Clock size={16} />
+                            >
+                              <Clock size={16} />
+                            </div>
+                            <span
+                              className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
+                                shift.name.toLowerCase().includes('pagi')
+                                  ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                  : shift.name.toLowerCase().includes('sore')
+                                    ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                              }`}
+                            >
+                              {shift.name.split(' ')[0]}
+                            </span>
                           </div>
-                          <span
-                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
-                              shift.name.toLowerCase().includes('pagi')
-                                ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                : shift.name.toLowerCase().includes('sore')
-                                  ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                                  : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                            }`}
+                          <p
+                            className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
+                            style={!isSelected ? { color: 'var(--text-primary)' } : undefined}
                           >
-                            {shift.name.split(' ')[0]}
-                          </span>
-                        </div>
-                        <p
-                          className={`text-xs font-black uppercase italic ${isSelected ? 'text-cyan-600' : ''}`}
-                          style={!isSelected ? { color: 'var(--text-primary)' } : undefined}
+                            {shift.name}
+                          </p>
+                          <p
+                            className="text-[10px] font-bold mt-1 uppercase tracking-tighter"
+                            style={{ color: 'var(--text-dim)' }}
+                          >
+                            {shift.checkInTime} — {shift.checkOutTime}
+                          </p>
+                        </button>
+
+                        {/* Hapus template — muncul saat hover kartu */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteShift(e, shift)}
+                          title="Hapus template ini"
+                          className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center
+                                     bg-red-500 text-white shadow-lg shadow-red-500/30 opacity-0 group-hover:opacity-100
+                                     hover:bg-red-600 hover:scale-110 transition-all"
                         >
-                          {shift.name}
-                        </p>
-                        <p
-                          className="text-[10px] font-bold mt-1 uppercase tracking-tighter"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          {shift.checkInTime} — {shift.checkOutTime}
-                        </p>
-                      </button>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

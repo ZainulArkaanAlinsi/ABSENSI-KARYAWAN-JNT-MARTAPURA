@@ -202,6 +202,9 @@ async function sendPushToUser(
     body: string;
     data?: Record<string, string>;
     channelId?: string;
+    // Warna aksen notifikasi Android (mis. hijau utk disetujui, merah utk
+    // ditolak). Mewarnai ikon kecil + judul di sebagian device.
+    color?: string;
   },
 ): Promise<number> {
   const snap = await db.collection('fcm_tokens').where('userId', '==', userId).get();
@@ -219,6 +222,7 @@ async function sendPushToUser(
       notification: {
         channelId: payload.channelId ?? 'high_importance_channel',
         sound: 'default',
+        ...(payload.color ? { color: payload.color } : {}),
       },
     },
   });
@@ -357,6 +361,7 @@ export const onLeaveStatusUpdate = functionsRegion.firestore
       await sendPushToUser(after.userId, {
         title,
         body,
+        color: after.status === 'approved' ? '#10B981' : '#E31E24',
         data: {
           type: 'leave_status',
           leaveId: change.after.id,
@@ -426,8 +431,9 @@ export const onAttendanceCreated = functionsRegion.firestore
 // ============================================================
 // 2c. onUserProfileUpdated — Tell mobile when admin changes their account
 // ============================================================
-export const onUserProfileUpdated = functionsRegion.firestore
-  .document('users/{userId}')
+export const onUserProfileUpdated = functionsRegion
+  .runWith({ secrets: [smtpUser, smtpPassword] })
+  .firestore.document('users/{userId}')
   .onUpdate(
     async (
       change: functions.Change<functions.firestore.QueryDocumentSnapshot>,
@@ -436,6 +442,37 @@ export const onUserProfileUpdated = functionsRegion.firestore
       const before = change.before.data();
       const after = change.after.data();
       if (!before || !after) return;
+
+      // Kirim ULANG email onboarding kalau admin menekan tombol "Kirim Ulang
+      // Email" (admin meng-update field resendOnboardingAt ke timestamp baru).
+      // Pakai tempPasswordPlain yang masih tersimpan (otomatis hilang setelah
+      // karyawan ganti password). Berguna untuk karyawan yang sudah terlanjur
+      // dibuat sebelum SMTP aktif.
+      const resendBefore = before.resendOnboardingAt?.toMillis?.() ?? before.resendOnboardingAt;
+      const resendAfter = after.resendOnboardingAt?.toMillis?.() ?? after.resendOnboardingAt;
+      if (resendAfter && String(resendAfter) !== String(resendBefore ?? '')) {
+        const emailTo = after.personalEmail || after.email;
+        if (after.tempPasswordPlain && emailTo) {
+          const ok = await sendOnboardingEmail({
+            to: emailTo,
+            employeeName: after.name,
+            loginEmail: after.email,
+            tempPassword: after.tempPasswordPlain,
+            contractType: after.contractType,
+            contractMonths: after.contractMonths,
+            joinDate: after.joinDate,
+          });
+          try {
+            await change.after.ref.update({ onboardingEmailSent: ok });
+          } catch (e) {
+            console.error('Failed to update onboardingEmailSent on resend:', e);
+          }
+          console.log(`[resend] onboarding email ke ${emailTo} ok=${ok}`);
+        } else {
+          console.warn('[resend] dilewati — tempPasswordPlain/email kosong');
+        }
+        return; // jangan lanjut ke notifikasi perubahan profil
+      }
 
       // Keamanan: hapus temp password begitu user sudah mengganti password.
       if (after.passwordChanged && after.tempPasswordPlain) {
@@ -652,6 +689,7 @@ export const onOvertimeStatusUpdate = functionsRegion.firestore
       await sendPushToUser(after.userId, {
         title,
         body,
+        color: isApproved ? '#10B981' : '#E31E24', // hijau disetujui / merah ditolak
         data: {
           type: 'overtime_status',
           overtimeId: change.after.id,
@@ -679,5 +717,54 @@ export const onOvertimeStatusUpdate = functionsRegion.firestore
       );
     } catch (error) {
       console.error('Error sending overtime FCM:', error);
+    }
+  });
+
+// ============================================================
+// 7. onMessageCreated — Push FCM ke karyawan saat ADMIN kirim chat
+//    (pesan dari admin muncul di HP karyawan seperti notifikasi).
+//    Pesan karyawan→admin tidak dipush (admin pakai web + badge realtime).
+// ============================================================
+export const onMessageCreated = functionsRegion.firestore
+  .document('messages/{messageId}')
+  .onCreate(async (snap: functions.firestore.QueryDocumentSnapshot) => {
+    const data = snap.data();
+    if (!data) return;
+    const receiverId = data.receiverId as string | undefined;
+    if (!receiverId) return;
+    if (data.senderRole !== 'admin') return; // hanya admin→karyawan
+
+    try {
+      const senderName = (data.senderName as string) || 'Admin HR';
+      const text = (data.text as string) || 'Pesan baru';
+      const preview = text.length > 120 ? `${text.slice(0, 117)}...` : text;
+      await sendPushToUser(receiverId, {
+        title: `Pesan dari ${senderName}`,
+        body: preview,
+        data: {
+          type: 'chat_message',
+          chatId: String(data.chatId || receiverId),
+          senderId: String(data.senderId || ''),
+          screen: 'chat',
+        },
+      });
+
+      // Mirror ke userNotifications supaya badge "belum dibaca" di HP karyawan
+      // ikut nyala walau push senyap, dan pesannya tersimpan di daftar notifikasi.
+      try {
+        await db.collection('userNotifications').add({
+          userId: receiverId,
+          type: 'chat_message',
+          title: `Pesan dari ${senderName}`,
+          message: preview,
+          isRead: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          relatedId: String(data.chatId || receiverId),
+        });
+      } catch (mirrorError) {
+        console.error('Failed to mirror chat notification:', mirrorError);
+      }
+    } catch (error) {
+      console.error('Error sending chat FCM:', error);
     }
   });

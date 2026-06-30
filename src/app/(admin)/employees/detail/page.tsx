@@ -4,7 +4,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { doc, collection, query, where, limit, orderBy } from 'firebase/firestore';
+import {
+  doc,
+  collection,
+  query,
+  where,
+  limit,
+  orderBy,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { listen } from '@/lib/firestoreListener';
 import { COLLECTIONS } from '@/lib/firestore';
 import {
@@ -157,6 +166,25 @@ export default function EmployeeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<{ url: string; label: string; date: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  // Kirim ulang email onboarding: cukup set timestamp baru di doc user —
+  // Cloud Function onUserProfileUpdated yang mengirim ulang via SMTP. Hanya
+  // berfungsi selama password sementara masih ada (sebelum karyawan ganti).
+  const handleResendEmail = async () => {
+    if (!uid) return;
+    setResending(true);
+    try {
+      await updateDoc(doc(db, COLLECTIONS.USERS, uid), { resendOnboardingAt: serverTimestamp() });
+      setResent(true);
+      setTimeout(() => setResent(false), 5000);
+    } catch (e) {
+      console.error('Resend onboarding email failed:', e);
+    } finally {
+      setResending(false);
+    }
+  };
 
   useEffect(() => {
     if (!uid) return;
@@ -382,6 +410,27 @@ export default function EmployeeDetailPage() {
                     <span className="text-[10px] font-medium opacity-80">(pilih kontak)</span>
                   )}
                 </a>
+
+                {/* Kirim ulang email onboarding (butuh SMTP aktif & email pribadi terisi) */}
+                {employee.personalEmail && (
+                  <button
+                    onClick={handleResendEmail}
+                    disabled={resending || resent}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[#E31E24] text-white text-[12px] font-bold hover:bg-[#c5161b] transition-colors disabled:opacity-60"
+                  >
+                    {resending ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Mail size={15} />
+                    )}
+                    {resent ? 'Email Dikirim Ulang ✓' : 'Kirim Ulang Email'}
+                  </button>
+                )}
+                {employee.personalEmail && (
+                  <p className="text-[10px] text-amber-700/70 text-center -mt-0.5">
+                    Tujuan: {employee.personalEmail}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -488,6 +537,31 @@ export default function EmployeeDetailPage() {
                   </span>
                 )}
               </div>
+
+              {/* Foto wajah hasil enrollment (dari mobile) — bisa diklik perbesar */}
+              {employee.faceRegistered && employee.facePhotoUrl && (
+                <button
+                  onClick={() =>
+                    setPreview({
+                      url: employee.facePhotoUrl!,
+                      label: 'Foto Wajah Terdaftar',
+                      date: '',
+                    })
+                  }
+                  className="mt-3 w-full flex items-center gap-3 rounded-xl border border-slate-100 p-2 hover:bg-slate-50 transition-colors"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={employee.facePhotoUrl}
+                    alt="Wajah terdaftar"
+                    className="w-14 h-14 rounded-lg object-cover border border-slate-200"
+                  />
+                  <div className="text-left">
+                    <p className="text-[11px] font-bold text-slate-700">Foto Wajah Terdaftar</p>
+                    <p className="text-[10px] text-slate-400">Ketuk untuk perbesar</p>
+                  </div>
+                </button>
+              )}
             </motion.div>
 
             <motion.div

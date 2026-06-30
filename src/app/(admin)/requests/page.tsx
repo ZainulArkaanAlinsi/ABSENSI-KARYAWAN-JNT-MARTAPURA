@@ -6,6 +6,8 @@ import {
   subscribeToOvertimes,
   updateLeaveStatus,
   updateOvertimeStatus,
+  approveLeave,
+  refundLeaveBalance,
 } from '@/lib/firestore';
 import { db } from '@/lib/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -468,7 +470,25 @@ export default function RequestCenterPage() {
       // onOvertimeStatusUpdate) — jadi tidak perlu tulis notifikasi manual.
       const reviewer = user?.name ?? 'Admin';
       if (selectedReq.source === 'leave') {
-        await updateLeaveStatus(selectedReq.id!, status, reviewer, reason || undefined);
+        if (status === 'approved') {
+          // Approve cuti = potong saldo (cuti tahunan diblok kalau habis).
+          const res = await approveLeave(
+            {
+              id: selectedReq.id!,
+              userId: String(selectedReq.userId ?? ''),
+              type: String(selectedReq.type ?? ''),
+              totalDays: Number(selectedReq.totalDays ?? 1),
+            },
+            reviewer,
+          );
+          if (!res.ok) {
+            setAllRequests(prev);
+            toast.error(res.error || 'Tidak bisa menyetujui pengajuan ini.');
+            return;
+          }
+        } else {
+          await updateLeaveStatus(selectedReq.id!, status, reviewer, reason || undefined);
+        }
       } else {
         await updateOvertimeStatus(selectedReq.id!, status, reviewer, reason || undefined);
       }
@@ -495,6 +515,17 @@ export default function RequestCenterPage() {
     const prev = [...allRequests];
     setAllRequests((p) => p.filter((r) => r.id !== req.id));
     try {
+      // Kalau pengajuan cuti ini sempat memotong saldo, kembalikan dulu.
+      if (req.source === 'leave') {
+        await refundLeaveBalance({
+          userId: String(req.userId ?? ''),
+          balanceApplied: Boolean(req.balanceApplied),
+          balanceDays: Number(req.balanceDays ?? 0) || undefined,
+          balanceField: typeof req.balanceField === 'string' ? req.balanceField : undefined,
+          type: typeof req.type === 'string' ? req.type : undefined,
+          totalDays: Number(req.totalDays ?? 0) || undefined,
+        });
+      }
       await deleteDoc(doc(db, req.source === 'leave' ? 'leaves' : 'overtime', req.id));
       toast.success('Permintaan dihapus');
     } catch (e) {
