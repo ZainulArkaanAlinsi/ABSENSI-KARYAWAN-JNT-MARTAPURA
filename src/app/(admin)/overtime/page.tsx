@@ -47,8 +47,13 @@ export default function OvertimePage() {
     setShowRejectModal,
     rejectReason,
     setRejectReason,
+    showApproveModal,
+    setShowApproveModal,
+    approveHours,
+    setApproveHours,
     processing,
     handleApprove,
+    handleApproveSubmit,
     handleRejectSubmit,
     handleDelete,
     openReject,
@@ -450,6 +455,74 @@ export default function OvertimePage() {
                 <Loader2 size={14} className="animate-spin mx-auto" />
               ) : (
                 'Konfirmasi Tolak'
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── APPROVE MODAL — admin MENETAPKAN jam lembur ── */}
+      <Modal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        title="Setujui Lembur — Tetapkan Jam"
+        maxWidth={480}
+      >
+        <div className="flex flex-col gap-4 pt-2">
+          <p className="text-[12px] text-slate-500">
+            Tetapkan <span className="font-bold text-slate-800">jumlah jam lembur resmi</span> untuk{' '}
+            <span className="font-bold text-slate-800">{selectedOvertime?.employeeName}</span>. Jam
+            ditentukan admin/atasan — bukan karyawan.
+          </p>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+              Jam Lembur
+            </label>
+            <div className="mt-1.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setApproveHours(Math.max(1, approveHours - 1))}
+                className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 text-lg font-bold"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={12}
+                value={approveHours}
+                onChange={(e) =>
+                  setApproveHours(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))
+                }
+                className="h-10 w-20 text-center rounded-xl border border-slate-200 bg-slate-50 text-[15px] font-bold text-slate-800 outline-none focus:border-emerald-400 focus:bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => setApproveHours(Math.min(12, approveHours + 1))}
+                className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 text-lg font-bold"
+              >
+                +
+              </button>
+              <span className="text-[13px] text-slate-500">jam</span>
+            </div>
+          </div>
+          <div className="flex gap-2.5">
+            <button
+              onClick={() => setShowApproveModal(false)}
+              className="flex-1 h-10 rounded-xl bg-slate-100 text-slate-600 text-[12px] font-bold"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleApproveSubmit}
+              disabled={approveHours <= 0 || !!processing}
+              className="flex-1 h-10 rounded-xl text-white text-[12px] font-bold disabled:opacity-50"
+              style={{ background: '#10B981' }}
+            >
+              {processing ? (
+                <Loader2 size={14} className="animate-spin mx-auto" />
+              ) : (
+                `Setujui ${approveHours} Jam`
               )}
             </button>
           </div>

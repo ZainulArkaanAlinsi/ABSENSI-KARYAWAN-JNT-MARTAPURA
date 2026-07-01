@@ -679,17 +679,24 @@ export async function updateOvertimeStatus(
   status: OvertimeStatus,
   reviewedBy: string,
   rejectionReason?: string,
+  hours?: number, // jam lembur DITENTUKAN admin saat approve (bukan karyawan)
 ): Promise<void> {
   await fortressRetry(
     async () => {
-      await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), {
+      const patch: Record<string, unknown> = {
         status,
         reviewedBy,
         rejectionReason: rejectionReason || null,
         adminReason: rejectionReason || null,
         reviewedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
+      // Saat menyetujui, admin menetapkan jam resmi lembur.
+      if (status === 'approved' && typeof hours === 'number' && hours > 0) {
+        patch.overtimeHours = hours;
+        patch.overtimeMinutes = hours * 60;
+      }
+      await updateDoc(doc(db, COLLECTIONS.OVERTIME, id), patch);
     },
     { taskName: `Update Overtime Status ${id}` },
   );

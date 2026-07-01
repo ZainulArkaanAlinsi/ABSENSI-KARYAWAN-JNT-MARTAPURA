@@ -27,6 +27,8 @@ export function useOvertimeManagement() {
   const [selectedOvertime, setSelectedOvertime] = useState<OvertimeRequest | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveHours, setApproveHours] = useState(1);
   const [processing, setProcessing] = useState<string | null>(null);
 
   // Subscribe SEMUA sekali → filter status & periode client-side (untuk recap).
@@ -66,20 +68,27 @@ export function useOvertimeManagement() {
     };
   }, [scoped]);
 
-  const handleApprove = async (ot: OvertimeRequest) => {
-    const ok = await confirm({
-      title: 'Setujui Lembur',
-      message: `Setujui pengajuan lembur ${ot.overtimeHours} jam dari ${ot.employeeName}?`,
-      variant: 'info',
-      confirmLabel: 'Setujui',
-      cancelLabel: 'Batal',
-    });
-    if (!ok) return;
+  // Buka modal agar admin MENETAPKAN jam lembur resmi (bukan karyawan).
+  const handleApprove = (ot: OvertimeRequest) => {
+    setSelectedOvertime(ot);
+    setApproveHours(ot.overtimeHours && ot.overtimeHours > 0 ? ot.overtimeHours : 1);
+    setShowApproveModal(true);
+  };
 
-    setProcessing(ot.id);
+  const handleApproveSubmit = async () => {
+    if (!selectedOvertime || approveHours <= 0) return;
+    setProcessing(selectedOvertime.id);
     try {
-      await updateOvertimeStatus(ot.id, 'approved', user?.name || 'Admin');
-      toast.success('Pengajuan lembur disetujui');
+      await updateOvertimeStatus(
+        selectedOvertime.id,
+        'approved',
+        user?.name || 'Admin',
+        undefined,
+        approveHours,
+      );
+      setShowApproveModal(false);
+      setSelectedOvertime(null);
+      toast.success(`Lembur disetujui — ${approveHours} jam`);
     } catch (e) {
       console.error('Approve overtime failed:', e);
       toast.error('Gagal menyetujui pengajuan.');
@@ -154,8 +163,13 @@ export function useOvertimeManagement() {
     setShowRejectModal,
     rejectReason,
     setRejectReason,
+    showApproveModal,
+    setShowApproveModal,
+    approveHours,
+    setApproveHours,
     processing,
     handleApprove,
+    handleApproveSubmit,
     handleRejectSubmit,
     handleDelete,
     openReject,
