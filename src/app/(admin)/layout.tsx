@@ -5,12 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { useAdminFCM } from '@/hooks/useAdminFCM';
+import { useAdminPresence } from '@/hooks/useAdminPresence';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Loader2 } from 'lucide-react';
 
 /** Komponen kecil yang memanggil hook FCM — harus berada di dalam NotificationProvider */
 function AdminFCMInit() {
   useAdminFCM();
+  return null;
+}
+
+/** Tulis presence admin di SEMUA halaman (buka website = online untuk karyawan). */
+function AdminPresenceInit() {
+  useAdminPresence();
   return null;
 }
 
@@ -49,6 +56,7 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
   return (
     <NotificationProvider>
       <AdminFCMInit />
+      <AdminPresenceInit />
       <AdminLayout>{children}</AdminLayout>
     </NotificationProvider>
   );
