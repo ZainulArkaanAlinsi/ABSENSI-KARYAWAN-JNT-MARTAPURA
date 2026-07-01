@@ -213,12 +213,14 @@ export default function EmployeeDetailPage() {
   }, [uid]);
 
   const stats = useMemo(() => {
-    if (!attendance.length) return { rate: 0, late: 0 };
+    if (!attendance.length) return { rate: 0, late: 0, absent: 0, leave: 0 };
     const present = attendance.filter((r) =>
       ['present', 'late', 'overtime'].includes(r.status),
     ).length;
     const late = attendance.filter((r) => r.status === 'late').length;
-    return { rate: Math.round((present / attendance.length) * 100), late };
+    const absent = attendance.filter((r) => r.status === 'absent').length;
+    const leave = attendance.filter((r) => r.status === 'leave').length;
+    return { rate: Math.round((present / attendance.length) * 100), late, absent, leave };
   }, [attendance]);
 
   if (loading) {
@@ -328,6 +330,18 @@ export default function EmployeeDetailPage() {
                   Telat
                 </p>
                 <p className="text-[22px] font-black text-amber-600 mt-0.5">{stats.late}x</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl py-3 text-center border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Absen
+                </p>
+                <p className="text-[22px] font-black text-red-500 mt-0.5">{stats.absent}x</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl py-3 text-center border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Izin/Cuti
+                </p>
+                <p className="text-[22px] font-black text-slate-600 mt-0.5">{stats.leave}x</p>
               </div>
             </div>
           </motion.div>

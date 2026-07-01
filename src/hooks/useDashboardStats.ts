@@ -201,15 +201,10 @@ export function useDashboardStats() {
             });
             unsubs.push(unsubHeartbeat);
 
-            const sosQuery = query(collection(db, 'sos_alerts'), where('status', '==', 'active'));
-
-            const unsubSos = listen(sosQuery, (sosSnap) => {
-              const activeSos = sosSnap.docs.map((d) => ({ id: d.id, ...d.data(), type: 'SOS' }));
-              sosAlertsRef.current = activeSos;
-              setSosAlerts(activeSos);
-              recomputePending();
-            });
-            unsubs.push(unsubSos);
+            // SOS sudah dihapus dari aplikasi karyawan — tidak lagi memantau
+            // koleksi sos_alerts. Daftar alert SOS di dashboard dikosongkan.
+            sosAlertsRef.current = [];
+            setSosAlerts([]);
 
             const attQuery = query(
               collection(db, COLLECTIONS.ATTENDANCE),
