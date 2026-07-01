@@ -33,6 +33,12 @@ const functionsRegion = functions.region('asia-southeast2');
 // runtime nilainya muncul sebagai process.env.SMTP_USER / SMTP_PASSWORD.
 const smtpUser = defineSecret('SMTP_USER');
 const smtpPassword = defineSecret('SMTP_PASSWORD');
+// Resend (transactional email API) — JALUR UTAMA pengiriman email onboarding.
+// Set: firebase functions:secrets:set RESEND_API_KEY  (format re_...).
+// Sender default onboarding@resend.dev hanya bisa kirim ke email pemilik akun
+// Resend; untuk kirim ke email karyawan lain, verifikasi domain di Resend lalu
+// set RESEND_FROM (functions/.env), mis. "JNE Martapura HR <hr@domainmu.com>".
+const resendApiKey = defineSecret('RESEND_API_KEY');
 
 import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
@@ -63,6 +69,43 @@ function getSmtpTransporter(): nodemailer.Transporter | null {
   return _smtpTransporter;
 }
 
+// ── Resend (transactional email API via HTTPS). Tanpa dependency tambahan —
+// Node 22 punya global fetch. Return true kalau email berhasil terkirim. ──
+async function sendViaResend(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return false;
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: opts.from,
+        to: [opts.to],
+        subject: opts.subject,
+        html: opts.html,
+      }),
+    });
+    if (res.ok) {
+      console.log(`[resend-api] onboarding email terkirim ke ${opts.to}`);
+      return true;
+    }
+    const errText = await res.text();
+    console.error(`[resend-api] gagal (${res.status}): ${errText}`);
+    return false;
+  } catch (err) {
+    console.error('[resend-api] error:', err);
+    return false;
+  }
+}
+
 /**
  * Kirim email onboarding berisi kredensial login + link APK ke karyawan baru.
  * Dipanggil dari onEmployeeCreated. Tidak melempar error — kalau gagal,
@@ -77,10 +120,7 @@ async function sendOnboardingEmail(opts: {
   contractMonths?: number;
   joinDate?: string;
 }): Promise<boolean> {
-  const transporter = getSmtpTransporter();
-  if (!transporter) return false;
   const fromName = process.env.SMTP_FROM_NAME || 'JNE Martapura HR';
-  const fromAddr = process.env.SMTP_USER;
   const apkUrl =
     process.env.APK_URL ||
     'https://storage.googleapis.com/admin-absensi-jne-mtp.firebasestorage.app/public/app-jne-absensi.apk';
@@ -161,11 +201,25 @@ async function sendOnboardingEmail(opts: {
     </div>
   </div>`;
 
+  const subject = 'Akun JNE Martapura Anda Sudah Aktif';
+
+  // ── Jalur 1 (utama): Resend API ──
+  const resendFrom = process.env.RESEND_FROM || `${fromName} <onboarding@resend.dev>`;
+  if (await sendViaResend({ from: resendFrom, to: opts.to, subject, html })) {
+    return true;
+  }
+
+  // ── Jalur 2 (fallback): Gmail SMTP via Nodemailer ──
+  const transporter = getSmtpTransporter();
+  if (!transporter) {
+    console.warn('[email] Resend & SMTP dua-duanya belum siap — email di-skip');
+    return false;
+  }
   try {
     await transporter.sendMail({
-      from: `"${fromName}" <${fromAddr}>`,
+      from: `"${fromName}" <${process.env.SMTP_USER}>`,
       to: opts.to,
-      subject: 'Akun JNE Martapura Anda Sudah Aktif',
+      subject,
       html,
     });
     console.log(`[smtp] onboarding email terkirim ke ${opts.to}`);
@@ -251,7 +305,7 @@ async function sendPushToUser(
 // 1. onEmployeeCreated — Create Auth account + notify admin when employee is added
 // ============================================================
 export const onEmployeeCreated = functionsRegion
-  .runWith({ secrets: [smtpUser, smtpPassword] })
+  .runWith({ secrets: [smtpUser, smtpPassword, resendApiKey] })
   .firestore.document('users/{userId}')
   .onCreate(
     async (snap: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
@@ -432,7 +486,7 @@ export const onAttendanceCreated = functionsRegion.firestore
 // 2c. onUserProfileUpdated — Tell mobile when admin changes their account
 // ============================================================
 export const onUserProfileUpdated = functionsRegion
-  .runWith({ secrets: [smtpUser, smtpPassword] })
+  .runWith({ secrets: [smtpUser, smtpPassword, resendApiKey] })
   .firestore.document('users/{userId}')
   .onUpdate(
     async (
